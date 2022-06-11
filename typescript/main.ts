@@ -1,4 +1,5 @@
 import {Boot, newAudioContext, preloadImagesOfCssFile} from "./lib/boot.js"
+import {HTML} from "./lib/dom.js"
 
 const showProgress = (() => {
     const progress: SVGSVGElement = document.querySelector("svg.preloader")
@@ -20,7 +21,14 @@ const showProgress = (() => {
 
     // --- BOOT ENDS ---
 
-    document.querySelectorAll('.step-button')
+    window.addEventListener('keydown', (event: KeyboardEvent) => {
+        if(event.code === 'Space') {
+            const device: HTMLElement = HTML.query('.tr-909')
+            device.classList.toggle('hide-template')
+        }
+    })
+
+    document.querySelectorAll('button.switch.step')
         .forEach((button: Element, index: number) => {
             button.addEventListener('click', () => button.classList.toggle('active'))
             button.classList.toggle('active', index % 4 === 0)

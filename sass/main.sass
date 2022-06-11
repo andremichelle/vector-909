@@ -14,3 +14,30 @@ main
     position: relative
     background-image: url("../images/panel.png")
     image-rendering: pixelated
+
+    &.hide-template
+      background-color: #dad8d5
+      background-image: none
+
+    > button.trigger.cartridge
+      top: 423px
+      left: 950px
+
+    > div.step-button-group
+      top: 568px
+      left: 181px
+      position: absolute
+      display: grid
+      grid-template-columns: repeat(16, 48px)
+      grid-template-rows: 16px 48px
+      column-gap: 10.25px
+      align-items: end
+      justify-items: center
+
+      span
+        bottom: 4px
+        color: #686c72
+        font-size: 9px
+        font-weight: 600
+        line-height: 10px
+        position: relative
