@@ -25,6 +25,7 @@ const showProgress = (() => {
         if(event.code === 'Space') {
             const device: HTMLElement = HTML.query('.tr-909')
             device.classList.toggle('hide-template')
+            event.preventDefault()
         }
     })
 
