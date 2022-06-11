@@ -1,0 +1,59 @@
+$color-top: #bebbb6
+$color-right: #a7a39d
+$color-bottom: #6d6862
+$color-left: #a7a39d
+
+div.step-button-group
+  position: absolute
+  display: grid
+  grid-template-columns: repeat(16, 48px)
+  column-gap: 10.25px
+
+  > button.step-button
+    width: 48px
+    height: 48px
+    background: conic-gradient(at 24px 22px, $color-top 0deg 40deg, $color-right 50deg 132deg, $color-bottom 138deg 222deg, $color-left 228deg 310deg, $color-top 320deg)
+    position: relative
+    appearance: none
+    box-shadow: 0 0 1px 2px rgba(black, 0.8) inset, 0 -1px 2px 0 white, 0 2px 2px 0 rgba(black, 0.4)
+
+    &:active
+      transition: all 50ms linear
+      box-shadow: 0 0 3px 2px black inset, 0 -1px 2px 0 white, 0 2px 2px 0 rgba(black, 0.4)
+
+      &:before
+        top: 6.5px
+        left: 8.5px
+        width: 31px
+        height: 31px
+
+      &:after
+        top: 7.5px
+        left: 17px
+
+    &.active:after
+      background-color: #ee3b2e
+      box-shadow: 0 0 0.5px 0.5px rgba(black, 0.2) inset, 0 1px 0.5px 0 rgba(white, 0.3), 0 -0.5px 4px 0.5px lighten(#ee3b2e, 25)
+
+    &:before
+      content: ''
+      top: 6px
+      left: 8px
+      width: 32px
+      height: 32px
+      border-radius: 4px
+      background: linear-gradient(#9f9d98, #a6a4a1)
+      position: absolute
+      box-shadow: 0 0 2px 0 rgba(white, 0.2), 0 0 2px 0 rgba(white, 0.2) inset, 0 1px 1px 0 rgba(black, 0.1) inset
+
+    &:after
+      content: ''
+      top: 7px
+      left: 17px
+      width: 14px
+      height: 6px
+      position: absolute
+      border-radius: 1px
+      background-color: #4c3b3b
+      transition: all 50ms linear
+      box-shadow: 0 0 0.5px 1px rgba(black, 0.2) inset, 0 1px 0.5px 0 rgba(white, 0.4)
