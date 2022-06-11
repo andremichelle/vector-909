@@ -1,7 +1,5 @@
 import {Boot, newAudioContext, preloadImagesOfCssFile} from "./lib/boot.js"
-import {LimiterWorklet} from "./audio/limiter/worklet.js"
-import {MeterWorklet} from "./audio/meter/worklet.js"
-import {MetronomeWorklet} from "./audio/metronome/worklet.js"
+import {HTML} from "./lib/dom.js"
 
 const showProgress = (() => {
     const progress: SVGSVGElement = document.querySelector("svg.preloader")
@@ -19,23 +17,13 @@ const showProgress = (() => {
     boot.addObserver(boot => showProgress(boot.normalizedPercentage()))
     boot.registerProcess(preloadImagesOfCssFile("./bin/main.css"))
     const context = newAudioContext()
-    boot.registerProcess(LimiterWorklet.loadModule(context))
-    boot.registerProcess(MeterWorklet.loadModule(context))
-    boot.registerProcess(MetronomeWorklet.loadModule(context))
     await boot.waitForCompletion()
 
     // --- BOOT ENDS ---
-    const frame = () => {
-        document.querySelector(".center").textContent = `
-            menubar.visible: ${window.menubar.visible}\n
-            devicePixelRatio: ${window.devicePixelRatio}\n
-            screenTop: ${window.screenTop}, screenLeft: ${window.screenLeft}\n
-            iw: ${window.innerWidth}, ih: ${window.innerHeight}\n
-            saw: ${window.screen.availWidth}, sah: ${window.screen.availHeight}\n
-            sw: ${window.screen.width}, sh: ${window.screen.height}`
-        requestAnimationFrame(frame)
-    }
-    frame()
+
+    document.querySelectorAll('div.step-button')
+        .forEach(button => button.addEventListener('click',
+            () => button.classList.toggle('active')))
 
     // prevent dragging entire document on mobile
     document.addEventListener('touchmove', (event: TouchEvent) => event.preventDefault(), {passive: false})

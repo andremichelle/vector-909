@@ -1,19 +1,77 @@
 @import common
 @import inputs
 
-// test grid. can be removed
-
 main
-  width: 100%
   height: 100%
-  display: grid
-  grid-template: 64px 1fr 64px / 64px 1fr 64px
+  display: flex
+  align-items: center
+  justify-items: center
 
-  div
-    display: flex
-    align-items: center
-    justify-content: center
-    overflow: hidden
-    font-size: calc(var(--size) * 4)
-    white-space: pre-line
-    line-height: 0.6
+  .tr-909
+    width: 1226px
+    height: 717px
+    position: relative
+    background-image: url("../images/panel.png")
+    image-rendering: pixelated
+
+// #a6a29c
+
+$color-top: #bebbb6
+$color-right: #a7a39d
+$color-bottom: #6d6862
+$color-left: #a7a39d
+
+div.step-button
+  width: 48px
+  height: 48px
+  background: conic-gradient(at 24px 22px, $color-top 0deg 40deg, $color-right 50deg 130deg, $color-bottom 140deg 220deg, $color-left 230deg 310deg, $color-top 320deg)
+  position: absolute
+  box-shadow: 0 0 1px 2px rgba(black, 0.8) inset, 0 -1px 2px 0 white, 0 2px 2px 0 rgba(black, 0.4)
+
+  &:before
+    content: attr(data-step)
+    top: -15px
+    left: 24px
+    color: #656a70
+    font-size: 9px
+    text-align: center
+    transform: translate(-50%, 0)
+    position: absolute
+
+  &:active
+    box-shadow: 0 0 4px 1px black inset, 0 -1px 2px 0 white, 0 2px 2px 0 rgba(black, 0.4)
+
+    > div
+      top: 6.5px
+      left: 8.5px
+      width: 31px
+      height: 31px
+
+      &:before
+        top: 2px
+        left: 8.5px
+
+  &.active > div:before
+    background-color: #ee3b2e
+    box-shadow: 0 0 0.5px 0.5px rgba(black, 0.2) inset, 0 1px 0.5px 0 rgba(white, 0.3), 0 -0.5px 2px 0.5px lighten(#ee3b2e, 20)
+
+  > div
+    top: 6px
+    left: 8px
+    width: 32px
+    height: 32px
+    border-radius: 6px
+    background: linear-gradient(#9f9d98, #a6a4a1)
+    position: absolute
+    box-shadow: 0 0 2px 0 rgba(white, 0.2), 0 0 2px 0 rgba(white, 0.2) inset, 0 1px 1px 0 rgba(black, 0.1) inset
+
+    &:before
+      content: ''
+      top: 2px
+      left: 9px
+      width: 14px
+      height: 6px
+      position: absolute
+      border-radius: 1px
+      background-color: #4c3b3b
+      box-shadow: 0 0 0.5px 1px rgba(black, 0.2) inset, 0 1px 0.5px 0 rgba(white, 0.4)
