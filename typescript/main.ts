@@ -1,5 +1,4 @@
 import {Boot, newAudioContext, preloadImagesOfCssFile} from "./lib/boot.js"
-import {HTML} from "./lib/dom.js"
 
 const showProgress = (() => {
     const progress: SVGSVGElement = document.querySelector("svg.preloader")
@@ -21,9 +20,11 @@ const showProgress = (() => {
 
     // --- BOOT ENDS ---
 
-    document.querySelectorAll('div.step-button')
-        .forEach(button => button.addEventListener('click',
-            () => button.classList.toggle('active')))
+    document.querySelectorAll('.step-button')
+        .forEach((button: Element, index: number) => {
+            button.addEventListener('click', () => button.classList.toggle('active'))
+            button.classList.toggle('active', index % 4 === 0)
+        })
 
     // prevent dragging entire document on mobile
     document.addEventListener('touchmove', (event: TouchEvent) => event.preventDefault(), {passive: false})

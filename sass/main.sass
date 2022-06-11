@@ -21,57 +21,65 @@ $color-right: #a7a39d
 $color-bottom: #6d6862
 $color-left: #a7a39d
 
-div.step-button
-  width: 48px
-  height: 48px
-  background: conic-gradient(at 24px 22px, $color-top 0deg 40deg, $color-right 50deg 130deg, $color-bottom 140deg 220deg, $color-left 230deg 310deg, $color-top 320deg)
+div.step-button-group
   position: absolute
-  box-shadow: 0 0 1px 2px rgba(black, 0.8) inset, 0 -1px 2px 0 white, 0 2px 2px 0 rgba(black, 0.4)
+  display: grid
+  grid-template-columns: repeat(16, 48px)
+  column-gap: 10.25px
 
-  &:before
-    content: attr(data-step)
-    top: -15px
-    left: 24px
-    color: #656a70
-    font-size: 9px
-    text-align: center
-    transform: translate(-50%, 0)
-    position: absolute
-
-  &:active
-    box-shadow: 0 0 4px 1px black inset, 0 -1px 2px 0 white, 0 2px 2px 0 rgba(black, 0.4)
-
-    > div
-      top: 6.5px
-      left: 8.5px
-      width: 31px
-      height: 31px
-
-      &:before
-        top: 2px
-        left: 8.5px
-
-  &.active > div:before
-    background-color: #ee3b2e
-    box-shadow: 0 0 0.5px 0.5px rgba(black, 0.2) inset, 0 1px 0.5px 0 rgba(white, 0.3), 0 -0.5px 2px 0.5px lighten(#ee3b2e, 20)
-
-  > div
-    top: 6px
-    left: 8px
-    width: 32px
-    height: 32px
-    border-radius: 6px
-    background: linear-gradient(#9f9d98, #a6a4a1)
-    position: absolute
-    box-shadow: 0 0 2px 0 rgba(white, 0.2), 0 0 2px 0 rgba(white, 0.2) inset, 0 1px 1px 0 rgba(black, 0.1) inset
+  > button.step-button
+    width: 48px
+    height: 48px
+    background: conic-gradient(at 24px 22px, $color-top 0deg 40deg, $color-right 50deg 132deg, $color-bottom 138deg 222deg, $color-left 228deg 310deg, $color-top 320deg)
+    position: relative
+    appearance: none
+    box-shadow: 0 0 1px 2px rgba(black, 0.8) inset, 0 -1px 2px 0 white, 0 2px 2px 0 rgba(black, 0.4)
 
     &:before
-      content: ''
-      top: 2px
-      left: 9px
-      width: 14px
-      height: 6px
+      content: attr(data-step)
+      top: -18px
+      left: 24px
+      color: #656a70
+      font-size: 9px
+      text-align: center
+      transform: translate(-50%, 0)
       position: absolute
-      border-radius: 1px
-      background-color: #4c3b3b
-      box-shadow: 0 0 0.5px 1px rgba(black, 0.2) inset, 0 1px 0.5px 0 rgba(white, 0.4)
+
+    &:active
+      box-shadow: 0 0 3px 2px black inset, 0 -1px 2px 0 white, 0 2px 2px 0 rgba(black, 0.4)
+
+      > div
+        top: 6.5px
+        left: 8.5px
+        width: 31px
+        height: 31px
+
+        &:before
+          top: 2px
+          left: 8.5px
+
+    &.active > div:before
+      background-color: #ee3b2e
+      box-shadow: 0 0 0.5px 0.5px rgba(black, 0.4) inset, 0 1px 0.5px 0 rgba(white, 0.3), 0 -0.5px 4px 0.5px lighten(#ee3b2e, 25)
+
+    > div
+      top: 6px
+      left: 8px
+      width: 32px
+      height: 32px
+      border-radius: 4px
+      background: linear-gradient(#9f9d98, #a6a4a1)
+      position: absolute
+      box-shadow: 0 0 2px 0 rgba(white, 0.2), 0 0 2px 0 rgba(white, 0.2) inset, 0 1px 1px 0 rgba(black, 0.1) inset
+
+      &:before
+        content: ''
+        top: 2px
+        left: 9px
+        width: 14px
+        height: 6px
+        position: absolute
+        border-radius: 1px
+        background-color: #4c3b3b
+        transition: background-color 50ms linear
+        box-shadow: 0 0 0.5px 1px rgba(black, 0.2) inset, 0 1px 0.5px 0 rgba(white, 0.4)
