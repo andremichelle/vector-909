@@ -1,19 +1,24 @@
+$color-led: #ee3b2e
+$color-led-glow: lighten($color-led, 25)
+$color-top: #bebbb6
+$color-right: #a7a39d
+$color-bottom: #6d6862
+$color-left: #a7a39d
+
 button.switch, button.trigger
-  $color-led: #ee3b2e
-  $color-led-glow: lighten($color-led, 25)
-  $color-top: #bebbb6
-  $color-right: #a7a39d
-  $color-bottom: #6d6862
-  $color-left: #a7a39d
 
   &.bright
     filter: sepia(20%) brightness(125%)
 
+  margin: 0
+  padding: 0
+  border: none
+  outline: none
+  appearance: none
   width: 48px
   height: 48px
   background: conic-gradient(at 24px 22px, $color-top 0deg 40deg, $color-right 50deg 132deg, $color-bottom 138deg 222deg, $color-left 228deg 310deg, $color-top 320deg)
   position: absolute
-  appearance: none
   box-shadow: 0 0 1px 2px rgba(black, 0.8) inset, 0 -1px 2px 0 white, 0 2px 2px 0 rgba(black, 0.4)
 
   &:active
@@ -56,3 +61,24 @@ button.switch, button.trigger
     background-color: #4c3b3b
     transition: all 50ms linear
     box-shadow: 0 0 0.5px 1px rgba(black, 0.2) inset, 0 1px 0.5px 0 rgba(white, 0.4)
+
+button.translucent-button
+  margin: 0
+  padding: 0
+  border: none
+  outline: none
+  appearance: none
+  width: 20px
+  height: 20px
+  display: flex
+  border-radius: 1px
+  background-repeat: no-repeat
+  background-image: url('../svg/translucent-button-normal.svg')
+  box-shadow: 0 0 1px 1px rgba(black, 0.6) inset, 0 0.5px 2px 0 rgba(white, 0.8), 0 0 1px 1px rgba(white, 0.4) inset
+  color: lighten(#ee3b2e, 10)
+
+  &:active
+    filter: brightness(96%)
+
+  &.active
+    background-image: url('../svg/translucent-button-active.svg')
