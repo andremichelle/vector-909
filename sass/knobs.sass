@@ -21,7 +21,7 @@ $color: #5b5a57
     transform: translate(-50%, -50%)
     position: absolute
 
-  .knob
+  > .knob
     $light: lighten(rgba($color, 0.7), 30)
     width: 28px
     height: 20px
@@ -53,3 +53,26 @@ $color: #5b5a57
       position: absolute
       background: linear-gradient(to bottom, #625f60, darken(#625f60, 2))
       box-shadow: 0 1px 2px 0 rgba(white, 0.04) inset, 0 0 0.5px 1px darken($color, 5)
+
+  &.big
+    width: 82px
+    height: 82px
+    background-image: url("../svg/scale-big.svg")
+    background-size: 82px 82px
+    background-position: 0 8px
+
+    > .knob
+      width: 54px
+      height: 40px
+      border-radius: 0 0 27px 27px
+      transform: translate(14px, 36px)
+
+      &:before
+        top: -8px
+        left: 26px
+
+      &:after
+        top: -20px
+        width: 54px
+        height: 54px
+        border-radius: 27px

@@ -1,0 +1,32 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="-41 -41 82 82" stroke="gray" stroke-width="1.25">
+    <line x1="-42" y1="0" x2="42" y2="0" transform="rotate(-60)"/>
+    <line x1="-39" y1="0" x2="39" y2="0" transform="rotate(-54)"/>
+    <line x1="-39" y1="0" x2="39" y2="0" transform="rotate(-48)"/>
+    <line x1="-39" y1="0" x2="39" y2="0" transform="rotate(-42)"/>
+    <line x1="-39" y1="0" x2="39" y2="0" transform="rotate(-36)"/>
+    <line x1="-42" y1="0" x2="42" y2="0" transform="rotate(-30)"/>
+    <line x1="-39" y1="0" x2="39" y2="0" transform="rotate(-24)"/>
+    <line x1="-39" y1="0" x2="39" y2="0" transform="rotate(-18)"/>
+    <line x1="-39" y1="0" x2="39" y2="0" transform="rotate(-12)"/>
+    <line x1="-39" y1="0" x2="39" y2="0" transform="rotate(-6)"/>
+    <line x1="-42" y1="0" x2="42" y2="0"/>
+    <line x1="-39" y1="0" x2="39" y2="0" transform="rotate(6)"/>
+    <line x1="-39" y1="0" x2="39" y2="0" transform="rotate(12)"/>
+    <line x1="-39" y1="0" x2="39" y2="0" transform="rotate(18)"/>
+    <line x1="-39" y1="0" x2="39" y2="0" transform="rotate(24)"/>
+    <line x1="-42" y1="0" x2="42" y2="0" transform="rotate(30)"/>
+    <line x1="-39" y1="0" x2="39" y2="0" transform="rotate(36)"/>
+    <line x1="-39" y1="0" x2="39" y2="0" transform="rotate(42)"/>
+    <line x1="-39" y1="0" x2="39" y2="0" transform="rotate(48)"/>
+    <line x1="-39" y1="0" x2="39" y2="0" transform="rotate(54)"/>
+    <line x1="-42" y1="0" x2="42" y2="0" transform="rotate(60)"/>
+    <line x1="-39" y1="0" x2="0" y2="0" transform="rotate(66)"/>
+    <line x1="-39" y1="0" x2="0" y2="0" transform="rotate(72)"/>
+    <line x1="-39" y1="0" x2="0" y2="0" transform="rotate(78)"/>
+    <line x1="-39" y1="0" x2="0" y2="0" transform="rotate(84)"/>
+    <line x1="-39" y1="0" x2="0" y2="0" transform="rotate(96)"/>
+    <line x1="-39" y1="0" x2="0" y2="0" transform="rotate(102)"/>
+    <line x1="-39" y1="0" x2="0" y2="0" transform="rotate(108)"/>
+    <line x1="-39" y1="0" x2="0" y2="0" transform="rotate(114)"/>
+    <line x1="0" y1="-42" x2="0" y2="0"/>
+</svg>
