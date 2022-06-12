@@ -71,12 +71,13 @@ div.tr-909
     left: 168px
 
   > div.action-button-group
-    transform: translate(478px, 405px)
     display: grid
-    grid-template-columns: repeat(4, 20px)
-    grid-template-rows: repeat(4, 20px)
+    grid-template: repeat(4, 20px) / repeat(4, 20px)
     position: absolute
     column-gap: 11px
+
+    &.six
+      grid-template: repeat(4, 20px) / repeat(6, 20px)
 
     > *
       position: relative
@@ -98,6 +99,7 @@ div.tr-909
       align-self: center
 
     > h2
+      font-size: 6px
       background-color: #e8894b
 
   > div.step-button-group
