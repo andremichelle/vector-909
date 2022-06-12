@@ -6,3 +6,15 @@ main
   display: flex
   align-items: center
   justify-items: center
+  --scale: 1
+  transform: scale(var(--scale)) rotate(0deg)
+
+  @media (orientation: portrait)
+    transform: scale(var(--scale)) rotate(90deg)
+
+span.zoom
+  top: 8px
+  left: 8px
+  font-size: 9px
+  color: rgba(black, 0.5)
+  position: absolute
