@@ -12,7 +12,7 @@
     <link rel="apple-touch-icon" href="./apple-touch-icon.png">
     <link rel="icon" href="favicon.ico" type=“image/x-icon”>
     <link rel="shortcut icon" href="./favicon.ico" type=“image/x-icon”>
-    <link rel="preload" href="./fonts/Open_Sans/static/OpenSans/OpenSans-Regular.ttf" as="font" type="font/ttf"
+    <link rel="preload" href="./fonts/Roboto-Bold.ttf" as="font" type="font/ttf"
           crossorigin>
     <link href="./bin/main.css" rel="stylesheet"/>
     <script src="./bin/main.js" type="module"></script>
@@ -26,7 +26,128 @@
         <button class="trigger bright start"></button>
         <button class="trigger bright stop"></button>
         <button class="switch cartridge"></button>
-        <div class="knob-control" data-label="PITCH" style="top: 271px; left: 887px;"><div class="knob small"></div></div>
+        <div class="instruments">
+            <hr>
+            <div class="instrument" data-instrument="global">
+                <h1 class="single">TOTAL ACCENT</h1>
+                <div class="knob-control accent" data-label="">
+                    <div class="knob small" data-parameter="accent"></div>
+                </div>
+            </div>
+            <hr>
+            <div class="instrument" data-instrument="bassdrum">
+                <h1 class="single">BASS DRUM</h1>
+                <div class="knob-control" data-label="TUNE">
+                    <div class="knob small" data-parameter="tune"></div>
+                </div>
+                <div class="knob-control" data-label="LEVEL">
+                    <div class="knob small" data-parameter="level"></div>
+                </div>
+                <div class="knob-control" data-label="ATTACK">
+                    <div class="knob small" data-parameter="attack"></div>
+                </div>
+                <div class="knob-control" data-label="DECAY">
+                    <div class="knob small" data-parameter="decay"></div>
+                </div>
+            </div>
+            <hr>
+            <div class="instrument" data-instrument="snaredrum">
+                <h1 class="single">SNARE DRUM</h1>
+                <div class="knob-control" data-label="TUNE">
+                    <div class="knob small" data-parameter="tune"></div>
+                </div>
+                <div class="knob-control" data-label="LEVEL">
+                    <div class="knob small" data-parameter="level"></div>
+                </div>
+                <div class="knob-control" data-label="TONE">
+                    <div class="knob small" data-parameter="tone"></div>
+                </div>
+                <div class="knob-control" data-label="SNAPPY">
+                    <div class="knob small" data-parameter="snappy"></div>
+                </div>
+            </div>
+            <hr>
+            <div class="instrument" data-instrument="low-tom">
+                <h1 class="single">LOW TOM</h1>
+                <div class="knob-control" data-label="TUNE">
+                    <div class="knob small" data-parameter="tune"></div>
+                </div>
+                <div class="knob-control" data-label="LEVEL">
+                    <div class="knob small" data-parameter="level"></div>
+                </div>
+                <div class="knob-control" data-label="DECAY">
+                    <div class="knob small" data-parameter="decay"></div>
+                </div>
+            </div>
+            <hr>
+            <div class="instrument" data-instrument="mid-tom">
+                <h1 class="single">MID TOM</h1>
+                <div class="knob-control" data-label="TUNE">
+                    <div class="knob small" data-parameter="tune"></div>
+                </div>
+                <div class="knob-control" data-label="LEVEL">
+                    <div class="knob small" data-parameter="level"></div>
+                </div>
+                <div class="knob-control" data-label="DECAY">
+                    <div class="knob small" data-parameter="decay"></div>
+                </div>
+            </div>
+            <hr>
+            <div class="instrument" data-instrument="hi-tom">
+                <h1 class="single">HI TOM</h1>
+                <div class="knob-control" data-label="TUNE">
+                    <div class="knob small" data-parameter="tune"></div>
+                </div>
+                <div class="knob-control" data-label="LEVEL">
+                    <div class="knob small" data-parameter="level"></div>
+                </div>
+                <div class="knob-control" data-label="DECAY">
+                    <div class="knob small" data-parameter="decay"></div>
+                </div>
+            </div>
+            <hr>
+            <div class="instrument" data-instrument="rim-clap">
+                <h1>RIM SHOT</h1>
+                <h1>HAND CLAP</h1>
+                <div class="knob-control" data-label="LEVEL">
+                    <div class="knob small" data-parameter="rim-level"></div>
+                </div>
+                <div class="knob-control" data-label="LEVEL">
+                    <div class="knob small" data-parameter="clap-level"></div>
+                </div>
+            </div>
+            <hr>
+            <div class="instrument" data-instrument="hihat">
+                <h1 class="single">HI HAT</h1>
+                <div></div>
+                <div class="knob-control" data-label="LEVEL">
+                    <div class="knob small" data-parameter="level"></div>
+                </div>
+                <div class="knob-control" data-label="CH DECAY">
+                    <div class="knob small" data-parameter="cl-decay"></div>
+                </div>
+                <div class="knob-control" data-label="OH DECAY">
+                    <div class="knob small" data-parameter="oh-decay"></div>
+                </div>
+            </div>
+            <hr>
+            <div class="instrument" data-instrument="cymbal">
+                <h1 class="single">CYMBAL</h1>
+                <div class="knob-control" data-label="LEVEL">
+                    <div class="knob small" data-parameter="ride-level"></div>
+                </div>
+                <div class="knob-control" data-label="LEVEL">
+                    <div class="knob small" data-parameter="crash-level"></div>
+                </div>
+                <div class="knob-control" data-label="CRASH TUNE">
+                    <div class="knob small" data-parameter="ride-tune"></div>
+                </div>
+                <div class="knob-control" data-label="RIDE TUNE">
+                    <div class="knob small" data-parameter="crash-tune"></div>
+                </div>
+            </div>
+            <hr>
+        </div>
         <div class="step-button-group">
             <span>1</span>
             <span>2</span>
