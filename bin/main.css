@@ -466,14 +466,14 @@ button.switch, button.trigger {
   height: 48px;
   background: conic-gradient(at 24px 22px, #bebbb6 0deg 40deg, #a7a39d 50deg 132deg, #6d6862 138deg 222deg, #a7a39d 228deg 310deg, #bebbb6 320deg);
   position: absolute;
-  box-shadow: 0 0 1px 2px rgba(0, 0, 0, 0.6) inset, 0 -1px 2px 0 white, 0 2px 2px 0 rgba(0, 0, 0, 0.4);
+  box-shadow: 0 0 1px 2px rgba(0, 0, 0, 0.6) inset, 0 -1px 2px 0 rgba(255, 255, 255, 0.7), 0 2px 2px 0 rgba(0, 0, 0, 0.4);
   transition: all 50ms linear;
 }
 button.switch.bright, button.trigger.bright {
   filter: sepia(20%) brightness(125%);
 }
 button.switch:active, button.trigger:active {
-  box-shadow: 0 0 3px 2px rgba(0, 0, 0, 0.8) inset, 0 -1px 2px 0 white, 0 2px 2px 0 rgba(0, 0, 0, 0.4);
+  box-shadow: 0 0 3px 2px rgba(0, 0, 0, 0.8) inset, 0 -1px 2px 0 rgba(255, 255, 255, 0.7), 0 2px 2px 0 rgba(0, 0, 0, 0.4);
 }
 button.switch:active:before, button.trigger:active:before {
   transform: scale(0.97);
@@ -538,8 +538,7 @@ div.tr-909 {
   height: 717px;
   position: relative;
   image-rendering: pixelated;
-  background: url("../images/dust.png"), linear-gradient(to bottom, #dedad6, #d4d0ca), radial-gradient(at 50% 0, black, #1A1A1A);
-  background-blend-mode: exclusion;
+  background: radial-gradient(at 50% 0, rgba(255, 255, 255, 0.25), transparent), linear-gradient(to bottom, #d0cbc5, #c7c1b9);
   overflow: hidden;
   border-radius: 3px;
   box-shadow: 0 8px 8px 0 rgba(0, 0, 0, 0.6), 0 24px 16px 4px rgba(0, 0, 0, 0.4), 0 2px 1px 0 rgba(255, 255, 255, 0.6) inset;
@@ -561,7 +560,7 @@ div.tr-909:before, div.tr-909:after {
   border-right: 1px #646462 solid;
 }
 div.tr-909.template {
-  background-image: url("../images/panel.png");
+  background-image: url("../images/template.png");
 }
 div.tr-909 > div.roland-logo {
   top: 36px;
