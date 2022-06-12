@@ -13,12 +13,53 @@ main
     width: 1226px
     height: 717px
     position: relative
-    background-image: url("../images/panel.png")
     image-rendering: pixelated
+    background: linear-gradient(to bottom, lighten(#dad8d5, 3), darken(#dad8d5, 3))
+    overflow: hidden
+    border-radius: 3px
+    box-shadow: 0 8px 8px 0 rgba(black, 0.6), 0 24px 16px 4px rgba(black, 0.4), 0 2px 1px 0 rgba(white, 0.6) inset
 
-    &.hide-template
-      background-color: #dad8d5
-      background-image: none
+    &:after
+      right: 0
+      transform: scale(-1, 1)
+
+    &:before, &:after
+      content: ''
+      width: 24px
+      height: 100%
+      background-color: #939188
+      position: absolute
+      border-right: 1px #646462 solid
+
+    &.template
+      background-image: url("../images/panel.png")
+
+    > div.roland-logo
+      top: 36px
+      left: 88px
+      width: 204px
+      height: 30px
+      position: absolute
+      background-repeat: no-repeat
+      background-image: url("../logo/roland.svg")
+
+    > div.tr-909-logo
+      top: 190px
+      left: 88px
+      width: 270px
+      height: 35px
+      position: absolute
+      background-repeat: no-repeat
+      background-image: url("../logo/tr-909.svg")
+
+    > div.rhythm-composer-logo
+      top: 210px
+      left: 778px
+      width: 332px
+      height: 15px
+      position: absolute
+      background-repeat: no-repeat
+      background-image: url("../logo/rhythm-composer.svg")
 
     > button.switch.cartridge
       top: 423px
@@ -73,3 +114,11 @@ main
         line-height: 10px
         color: #dad8d5
         width: 100%
+
+    > footer
+      width: 100%
+      height: 24px
+      background: linear-gradient(to bottom, transparent, rgba(white, 0.08) 16%, rgba(black, 0.3) 32%)
+      position: absolute
+      bottom: 0
+      z-index: 1

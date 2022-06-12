@@ -1,5 +1,5 @@
 $color: #eaeaea
-$background-color: #1A1A1A
+$background-color: lighten(#dad8d5, 20)
 
 html, body
   margin: 0
@@ -13,7 +13,9 @@ html, body
   background-color: $background-color
 
 html
+  //noinspection CssInvalidPropertyValue
   width: -webkit-fill-available
+  //noinspection CssInvalidPropertyValue
   height: -webkit-fill-available
 
 body
@@ -23,7 +25,9 @@ body
   min-width: 100vw
   min-height: 100vh
   /* mobile viewport bug fix */
+  //noinspection CssInvalidPropertyValue
   min-width: -webkit-fill-available
+  //noinspection CssInvalidPropertyValue
   min-height: -webkit-fill-available
 
 *

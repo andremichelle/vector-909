@@ -1,9 +1,14 @@
-$color-top: #bebbb6
-$color-right: #a7a39d
-$color-bottom: #6d6862
-$color-left: #a7a39d
-
 button.switch, button.trigger
+  $color-led: #ee3b2e
+  $color-led-glow: lighten($color-led, 25)
+  $color-top: #bebbb6
+  $color-right: #a7a39d
+  $color-bottom: #6d6862
+  $color-left: #a7a39d
+
+  &.bright
+    filter: sepia(20%) brightness(125%)
+
   width: 48px
   height: 48px
   background: conic-gradient(at 24px 22px, $color-top 0deg 40deg, $color-right 50deg 132deg, $color-bottom 138deg 222deg, $color-left 228deg 310deg, $color-top 320deg)
@@ -26,8 +31,8 @@ button.switch, button.trigger
       left: 17px
 
   &.switch.active:after
-    background-color: #ee3b2e
-    box-shadow: 0 0 0.5px 0.5px rgba(black, 0.2) inset, 0 1px 0.5px 0 rgba(white, 0.3), 0 -0.5px 4px 0.5px lighten(#ee3b2e, 25)
+    background-color: $color-led
+    box-shadow: 0 0 0.5px 0.5px rgba(black, 0.2) inset, 0 1px 0.5px 0 rgba(white, 0.3), 0 -0.5px 4px 0.5px $color-led-glow
 
   &:before
     content: ''

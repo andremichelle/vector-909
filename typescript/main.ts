@@ -24,14 +24,14 @@ const showProgress = (() => {
     window.addEventListener('keydown', (event: KeyboardEvent) => {
         if(event.code === 'Space') {
             const device: HTMLElement = HTML.query('.tr-909')
-            device.classList.toggle('hide-template')
+            device.classList.toggle('template')
             event.preventDefault()
         }
     })
 
-    document.querySelectorAll('button.switch.step')
+    document.querySelectorAll('button.switch')
         .forEach((button: Element, index: number) => {
-            button.addEventListener('click', () => button.classList.toggle('active'))
+            button.addEventListener('pointerdown', () => button.classList.toggle('active'))
             button.classList.toggle('active', index % 4 === 0)
         })
 
