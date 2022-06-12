@@ -1,5 +1,11 @@
 $color: #5b5a57
 
+@keyframes rotate
+  from
+    transform: rotate(-150deg) translate(0, -20px)
+  to
+    transform: rotate(150deg) translate(0, -20px)
+
 .knob-control
   width: 42px
   height: 56px
@@ -40,7 +46,7 @@ $color: #5b5a57
       border-radius: 0.5px
       position: absolute
       background-color: #e09043
-      transform: rotate(0deg) translate(0, -11.5px)
+      transform: rotate(-150deg) translate(0, -11.5px)
       box-shadow: 0 0.5px 0.5px 0 rgba(white, 0.4)
       z-index: 1
 
@@ -68,8 +74,10 @@ $color: #5b5a57
       transform: translate(14px, 36px)
 
       &:before
-        top: -8px
+        top: 0.5px
         left: 26px
+        height: 13px
+        transform: rotate(-150deg) translate(0, -20px)
 
       &:after
         top: -20px
