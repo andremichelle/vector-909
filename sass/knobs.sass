@@ -22,10 +22,11 @@ $color: #5b5a57
     position: absolute
 
   .knob
+    $light: lighten(rgba($color, 0.7), 30)
     width: 28px
     height: 20px
     border-radius: 0 0 14px 14px
-    background: linear-gradient(to right, lighten($color, 30), darken($color, 5) 30% 70%, lighten($color, 30))
+    background: linear-gradient(to right, $light, darken($color, 5) 30% 70%, $light)
     position: absolute
     transform: translate(7px, 24px)
     box-shadow: 0 0 0 1px darken($color, 4) inset, 0 4px 4px 0 rgba(black, 0.5)
@@ -40,6 +41,7 @@ $color: #5b5a57
       position: absolute
       background-color: #e09043
       transform: rotate(0deg) translate(0, -11.5px)
+      box-shadow: 0 0.5px 0.5px 0 rgba(white, 0.4)
       z-index: 1
 
     &:after
@@ -49,5 +51,5 @@ $color: #5b5a57
       height: 28px
       border-radius: 14px
       position: absolute
-      background: linear-gradient(to bottom, #625f60, #625f60)
-      box-shadow: 0 0 0 1px darken($color, 4) inset
+      background: linear-gradient(to bottom, #625f60, darken(#625f60, 2))
+      box-shadow: 0 1px 2px 0 rgba(white, 0.1) inset, 0 0 0.5px 1px darken($color, 5)
