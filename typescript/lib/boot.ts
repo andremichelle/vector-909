@@ -16,16 +16,13 @@ export const preloadImagesOfCssFile = async (pathToCss: string): Promise<void> =
             return matches
                 .map(path => path.replace(/url\(/, "").slice(1, -1))
                 .filter(path => !path.startsWith("#"))
+                .map(path => {
+                    const indexOf = path.lastIndexOf('#')
+                    return -1 < indexOf ? path.substr(0, indexOf) : path
+                })
                 .map(path => new URL(path, base))
         })
-    return Promise.all(urls.map(url => new Promise<void>((resolve, reject) => {
-        const src = url.href
-        console.debug(`src: '${src}'`)
-        const image = new Image()
-        image.onload = () => resolve()
-        image.onerror = (error) => reject(error)
-        image.src = src
-    }))).then(() => Promise.resolve())
+    return Promise.all(urls.map(url => fetch(url.href))).then(() => Promise.resolve())
 }
 
 export interface Dependency<T> {
@@ -72,6 +69,7 @@ export class Boot implements Observable<Boot> {
 
     registerFont(name: string, url: string): Dependency<FontFace> {
         return this.registerProcess(document.fonts.ready
+            // @ts-ignore
             .then((faceSet: FontFaceSet) => new FontFace(name, url)
                 .load()
                 .then(fontFace => faceSet.add(fontFace))))

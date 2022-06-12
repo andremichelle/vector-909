@@ -1,32 +1,52 @@
 $color: #5b5a57
 
-.knob
-  width: 28px
-  height: 20px
-  border-radius: 0 0 14px 14px
-  background: linear-gradient(to right, lighten($color, 30), darken($color, 5) 30% 70%, lighten($color, 30))
+.knob-control
+  width: 42px
+  height: 56px
   position: absolute
-  transform: translate(0, 14px)
-  box-shadow: 0 0 0 1px darken($color, 8) inset, 0 4px 4px 0 rgba(black, 0.5)
+  background-image: url("../svg/scale.svg")
+  background-size: 42px 42px
+  background-position: 0 8px
+  background-repeat: no-repeat
 
   &:before
-    content: ''
-    top: -2px
-    left: 13px
-    width: 2px
-    height: 4px
-    border-radius: 0.5px
+    content: attr(data-label)
+    font-size: 8px
+    font-weight: 600
+    line-height: 10px
+    color: #686c72
+    left: 50%
+    top: 3px
+    transform: translate(-50%, -50%)
     position: absolute
-    background-color: #e09043
-    transform: rotate(0deg) translate(0, -11.5px)
-    z-index: 1
 
-  &:after
-    content: ''
-    top: -14px
+  .knob
     width: 28px
-    height: 28px
-    border-radius: 14px
+    height: 20px
+    border-radius: 0 0 14px 14px
+    background: linear-gradient(to right, lighten($color, 30), darken($color, 5) 30% 70%, lighten($color, 30))
     position: absolute
-    background: linear-gradient(to bottom, #625f60, #625f60)
-    box-shadow: 0 0 0 1px darken($color, 4) inset
+    transform: translate(7px, 24px)
+    box-shadow: 0 0 0 1px darken($color, 4) inset, 0 4px 4px 0 rgba(black, 0.5)
+
+    &:before
+      content: ''
+      top: -2px
+      left: 13px
+      width: 2px
+      height: 4px
+      border-radius: 0.5px
+      position: absolute
+      background-color: #e09043
+      transform: rotate(0deg) translate(0, -11.5px)
+      z-index: 1
+
+    &:after
+      content: ''
+      top: -14px
+      width: 28px
+      height: 28px
+      border-radius: 14px
+      position: absolute
+      background: linear-gradient(to bottom, #625f60, #625f60)
+      box-shadow: 0 0 0 1px darken($color, 4) inset

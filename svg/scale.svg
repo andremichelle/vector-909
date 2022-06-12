@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="-21 -21 42 42" stroke="gray" stroke-width="1.5">
+    <line x1="-21" y1="0" x2="21" y2="0" transform="rotate(-60)"/>
+    <line x1="-21" y1="0" x2="21" y2="0" transform="rotate(-30)"/>
+    <line x1="-21" y1="0" x2="21" y2="0"/>
+    <line x1="-21" y1="0" x2="21" y2="0" transform="rotate(30)"/>
+    <line x1="-21" y1="0" x2="21" y2="0" transform="rotate(60)"/>
+    <line x1="0" y1="-21" x2="0" y2="0"/>
+</svg>
