@@ -1,5 +1,6 @@
 @import common
 @import inputs
+@import knobs
 @import buttons
 
 main
@@ -21,7 +22,7 @@ main
 
     > button.switch.cartridge
       top: 423px
-      left: 898px
+      left: 951px
 
     > button.trigger.start
       top: 423px
@@ -29,7 +30,7 @@ main
 
     > button.trigger.stop
       top: 423px
-      left: 104px
+      left: 168px
 
     > div.step-button-group
       top: 568px
@@ -42,11 +43,13 @@ main
       align-items: end
       justify-items: center
 
+      > *
+        position: relative
+
       > span
         font-size: 9px
         font-weight: 600
         line-height: 10px
-        position: relative
         bottom: 4px
         color: #686c72
 
