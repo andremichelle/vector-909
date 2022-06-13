@@ -674,6 +674,31 @@ div.tr-909 > div.wrapper-label.digits {
 div.tr-909 > div.wrapper-label.digits > svg {
   height: 48px;
 }
+div.tr-909 > div.pattern-functions {
+  transform: translate(106px, 498px);
+  padding: 12px 0 0 0;
+  display: grid;
+  grid-template-columns: repeat(2, 40px);
+  grid-template-rows: repeat(3, 20px 22px);
+  justify-items: center;
+}
+div.tr-909 > div.pattern-functions > * {
+  position: relative;
+}
+div.tr-909 > div.pattern-functions > span {
+  margin: 2px 0 0 0;
+  padding: 2px;
+  font-size: 7px;
+  line-height: 1em;
+  text-align: center;
+  height: min-content;
+  color: #43484a;
+  border-radius: 1px;
+  font-weight: bold;
+}
+div.tr-909 > div.pattern-functions > span.shift {
+  background-color: #d97e41;
+}
 div.tr-909 > svg.scales {
   fill: #43484a;
   width: 920px;
