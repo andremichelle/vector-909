@@ -136,7 +136,7 @@ div.instruments hr {
   width: 2px;
   height: 126px;
   border: none;
-  background-color: rgba(0, 0, 0, 0.57);
+  background-color: #39464a;
   position: relative;
   border-radius: 1px;
 }
@@ -168,7 +168,7 @@ div.instruments div.instrument > h1 {
   line-height: 15px;
   text-align: center;
   color: #d97e41;
-  background-color: rgba(0, 0, 0, 0.57);
+  background-color: #39464a;
   width: 100%;
   height: 14px;
   align-self: start;
@@ -392,7 +392,7 @@ div.two-columns fieldset.stepper > button:active {
   font-weight: 600;
   line-height: 10px;
   white-space: nowrap;
-  color: rgba(0, 0, 0, 0.57);
+  color: #39464a;
   left: 50%;
   top: 3px;
   transform: translate(-50%, -50%);
@@ -627,7 +627,7 @@ div.tr-909 > div.action-button-group > h1, div.tr-909 > div.action-button-group 
   font-size: 6px;
   line-height: 1em;
   text-align: center;
-  color: rgba(0, 0, 0, 0.57);
+  color: #39464a;
   width: 100%;
   height: 16px;
   align-self: center;
@@ -668,7 +668,7 @@ div.tr-909 > div.step-button-group > hr {
   top: -12px;
   height: 66px;
   border: none;
-  background-color: rgba(0, 0, 0, 0.57);
+  background-color: #39464a;
   position: relative;
   border-radius: 1px;
 }
@@ -687,7 +687,7 @@ div.tr-909 > div.func-button-group {
   grid-template-columns: repeat(16, 57px);
   align-items: end;
   justify-items: center;
-  background-color: rgba(0, 0, 0, 0.57);
+  background-color: #39464a;
 }
 div.tr-909 > footer {
   width: 100%;
@@ -716,7 +716,7 @@ div.wrapper-label:after {
   text-align: center;
   transform: translate(-50%, -100%);
   position: absolute;
-  color: rgba(0, 0, 0, 0.57);
+  color: #39464a;
   white-space: pre-wrap;
 }
 
