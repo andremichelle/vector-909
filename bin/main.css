@@ -746,7 +746,7 @@ div.wrapper-label:before {
 div.wrapper-label:after {
   content: attr(data-below);
   font-size: 7px;
-  font-weight: normal;
+  font-weight: bold;
   line-height: 7px;
   bottom: -22px;
   left: 50%;
