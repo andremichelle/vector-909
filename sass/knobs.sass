@@ -20,7 +20,7 @@ $light: lighten(rgba($COLOR_DARK, 0.7), 30)
   &:before
     content: attr(data-label)
     font-size: 7px
-    font-weight: 600
+    font-weight: bold
     line-height: 10px
     white-space: nowrap
     color: $COLOR_DARK
@@ -62,7 +62,7 @@ $light: lighten(rgba($COLOR_DARK, 0.7), 30)
 
   &.big
     width: 82px
-    height: 82px
+    height: 88px
     background-image: url("../svg/scale-big.svg")
     background-size: 82px 82px
     background-position: 0 8px
@@ -88,3 +88,19 @@ $light: lighten(rgba($COLOR_DARK, 0.7), 30)
         width: 54px
         height: 54px
         border-radius: 27px
+
+  &.minmax-units > span
+    top: 86px
+    font-size: 7px
+    font-weight: bold
+    white-space: nowrap
+    color: $COLOR_DARK
+    position: absolute
+
+    &:first-of-type
+      left: 25%
+      transform: translate(-100%, 0)
+
+    &:last-of-type
+      right: 25%
+      transform: translate(100%, 0)
