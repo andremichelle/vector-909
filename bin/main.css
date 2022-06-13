@@ -680,7 +680,7 @@ div.tr-909 > svg.scales {
   transform: translate(198px, 498px);
 }
 div.tr-909 > div.step-button-group {
-  transform: translate(212px, 576px);
+  transform: translate(212px, 574px);
   display: grid;
   grid-template-columns: repeat(8, 104px 10px);
   justify-items: center;
@@ -706,7 +706,7 @@ div.tr-909 > div.step-button-group > div.two > * {
   position: relative;
 }
 div.tr-909 > div.func-button-group {
-  transform: translate(208px, 632px);
+  transform: translate(208px, 630px);
   display: grid;
   grid-template-columns: repeat(16, 57px);
   align-items: end;
