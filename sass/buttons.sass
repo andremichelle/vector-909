@@ -1,3 +1,5 @@
+@import vars
+
 $color-led: #ee3b2e
 $color-led-glow: lighten($color-led, 25)
 $color-top: #bebbb6
@@ -6,7 +8,8 @@ $color-bottom: #6d6862
 $color-left: #a7a39d
 
 button.switch, button.trigger
-  &.bright // does not work with switch (led)
+  //does not work with switch (led)
+  &.bright
     filter: sepia(20%) brightness(125%)
 
   margin: 0
@@ -79,3 +82,37 @@ button.translucent-button
 
   &.active
     background-image: url('../svg/translucent-button-active.svg')
+
+button.func
+  margin: 0
+  padding: 0
+  border: none
+  outline: none
+  appearance: none
+  background: none
+  height: 14px
+  font-size: 8px
+  font-weight: 600
+  line-height: 10px
+  color: $COLOR_CHASSIS
+
+div.button-label
+  display: flex
+  align-items: center
+  justify-content: center
+  box-sizing: border-box
+
+  &:nth-child(even):not(:last-child)
+    border-right: 1px rgba(black, 0.5) solid
+
+  &:nth-child(odd):not(:first-child)
+    border-left: 1px rgba(black, 0.5) solid
+
+  &:after
+    content: attr(data-label)
+    font-size: 9px
+    font-weight: bold
+    line-height: 10px
+    top: -32px
+    position: relative
+    color: #686c72

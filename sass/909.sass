@@ -3,13 +3,14 @@
 @import inputs
 @import knobs
 @import buttons
+@import vars
 
 div.tr-909
   width: 1226px
   height: 717px
   position: relative
   image-rendering: pixelated
-  background: radial-gradient(at 50% 0, rgba(white, 0.25), transparent), linear-gradient(to bottom, darken(#d9d5d0, 4), darken(#d9d5d0, 8))
+  background: radial-gradient(at 50% 0, rgba(white, 0.25), transparent), linear-gradient(to bottom, darken($COLOR_CHASSIS, 4), darken($COLOR_CHASSIS, 8))
   overflow: hidden
   border-radius: 3px
   box-shadow: 0 8px 8px 0 rgba(black, 0.6), 0 24px 16px 4px rgba(black, 0.4), 0 2px 1px 0 rgba(white, 0.6) inset
@@ -81,7 +82,7 @@ div.tr-909
     > *
       position: relative
 
-    > h1, h2, span
+    > h1, > h2, > span
       margin: 0
       padding: 0
       font-size: 6px
@@ -95,6 +96,7 @@ div.tr-909
       display: flex
       align-items: center
       justify-content: center
+      font-weight: bold
 
     > span
       align-self: center
@@ -113,58 +115,21 @@ div.tr-909
     box-shadow: 0 0 1px 1px rgba(black, 0.8), 0 2px 1px 1px rgba(white, 0.8)
 
   > div.step-button-group
-    transform: translate(208px, 584px)
+    transform: translate(208px, 556px)
     display: grid
     grid-template-columns: repeat(16, 57px)
-    height: 56px
+    height: 72px
 
     > *
       position: relative
 
-    > div
-      width: 100%
-      height: 100%
-      display: flex
-      align-items: center
-      justify-content: center
-      box-sizing: border-box
-
-      &:nth-child(even):not(:last-child)
-        border-right: 1px rgba(black, 0.5) solid
-
-      &:nth-child(odd):not(:first-child)
-        border-left: 1px rgba(black, 0.5) solid
-
-      &:after
-        content: attr(data-step-index)
-        font-size: 9px
-        font-weight: bold
-        line-height: 10px
-        top: -36px
-        position: relative
-        color: #686c72
-
   > div.func-button-group
-    transform: translate(208px, 640px)
+    transform: translate(208px, 632px)
     display: grid
     grid-template-columns: repeat(16, 57px)
     align-items: end
     justify-items: center
     background-color: rgba(black, 0.5)
-
-    > button.func
-      margin: 0
-      padding: 0
-      border: none
-      outline: none
-      appearance: none
-      background: none
-      height: 14px
-      font-size: 8px
-      font-weight: 600
-      line-height: 10px
-      color: #dad8d5
-      width: 100%
 
   > footer
     width: 100%
