@@ -164,7 +164,7 @@ div.wrapper-label
   > *
     position: relative
 
-  &:after
+  &:before
     content: attr(data-label)
     font-size: 8px
     font-weight: bold
@@ -176,3 +176,16 @@ div.wrapper-label
     position: absolute
     color: $COLOR_DARK
     white-space: pre-wrap
+
+  &:after
+    content: attr(data-below)
+    font-size: 7px
+    font-weight: normal
+    line-height: 7px
+    bottom: -22px
+    left: 50%
+    text-align: center
+    transform: translate(-50%, -100%)
+    position: absolute
+    color: $COLOR_DARK
+    white-space: nowrap

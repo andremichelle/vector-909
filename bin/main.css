@@ -725,7 +725,7 @@ div.wrapper-label {
 div.wrapper-label > * {
   position: relative;
 }
-div.wrapper-label:after {
+div.wrapper-label:before {
   content: attr(data-label);
   font-size: 8px;
   font-weight: bold;
@@ -737,6 +737,19 @@ div.wrapper-label:after {
   position: absolute;
   color: #43484a;
   white-space: pre-wrap;
+}
+div.wrapper-label:after {
+  content: attr(data-below);
+  font-size: 7px;
+  font-weight: normal;
+  line-height: 7px;
+  bottom: -22px;
+  left: 50%;
+  text-align: center;
+  transform: translate(-50%, -100%);
+  position: absolute;
+  color: #43484a;
+  white-space: nowrap;
 }
 
 main {
