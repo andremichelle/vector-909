@@ -634,7 +634,7 @@ div.tr-909 > div.action-button-group > h2 {
 div.tr-909 > svg.digits {
   transform: translate(244px, 423px);
   height: 48px;
-  box-shadow: 0 0 1px 1px rgba(0, 0, 0, 0.8);
+  box-shadow: 0 0 1px 1px rgba(0, 0, 0, 0.8), 0 2px 1px 1px rgba(255, 255, 255, 0.8);
 }
 div.tr-909 > div.step-button-group {
   transform: translate(181px, 568px);
