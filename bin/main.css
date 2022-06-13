@@ -136,7 +136,7 @@ div.instruments hr {
   width: 2px;
   height: 126px;
   border: none;
-  background-color: #39464a;
+  background-color: #43484a;
   position: relative;
   border-radius: 1px;
 }
@@ -168,7 +168,7 @@ div.instruments div.instrument > h1 {
   line-height: 15px;
   text-align: center;
   color: #d97e41;
-  background-color: #39464a;
+  background-color: #43484a;
   width: 100%;
   height: 14px;
   align-self: start;
@@ -392,7 +392,7 @@ div.two-columns fieldset.stepper > button:active {
   font-weight: 600;
   line-height: 10px;
   white-space: nowrap;
-  color: #39464a;
+  color: #43484a;
   left: 50%;
   top: 3px;
   transform: translate(-50%, -50%);
@@ -402,10 +402,10 @@ div.two-columns fieldset.stepper > button:active {
   width: 28px;
   height: 20px;
   border-radius: 0 0 14px 14px;
-  background: linear-gradient(to right, rgba(152, 151, 147, 0.7), #3e3d3b 30% 70%, rgba(152, 151, 147, 0.7));
+  background: linear-gradient(to right, rgba(142, 149, 152, 0.7), #373b3d 30% 70%, rgba(142, 149, 152, 0.7));
   position: absolute;
   transform: translate(7px, 24px);
-  box-shadow: 0 0 0 1px #41403d inset, 0 4px 4px 0 rgba(0, 0, 0, 0.5);
+  box-shadow: 0 0 0 1px #393e3f inset, 0 4px 4px 0 rgba(0, 0, 0, 0.5);
 }
 .knob-control > .knob:before {
   content: "";
@@ -427,7 +427,7 @@ div.two-columns fieldset.stepper > button:active {
   height: 28px;
   border-radius: 14px;
   position: absolute;
-  background: linear-gradient(to bottom, #4b4a47, #464542);
+  background: linear-gradient(to bottom, #43484a, #3e4345);
 }
 .knob-control.big {
   width: 82px;
@@ -435,6 +435,9 @@ div.two-columns fieldset.stepper > button:active {
   background-image: url("../svg/scale-big.svg");
   background-size: 82px 82px;
   background-position: 0 8px;
+}
+.knob-control.big:before {
+  font-size: 8px;
 }
 .knob-control.big > .knob {
   top: 8px;
@@ -627,7 +630,7 @@ div.tr-909 > div.action-button-group > h1, div.tr-909 > div.action-button-group 
   font-size: 6px;
   line-height: 1em;
   text-align: center;
-  color: #39464a;
+  color: #43484a;
   width: 100%;
   height: 16px;
   align-self: center;
@@ -668,7 +671,7 @@ div.tr-909 > div.step-button-group > hr {
   top: -12px;
   height: 66px;
   border: none;
-  background-color: #39464a;
+  background-color: #43484a;
   position: relative;
   border-radius: 1px;
 }
@@ -687,7 +690,7 @@ div.tr-909 > div.func-button-group {
   grid-template-columns: repeat(16, 57px);
   align-items: end;
   justify-items: center;
-  background-color: #39464a;
+  background-color: #43484a;
 }
 div.tr-909 > footer {
   width: 100%;
@@ -716,7 +719,7 @@ div.wrapper-label:after {
   text-align: center;
   transform: translate(-50%, -100%);
   position: absolute;
-  color: #39464a;
+  color: #43484a;
   white-space: pre-wrap;
 }
 

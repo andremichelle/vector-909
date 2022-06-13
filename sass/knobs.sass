@@ -1,7 +1,6 @@
 @import vars
 
-$color: #4b4a47
-$light: lighten(rgba($color, 0.7), 30)
+$light: lighten(rgba($COLOR_DARK, 0.7), 30)
 
 @keyframes rotate
   from
@@ -34,10 +33,10 @@ $light: lighten(rgba($color, 0.7), 30)
     width: 28px
     height: 20px
     border-radius: 0 0 14px 14px
-    background: linear-gradient(to right, $light, darken($color, 5) 30% 70%, $light)
+    background: linear-gradient(to right, $light, darken($COLOR_DARK, 5) 30% 70%, $light)
     position: absolute
     transform: translate(7px, 24px)
-    box-shadow: 0 0 0 1px darken($color, 4) inset, 0 4px 4px 0 rgba(black, 0.5)
+    box-shadow: 0 0 0 1px darken($COLOR_DARK, 4) inset, 0 4px 4px 0 rgba(black, 0.5)
 
     &:before
       content: ''
@@ -59,7 +58,7 @@ $light: lighten(rgba($color, 0.7), 30)
       height: 28px
       border-radius: 14px
       position: absolute
-      background: linear-gradient(to bottom, $color, darken($color, 2))
+      background: linear-gradient(to bottom, $COLOR_DARK, darken($COLOR_DARK, 2))
 
   &.big
     width: 82px
@@ -67,6 +66,9 @@ $light: lighten(rgba($color, 0.7), 30)
     background-image: url("../svg/scale-big.svg")
     background-size: 82px 82px
     background-position: 0 8px
+
+    &:before
+      font-size: 8px
 
     > .knob
       top: 8px
