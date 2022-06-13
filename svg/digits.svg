@@ -1,9 +1,10 @@
+<!-- This is a copy. Not used in main html. -->
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 142 70">
-    <rect x="0" y="0" width="100%" height="100%" fill="#662020"/>
+    <rect x="0" y="0" width="100%" height="100%" fill="#601010"/>
     <defs>
         <style>
             path, circle {fill: black; fill-opacity: 0.25;}
-            path.active, circle.active {fill: #ff6633; fill-opacity: 1;}
+            path.active, circle.active {fill: #CC4433; fill-opacity: 1;}
         </style>
     </defs>
     <g transform="translate(6, 6)">

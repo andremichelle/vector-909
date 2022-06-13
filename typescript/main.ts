@@ -38,6 +38,9 @@ const showProgress = (() => {
             button.addEventListener('pointerdown', () => button.classList.toggle('active'))
         })
 
+    // const display = document.querySelector('svg.digits')
+    // display.querySelectorAll('g').forEach(g => console.log(g.querySelectorAll('path')))
+
     // prevent dragging entire document on mobile
     document.addEventListener('touchmove', (event: TouchEvent) => event.preventDefault(), {passive: false})
     document.addEventListener('dblclick', (event: Event) => event.preventDefault(), {passive: false})

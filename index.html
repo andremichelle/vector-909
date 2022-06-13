@@ -145,7 +145,7 @@
             </div>
             <hr>
         </div>
-        <div class="action-button-group" style="transform: translate(478px, 405px)">
+        <div class="action-button-group" style="transform: translate(478px, 401px)">
             <h1 style="grid-column: 1 / 5;">TRACK PLAY</h1>
             <button class="translucent-button"></button>
             <button class="translucent-button"></button>
@@ -155,9 +155,9 @@
             <span>2</span>
             <span>3</span>
             <span>4</span>
-            <h2 style="grid-column: 1 / 5;">TRACK PLAY</h2>
+            <h2 style="grid-column: 1 / 5;">TRACK WRITE</h2>
         </div>
-        <div class="action-button-group" style="transform: translate(614px, 405px)">
+        <div class="action-button-group" style="transform: translate(614px, 401px)">
             <h1 style="grid-column: 1 / 4;">PATTERN PLAY</h1>
             <div></div>
             <button class="translucent-button"></button>
@@ -168,16 +168,16 @@
             <span>2</span>
             <span>3</span>
             <span></span>
-            <h2 style="grid-column: 1 / 4;">PATTERN PLAY</h2>
-            <h2>EXT</h2>
+            <h2 style="grid-column: 1 / 4;">PATTERN WRITE</h2>
+            <h2>EXT INST</h2>
         </div>
-        <div class="action-button-group six" style="transform: translate(750px, 405px)">
+        <div class="action-button-group six" style="transform: translate(750px, 401px)">
             <h1>TEMPO</h1>
             <h1>BACK</h1>
             <h1>FWD</h1>
-            <h1>AVAIL</h1>
-            <h1>CYCLE</h1>
-            <h1>TAPE</h1>
+            <h1>AVAILABLE MEAS</h1>
+            <h1>CYCLE /GUIDE</h1>
+            <h1>TAPE SYNC</h1>
             <button class="translucent-button"></button>
             <button class="translucent-button"></button>
             <button class="translucent-button"></button>
@@ -190,44 +190,28 @@
             <span>II</span>
             <span></span>
             <span></span>
-            <h2 style="grid-column: 1 / 3;">P WRITE MODE</h2>
+            <h2 style="grid-column: 1 / 3;">PATTERN WRITE MODE</h2>
             <h2 style="grid-column: 3 / 5;">BANK</h2>
-            <h2>LAST</h2>
-            <h2>TEMP</h2>
+            <h2>LAST MEAS</h2>
+            <h2>TEMP MODE</h2>
         </div>
         <div class="step-button-group">
-            <span>1</span>
-            <span>2</span>
-            <span>3</span>
-            <span>4</span>
-            <span>5</span>
-            <span>6</span>
-            <span>7</span>
-            <span>8</span>
-            <span>9</span>
-            <span>10</span>
-            <span>11</span>
-            <span>12</span>
-            <span>13</span>
-            <span>14</span>
-            <span>15</span>
-            <span>16</span>
-            <button class="switch step"></button>
-            <button class="switch step"></button>
-            <button class="switch step"></button>
-            <button class="switch step"></button>
-            <button class="switch step"></button>
-            <button class="switch step"></button>
-            <button class="switch step"></button>
-            <button class="switch step"></button>
-            <button class="switch step"></button>
-            <button class="switch step"></button>
-            <button class="switch step"></button>
-            <button class="switch step"></button>
-            <button class="switch step"></button>
-            <button class="switch step"></button>
-            <button class="switch step"></button>
-            <button class="switch step"></button>
+            <div data-step-index="1"><button class="switch step"></button></div>
+            <div data-step-index="2"><button class="switch step"></button></div>
+            <div data-step-index="3"><button class="switch step"></button></div>
+            <div data-step-index="4"><button class="switch step"></button></div>
+            <div data-step-index="5"><button class="switch step"></button></div>
+            <div data-step-index="6"><button class="switch step"></button></div>
+            <div data-step-index="7"><button class="switch step"></button></div>
+            <div data-step-index="8"><button class="switch step"></button></div>
+            <div data-step-index="9"><button class="switch step"></button></div>
+            <div data-step-index="10"><button class="switch step"></button></div>
+            <div data-step-index="11"><button class="switch step"></button></div>
+            <div data-step-index="12"><button class="switch step"></button></div>
+            <div data-step-index="13"><button class="switch step"></button></div>
+            <div data-step-index="14"><button class="switch step"></button></div>
+            <div data-step-index="15"><button class="switch step"></button></div>
+            <div data-step-index="16"><button class="switch step"></button></div>
         </div>
         <div class="func-button-group">
             <button class=func>1</button>
@@ -254,39 +238,46 @@
             <rect x="0" y="0" width="100%" height="100%" fill="#601010"/>
             <defs>
                 <style>
-                    path, circle {fill: black; fill-opacity: 0.25;}
-                    path.active, circle.active {fill: #CC4433; fill-opacity: 1;}
+                    path, circle {
+                        fill: black;
+                        fill-opacity: 0.25;
+                    }
+
+                    path.active, circle.active {
+                        fill: #CC4433;
+                        fill-opacity: 1;
+                    }
                 </style>
             </defs>
             <g transform="translate(6, 6)">
-                <path class="a" d="M10.46 3.07 13.97 0h18.42l2.64 3.07-3.5 3.07H13.1l-2.64-3.07z"/>
-                <path class="b active" d="m35.58 3.72 2.64 3.07-2.59 18.42-3.5 3.07-2.64-3.07 2.59-18.42 3.5-3.07z"/>
-                <path class="c active" d="m31.95 29.58 2.64 3.07L32 51.07l-3.5 3.07-2.64-3.07 2.59-18.42 3.5-3.07z"/>
-                <path class="d" d="m27.76 54.79-3.5 3.07H5.83l-2.64-3.07 3.51-3.07h18.42l2.64 3.07z"/>
-                <path class="e" d="M2.64 54.14 0 51.07l2.59-18.42 3.5-3.07 2.64 3.07-2.59 18.42-3.5 3.07z"/>
-                <path class="f" d="m6.27 28.28-2.64-3.07L6.22 6.79l3.51-3.07 2.63 3.07-2.58 18.42-3.51 3.07z"/>
-                <path class="g" d="m6.83 28.93 3.5-3.07h18.43l2.63 3.07-3.5 3.07H9.47l-2.64-3.07z"/>
-                <circle class="dot" cx="35.11" cy="54.75" r="3.11"/>
+                <path d="M10.46 3.07 13.97 0h18.42l2.64 3.07-3.5 3.07H13.1l-2.64-3.07z"/>
+                <path class="active" d="m35.58 3.72 2.64 3.07-2.59 18.42-3.5 3.07-2.64-3.07 2.59-18.42 3.5-3.07z"/>
+                <path class="active" d="m31.95 29.58 2.64 3.07L32 51.07l-3.5 3.07-2.64-3.07 2.59-18.42 3.5-3.07z"/>
+                <path d="m27.76 54.79-3.5 3.07H5.83l-2.64-3.07 3.51-3.07h18.42l2.64 3.07z"/>
+                <path d="M2.64 54.14 0 51.07l2.59-18.42 3.5-3.07 2.64 3.07-2.59 18.42-3.5 3.07z"/>
+                <path d="m6.27 28.28-2.64-3.07L6.22 6.79l3.51-3.07 2.63 3.07-2.58 18.42-3.51 3.07z"/>
+                <path d="m6.83 28.93 3.5-3.07h18.43l2.63 3.07-3.5 3.07H9.47l-2.64-3.07z"/>
+                <circle cx="35.11" cy="54.75" r="3.11"/>
             </g>
             <g transform="translate(52, 6)" fill="black" fill-opacity="0.5">
-                <path class="a active" d="M10.46 3.07 13.97 0h18.42l2.64 3.07-3.5 3.07H13.1l-2.64-3.07z"/>
-                <path class="b active" d="m35.58 3.72 2.64 3.07-2.59 18.42-3.5 3.07-2.64-3.07 2.59-18.42 3.5-3.07z"/>
-                <path class="c" d="m31.95 29.58 2.64 3.07L32 51.07l-3.5 3.07-2.64-3.07 2.59-18.42 3.5-3.07z"/>
-                <path class="d active" d="m27.76 54.79-3.5 3.07H5.83l-2.64-3.07 3.51-3.07h18.42l2.64 3.07z"/>
-                <path class="e active" d="M2.64 54.14 0 51.07l2.59-18.42 3.5-3.07 2.64 3.07-2.59 18.42-3.5 3.07z"/>
-                <path class="f" d="m6.27 28.28-2.64-3.07L6.22 6.79l3.51-3.07 2.63 3.07-2.58 18.42-3.51 3.07z"/>
-                <path class="g active" d="m6.83 28.93 3.5-3.07h18.43l2.63 3.07-3.5 3.07H9.47l-2.64-3.07z"/>
-                <circle class="dot" cx="35.11" cy="54.75" r="3.11"/>
+                <path class="active" d="M10.46 3.07 13.97 0h18.42l2.64 3.07-3.5 3.07H13.1l-2.64-3.07z"/>
+                <path class="active" d="m35.58 3.72 2.64 3.07-2.59 18.42-3.5 3.07-2.64-3.07 2.59-18.42 3.5-3.07z"/>
+                <path d="m31.95 29.58 2.64 3.07L32 51.07l-3.5 3.07-2.64-3.07 2.59-18.42 3.5-3.07z"/>
+                <path class="active" d="m27.76 54.79-3.5 3.07H5.83l-2.64-3.07 3.51-3.07h18.42l2.64 3.07z"/>
+                <path class="active" d="M2.64 54.14 0 51.07l2.59-18.42 3.5-3.07 2.64 3.07-2.59 18.42-3.5 3.07z"/>
+                <path d="m6.27 28.28-2.64-3.07L6.22 6.79l3.51-3.07 2.63 3.07-2.58 18.42-3.51 3.07z"/>
+                <path class="active" d="m6.83 28.93 3.5-3.07h18.43l2.63 3.07-3.5 3.07H9.47l-2.64-3.07z"/>
+                <circle cx="35.11" cy="54.75" r="3.11"/>
             </g>
             <g transform="translate(98, 6)" fill="black" fill-opacity="0.5">
-                <path class="a active" d="M10.46 3.07 13.97 0h18.42l2.64 3.07-3.5 3.07H13.1l-2.64-3.07z"/>
-                <path class="b active" d="m35.58 3.72 2.64 3.07-2.59 18.42-3.5 3.07-2.64-3.07 2.59-18.42 3.5-3.07z"/>
-                <path class="c active" d="m31.95 29.58 2.64 3.07L32 51.07l-3.5 3.07-2.64-3.07 2.59-18.42 3.5-3.07z"/>
-                <path class="d active" d="m27.76 54.79-3.5 3.07H5.83l-2.64-3.07 3.51-3.07h18.42l2.64 3.07z"/>
-                <path class="e active" d="M2.64 54.14 0 51.07l2.59-18.42 3.5-3.07 2.64 3.07-2.59 18.42-3.5 3.07z"/>
-                <path class="f active" d="m6.27 28.28-2.64-3.07L6.22 6.79l3.51-3.07 2.63 3.07-2.58 18.42-3.51 3.07z"/>
-                <path class="g" d="m6.83 28.93 3.5-3.07h18.43l2.63 3.07-3.5 3.07H9.47l-2.64-3.07z"/>
-                <circle class="dot" cx="35.11" cy="54.75" r="3.11"/>
+                <path class="active" d="M10.46 3.07 13.97 0h18.42l2.64 3.07-3.5 3.07H13.1l-2.64-3.07z"/>
+                <path class="active" d="m35.58 3.72 2.64 3.07-2.59 18.42-3.5 3.07-2.64-3.07 2.59-18.42 3.5-3.07z"/>
+                <path class="active" d="m31.95 29.58 2.64 3.07L32 51.07l-3.5 3.07-2.64-3.07 2.59-18.42 3.5-3.07z"/>
+                <path class="active" d="m27.76 54.79-3.5 3.07H5.83l-2.64-3.07 3.51-3.07h18.42l2.64 3.07z"/>
+                <path class="active" d="M2.64 54.14 0 51.07l2.59-18.42 3.5-3.07 2.64 3.07-2.59 18.42-3.5 3.07z"/>
+                <path class="active" d="m6.27 28.28-2.64-3.07L6.22 6.79l3.51-3.07 2.63 3.07-2.58 18.42-3.51 3.07z"/>
+                <path d="m6.83 28.93 3.5-3.07h18.43l2.63 3.07-3.5 3.07H9.47l-2.64-3.07z"/>
+                <circle class="active" cx="35.11" cy="54.75" r="3.11"/>
             </g>
         </svg>
         <div class="knob-control big" data-label="VOLUME" style="transform: translate(1022px, 400px)">
