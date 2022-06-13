@@ -381,7 +381,7 @@ div.two-columns fieldset.stepper > button:active {
   width: 42px;
   height: 56px;
   position: absolute;
-  background-image: url("../svg/scale.svg");
+  background-image: url("../svg/scale-small.svg");
   background-size: 42px 42px;
   background-position: 0 8px;
   background-repeat: no-repeat;
@@ -620,13 +620,13 @@ div.tr-909 > div.rhythm-composer-logo {
   background-image: url("../svg/rhythm-composer.svg");
 }
 div.tr-909 > div.wrapper-label.cartridge {
-  transform: translate(951px, 423px);
+  transform: translate(962px, 423px);
 }
 div.tr-909 > div.wrapper-label.start {
-  transform: translate(104px, 423px);
+  transform: translate(128px, 423px);
 }
 div.tr-909 > div.wrapper-label.stop {
-  transform: translate(168px, 423px);
+  transform: translate(192px, 423px);
 }
 div.tr-909 > div.action-button-group {
   display: grid;
@@ -668,11 +668,16 @@ div.tr-909 > div.action-button-group > h2 {
   justify-content: center;
 }
 div.tr-909 > div.wrapper-label.digits {
-  transform: translate(244px, 423px);
+  transform: translate(268px, 423px);
   box-shadow: 0 0 1px 1px rgba(0, 0, 0, 0.8), 0 2px 1px 1px rgba(255, 255, 255, 0.8);
 }
 div.tr-909 > div.wrapper-label.digits > svg {
   height: 48px;
+}
+div.tr-909 > svg.scales {
+  fill: #43484a;
+  width: 912px;
+  transform: translate(212px, 498px);
 }
 div.tr-909 > div.step-button-group {
   transform: translate(212px, 576px);
