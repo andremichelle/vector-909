@@ -33,6 +33,7 @@ body {
   -moz-user-select: none;
   -ms-user-select: none;
   -webkit-tap-highlight-color: transparent;
+  pointer-events: none;
 }
 
 .hidden {
@@ -96,6 +97,7 @@ body {
   -moz-user-select: none;
   -ms-user-select: none;
   -webkit-tap-highlight-color: transparent;
+  pointer-events: none;
 }
 
 .hidden {
@@ -385,6 +387,7 @@ div.two-columns fieldset.stepper > button:active {
   background-size: 42px 42px;
   background-position: 0 8px;
   background-repeat: no-repeat;
+  pointer-events: all;
 }
 .knob-control:before {
   content: attr(data-label);
@@ -487,6 +490,7 @@ button.switch, button.trigger {
   position: absolute;
   box-shadow: 0 0 1px 2px rgba(0, 0, 0, 0.6) inset, 0 -1px 2px 0 rgba(255, 255, 255, 0.7), 0 2px 2px 0 rgba(0, 0, 0, 0.4);
   transition: all 50ms linear;
+  pointer-events: all;
 }
 button.switch.bright, button.trigger.bright {
   filter: sepia(20%) brightness(125%);
@@ -544,6 +548,7 @@ button.translucent-button {
   background-image: url("../svg/translucent-button-normal.svg");
   box-shadow: 0 0 1px 1px rgba(0, 0, 0, 0.6) inset, 0 0.5px 2px 0 rgba(255, 255, 255, 0.8), 0 0 1px 1px rgba(255, 255, 255, 0.4) inset;
   color: #f2675d;
+  pointer-events: all;
 }
 button.translucent-button:active {
   filter: brightness(98%);
@@ -564,6 +569,7 @@ button.func {
   font-weight: 600;
   line-height: 10px;
   color: #d9d5d0;
+  pointer-events: all;
 }
 
 div.tr-909 {
