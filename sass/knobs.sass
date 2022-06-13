@@ -24,7 +24,7 @@ $light: lighten(rgba($color, 0.7), 30)
     font-weight: 600
     line-height: 10px
     white-space: nowrap
-    color: #686c72
+    color: $COLOR_DARK
     left: 50%
     top: 3px
     transform: translate(-50%, -50%)
@@ -69,19 +69,20 @@ $light: lighten(rgba($color, 0.7), 30)
     background-position: 0 8px
 
     > .knob
+      top: 8px
       width: 54px
-      height: 40px
+      height: 32px
       border-radius: 0 0 27px 27px
       transform: translate(14px, 36px)
 
       &:before
-        top: 0.5px
+        top: -7.5px
         left: 26px
         height: 13px
         transform: rotate(-150deg) translate(0, -20px)
 
       &:after
-        top: -20px
+        top: -28px
         width: 54px
         height: 54px
         border-radius: 27px

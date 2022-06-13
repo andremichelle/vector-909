@@ -58,26 +58,23 @@ div.tr-909
     background-repeat: no-repeat
     background-image: url("../svg/rhythm-composer.svg")
 
-  > button.switch.cartridge
-    top: 423px
-    left: 951px
+  > div.wrapper-label.cartridge
+    transform: translate(951px, 423px)
 
-  > button.trigger.start
-    top: 423px
-    left: 104px
+  > div.wrapper-label.start
+    transform: translate(104px, 423px)
 
-  > button.trigger.stop
-    top: 423px
-    left: 168px
+  > div.wrapper-label.stop
+    transform: translate(168px, 423px)
 
   > div.action-button-group
     display: grid
-    grid-template: 24px repeat(2, 20px) 16px / repeat(4, 20px)
+    grid-template: 24px 20px 16px 16px / repeat(4, 20px)
     position: absolute
     column-gap: 11px
 
     &.six
-      grid-template: 24px repeat(2, 20px) 16px / repeat(6, 20px)
+      grid-template: 24px 20px 16px 16px / repeat(6, 20px)
 
     > *
       position: relative
@@ -88,7 +85,7 @@ div.tr-909
       font-size: 6px
       line-height: 1em
       text-align: center
-      color: rgba(black, 0.5)
+      color: $COLOR_DARK
       width: 100%
       height: 16px
       align-self: center
@@ -109,19 +106,38 @@ div.tr-909
       align-items: center
       justify-content: center
 
-  > svg.digits
+  > div.wrapper-label.digits
     transform: translate(244px, 423px)
-    height: 48px
     box-shadow: 0 0 1px 1px rgba(black, 0.8), 0 2px 1px 1px rgba(white, 0.8)
 
-  > div.step-button-group
-    transform: translate(208px, 556px)
-    display: grid
-    grid-template-columns: repeat(16, 57px)
-    height: 72px
+    > svg
+      height: 48px
 
-    > *
+  > div.step-button-group
+    transform: translate(212px, 576px)
+    display: grid
+    grid-template-columns: repeat(8, 104px 10px)
+    justify-items: center
+
+    > hr
+      margin: 0
+      padding: 0
+      width: 2px
+      top: -12px
+      height: 66px
+      border: none
+      background-color: $COLOR_DARK
       position: relative
+      border-radius: 1px
+
+    > div.two
+      display: grid
+      grid-template-columns: repeat(2, 48px)
+      column-gap: 8px
+      height: 48px
+
+      > *
+        position: relative
 
   > div.func-button-group
     transform: translate(208px, 632px)
@@ -129,7 +145,7 @@ div.tr-909
     grid-template-columns: repeat(16, 57px)
     align-items: end
     justify-items: center
-    background-color: rgba(black, 0.5)
+    background-color: $COLOR_DARK
 
   > footer
     width: 100%
@@ -137,3 +153,26 @@ div.tr-909
     background: linear-gradient(to bottom, transparent, rgba(white, 0.08) 16%, rgba(black, 0.3) 32%)
     bottom: 0
     z-index: 1
+
+
+div.wrapper-label
+  display: flex
+  align-items: center
+  justify-content: center
+  box-sizing: border-box
+
+  > *
+    position: relative
+
+  &:after
+    content: attr(data-label)
+    font-size: 8px
+    font-weight: bold
+    line-height: 7px
+    top: -6px
+    left: 50%
+    text-align: center
+    transform: translate(-50%, -100%)
+    position: absolute
+    color: $COLOR_DARK
+    white-space: pre-wrap

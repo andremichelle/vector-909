@@ -136,7 +136,7 @@ div.instruments hr {
   width: 2px;
   height: 126px;
   border: none;
-  background-color: rgba(0, 0, 0, 0.6);
+  background-color: rgba(0, 0, 0, 0.57);
   position: relative;
   border-radius: 1px;
 }
@@ -168,7 +168,7 @@ div.instruments div.instrument > h1 {
   line-height: 15px;
   text-align: center;
   color: #d97e41;
-  background-color: rgba(0, 0, 0, 0.6);
+  background-color: rgba(0, 0, 0, 0.57);
   width: 100%;
   height: 14px;
   align-self: start;
@@ -392,7 +392,7 @@ div.two-columns fieldset.stepper > button:active {
   font-weight: 600;
   line-height: 10px;
   white-space: nowrap;
-  color: #686c72;
+  color: rgba(0, 0, 0, 0.57);
   left: 50%;
   top: 3px;
   transform: translate(-50%, -50%);
@@ -437,19 +437,20 @@ div.two-columns fieldset.stepper > button:active {
   background-position: 0 8px;
 }
 .knob-control.big > .knob {
+  top: 8px;
   width: 54px;
-  height: 40px;
+  height: 32px;
   border-radius: 0 0 27px 27px;
   transform: translate(14px, 36px);
 }
 .knob-control.big > .knob:before {
-  top: 0.5px;
+  top: -7.5px;
   left: 26px;
   height: 13px;
   transform: rotate(-150deg) translate(0, -20px);
 }
 .knob-control.big > .knob:after {
-  top: -20px;
+  top: -28px;
   width: 54px;
   height: 54px;
   border-radius: 27px;
@@ -546,28 +547,6 @@ button.func {
   color: #d9d5d0;
 }
 
-div.button-label {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  box-sizing: border-box;
-}
-div.button-label:nth-child(even):not(:last-child) {
-  border-right: 1px rgba(0, 0, 0, 0.5) solid;
-}
-div.button-label:nth-child(odd):not(:first-child) {
-  border-left: 1px rgba(0, 0, 0, 0.5) solid;
-}
-div.button-label:after {
-  content: attr(data-label);
-  font-size: 9px;
-  font-weight: bold;
-  line-height: 10px;
-  top: -32px;
-  position: relative;
-  color: #686c72;
-}
-
 div.tr-909 {
   width: 1226px;
   height: 717px;
@@ -621,26 +600,23 @@ div.tr-909 > div.rhythm-composer-logo {
   background-repeat: no-repeat;
   background-image: url("../svg/rhythm-composer.svg");
 }
-div.tr-909 > button.switch.cartridge {
-  top: 423px;
-  left: 951px;
+div.tr-909 > div.wrapper-label.cartridge {
+  transform: translate(951px, 423px);
 }
-div.tr-909 > button.trigger.start {
-  top: 423px;
-  left: 104px;
+div.tr-909 > div.wrapper-label.start {
+  transform: translate(104px, 423px);
 }
-div.tr-909 > button.trigger.stop {
-  top: 423px;
-  left: 168px;
+div.tr-909 > div.wrapper-label.stop {
+  transform: translate(168px, 423px);
 }
 div.tr-909 > div.action-button-group {
   display: grid;
-  grid-template: 24px repeat(2, 20px) 16px/repeat(4, 20px);
+  grid-template: 24px 20px 16px 16px/repeat(4, 20px);
   position: absolute;
   column-gap: 11px;
 }
 div.tr-909 > div.action-button-group.six {
-  grid-template: 24px repeat(2, 20px) 16px/repeat(6, 20px);
+  grid-template: 24px 20px 16px 16px/repeat(6, 20px);
 }
 div.tr-909 > div.action-button-group > * {
   position: relative;
@@ -651,7 +627,7 @@ div.tr-909 > div.action-button-group > h1, div.tr-909 > div.action-button-group 
   font-size: 6px;
   line-height: 1em;
   text-align: center;
-  color: rgba(0, 0, 0, 0.5);
+  color: rgba(0, 0, 0, 0.57);
   width: 100%;
   height: 16px;
   align-self: center;
@@ -672,18 +648,37 @@ div.tr-909 > div.action-button-group > h2 {
   align-items: center;
   justify-content: center;
 }
-div.tr-909 > svg.digits {
+div.tr-909 > div.wrapper-label.digits {
   transform: translate(244px, 423px);
-  height: 48px;
   box-shadow: 0 0 1px 1px rgba(0, 0, 0, 0.8), 0 2px 1px 1px rgba(255, 255, 255, 0.8);
 }
-div.tr-909 > div.step-button-group {
-  transform: translate(208px, 556px);
-  display: grid;
-  grid-template-columns: repeat(16, 57px);
-  height: 72px;
+div.tr-909 > div.wrapper-label.digits > svg {
+  height: 48px;
 }
-div.tr-909 > div.step-button-group > * {
+div.tr-909 > div.step-button-group {
+  transform: translate(212px, 576px);
+  display: grid;
+  grid-template-columns: repeat(8, 104px 10px);
+  justify-items: center;
+}
+div.tr-909 > div.step-button-group > hr {
+  margin: 0;
+  padding: 0;
+  width: 2px;
+  top: -12px;
+  height: 66px;
+  border: none;
+  background-color: rgba(0, 0, 0, 0.57);
+  position: relative;
+  border-radius: 1px;
+}
+div.tr-909 > div.step-button-group > div.two {
+  display: grid;
+  grid-template-columns: repeat(2, 48px);
+  column-gap: 8px;
+  height: 48px;
+}
+div.tr-909 > div.step-button-group > div.two > * {
   position: relative;
 }
 div.tr-909 > div.func-button-group {
@@ -692,7 +687,7 @@ div.tr-909 > div.func-button-group {
   grid-template-columns: repeat(16, 57px);
   align-items: end;
   justify-items: center;
-  background-color: rgba(0, 0, 0, 0.5);
+  background-color: rgba(0, 0, 0, 0.57);
 }
 div.tr-909 > footer {
   width: 100%;
@@ -700,6 +695,29 @@ div.tr-909 > footer {
   background: linear-gradient(to bottom, transparent, rgba(255, 255, 255, 0.08) 16%, rgba(0, 0, 0, 0.3) 32%);
   bottom: 0;
   z-index: 1;
+}
+
+div.wrapper-label {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+}
+div.wrapper-label > * {
+  position: relative;
+}
+div.wrapper-label:after {
+  content: attr(data-label);
+  font-size: 8px;
+  font-weight: bold;
+  line-height: 7px;
+  top: -6px;
+  left: 50%;
+  text-align: center;
+  transform: translate(-50%, -100%);
+  position: absolute;
+  color: rgba(0, 0, 0, 0.57);
+  white-space: pre-wrap;
 }
 
 main {

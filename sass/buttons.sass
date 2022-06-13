@@ -95,24 +95,3 @@ button.func
   font-weight: 600
   line-height: 10px
   color: $COLOR_CHASSIS
-
-div.button-label
-  display: flex
-  align-items: center
-  justify-content: center
-  box-sizing: border-box
-
-  &:nth-child(even):not(:last-child)
-    border-right: 1px rgba(black, 0.5) solid
-
-  &:nth-child(odd):not(:first-child)
-    border-left: 1px rgba(black, 0.5) solid
-
-  &:after
-    content: attr(data-label)
-    font-size: 9px
-    font-weight: bold
-    line-height: 10px
-    top: -32px
-    position: relative
-    color: #686c72
