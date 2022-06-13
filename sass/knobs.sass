@@ -1,4 +1,7 @@
-$color: #5b5a57
+@import vars
+
+$color: #4b4a47
+$light: lighten(rgba($color, 0.7), 30)
 
 @keyframes rotate
   from
@@ -28,7 +31,6 @@ $color: #5b5a57
     position: absolute
 
   > .knob
-    $light: lighten(rgba($color, 0.7), 30)
     width: 28px
     height: 20px
     border-radius: 0 0 14px 14px
@@ -45,9 +47,9 @@ $color: #5b5a57
       height: 4px
       border-radius: 0.5px
       position: absolute
-      background-color: #e09043
+      background-color: $COLOR_ORANGE
       transform: rotate(-150deg) translate(0, -11.5px)
-      box-shadow: 0 0.5px 0.5px 0 rgba(white, 0.4)
+      box-shadow: 0 0.5px 0.5px 0 rgba(white, 0.2)
       z-index: 1
 
     &:after
@@ -57,8 +59,7 @@ $color: #5b5a57
       height: 28px
       border-radius: 14px
       position: absolute
-      background: linear-gradient(to bottom, #625f60, darken(#625f60, 2))
-      box-shadow: 0 1px 2px 0 rgba(white, 0.04) inset, 0 0 0.5px 1px darken($color, 5)
+      background: linear-gradient(to bottom, $color, darken($color, 2))
 
   &.big
     width: 82px

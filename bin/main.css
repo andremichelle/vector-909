@@ -136,7 +136,7 @@ div.instruments hr {
   width: 2px;
   height: 126px;
   border: none;
-  background-color: rgba(0, 0, 0, 0.5);
+  background-color: rgba(0, 0, 0, 0.6);
   position: relative;
   border-radius: 1px;
 }
@@ -168,7 +168,7 @@ div.instruments div.instrument > h1 {
   line-height: 15px;
   text-align: center;
   color: #d97e41;
-  background-color: rgba(0, 0, 0, 0.5);
+  background-color: rgba(0, 0, 0, 0.6);
   width: 100%;
   height: 14px;
   align-self: start;
@@ -402,10 +402,10 @@ div.two-columns fieldset.stepper > button:active {
   width: 28px;
   height: 20px;
   border-radius: 0 0 14px 14px;
-  background: linear-gradient(to right, rgba(168, 167, 163, 0.7), #4e4d4b 30% 70%, rgba(168, 167, 163, 0.7));
+  background: linear-gradient(to right, rgba(152, 151, 147, 0.7), #3e3d3b 30% 70%, rgba(152, 151, 147, 0.7));
   position: absolute;
   transform: translate(7px, 24px);
-  box-shadow: 0 0 0 1px #51504d inset, 0 4px 4px 0 rgba(0, 0, 0, 0.5);
+  box-shadow: 0 0 0 1px #41403d inset, 0 4px 4px 0 rgba(0, 0, 0, 0.5);
 }
 .knob-control > .knob:before {
   content: "";
@@ -415,9 +415,9 @@ div.two-columns fieldset.stepper > button:active {
   height: 4px;
   border-radius: 0.5px;
   position: absolute;
-  background-color: #e09043;
+  background-color: #d97e41;
   transform: rotate(-150deg) translate(0, -11.5px);
-  box-shadow: 0 0.5px 0.5px 0 rgba(255, 255, 255, 0.4);
+  box-shadow: 0 0.5px 0.5px 0 rgba(255, 255, 255, 0.2);
   z-index: 1;
 }
 .knob-control > .knob:after {
@@ -427,8 +427,7 @@ div.two-columns fieldset.stepper > button:active {
   height: 28px;
   border-radius: 14px;
   position: absolute;
-  background: linear-gradient(to bottom, #625f60, #5d5a5b);
-  box-shadow: 0 1px 2px 0 rgba(255, 255, 255, 0.04) inset, 0 0 0.5px 1px #4e4d4b;
+  background: linear-gradient(to bottom, #4b4a47, #464542);
 }
 .knob-control.big {
   width: 82px;
