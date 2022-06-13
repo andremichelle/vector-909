@@ -43,11 +43,12 @@ const showProgress = (() => {
     document.addEventListener('dblclick', (event: Event) => event.preventDefault(), {passive: false})
     const resize = () => {
         document.body.style.height = `${window.innerHeight}px`
+        if (location.href.includes('localhost')) return
         const element = HTML.query('.tr-909')
         const padding = 64
         const scale = Math.min(Math.min(
             window.innerWidth / (element.clientWidth + padding),
-            window.innerHeight / (element.clientHeight + padding)), 1.0)
+            window.innerHeight / (element.clientHeight + padding)), 2.0)
         const main: HTMLElement = HTML.query('main')
         HTML.query('span.zoom').textContent = `Zoom: ${Math.round(scale * 100)}%`
         main.style.setProperty("--scale", `${scale}`)
