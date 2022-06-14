@@ -557,21 +557,6 @@ button.translucent-button.active {
   background-image: url("../svg/translucent-button-active.svg");
 }
 
-button.func {
-  margin: 0;
-  padding: 0;
-  border: none;
-  outline: none;
-  appearance: none;
-  background: none;
-  height: 14px;
-  font-size: 8px;
-  font-weight: 600;
-  line-height: 15px;
-  color: #d9d5d0;
-  pointer-events: all;
-}
-
 div.tr-909 {
   width: 1226px;
   height: 728px;
@@ -761,13 +746,26 @@ div.tr-909 > div.step-button-group > div.two {
 div.tr-909 > div.step-button-group > div.two > * {
   position: relative;
 }
-div.tr-909 > div.func-button-group {
+div.tr-909 > div.func-label-group {
   transform: translate(206px, 638px);
   display: grid;
   grid-template-columns: repeat(16, 57px);
   align-items: end;
   justify-items: center;
   background-color: #43484a;
+}
+div.tr-909 > div.func-label-group > div.func {
+  margin: 0;
+  padding: 0;
+  border: none;
+  outline: none;
+  appearance: none;
+  background: none;
+  height: 14px;
+  font-size: 8px;
+  font-weight: 600;
+  line-height: 15px;
+  color: #d9d5d0;
 }
 div.tr-909 > div.trigger-labels {
   transform: translate(206px, 656px);
