@@ -1,6 +1,6 @@
 ### CSS-909
 
-Roland TR-909 drum-machine with only html, svg & css. No sound engine.
+Roland TR-909 drum-machine with only html, svg & css. 100% vector graphics. No textures. No sound engine ...yet
 
 ### Disclaimer
 _**The use of any trade name or trademark is for identification and educational purposes only and does not imply any association with the trademark holder of their product brand.**_
