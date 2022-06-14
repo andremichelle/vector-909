@@ -1,4 +1,4 @@
-import {Boot, newAudioContext, preloadImagesOfCssFile} from "./lib/boot.js"
+import {Boot, preloadImagesOfCssFile} from "./lib/boot.js"
 import {HTML} from "./lib/dom.js"
 
 const showProgress = (() => {
@@ -12,12 +12,10 @@ const showProgress = (() => {
     console.debug("booting...")
 
     // --- BOOT STARTS ---
-
     const boot = new Boot()
     boot.addObserver(boot => showProgress(boot.normalizedPercentage()))
     boot.registerProcess(preloadImagesOfCssFile("./bin/main.css"))
     await boot.waitForCompletion()
-
     // --- BOOT ENDS ---
 
     document.querySelectorAll('button.switch')
