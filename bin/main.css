@@ -583,9 +583,6 @@ div.tr-909:before, div.tr-909:after {
   position: absolute;
   border-right: 1px #646462 solid;
 }
-div.tr-909.template {
-  background-image: url("../images/template.png");
-}
 div.tr-909 > div.roland-logo {
   top: 36px;
   left: 88px;

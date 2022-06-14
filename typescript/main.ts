@@ -16,7 +16,6 @@ const showProgress = (() => {
     const boot = new Boot()
     boot.addObserver(boot => showProgress(boot.normalizedPercentage()))
     boot.registerProcess(preloadImagesOfCssFile("./bin/main.css"))
-    const context = newAudioContext()
     await boot.waitForCompletion()
 
     // --- BOOT ENDS ---

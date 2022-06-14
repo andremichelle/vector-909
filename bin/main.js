@@ -7,7 +7,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
-import { Boot, newAudioContext, preloadImagesOfCssFile } from "./lib/boot.js";
+import { Boot, preloadImagesOfCssFile } from "./lib/boot.js";
 import { HTML } from "./lib/dom.js";
 const showProgress = (() => {
     const progress = document.querySelector("svg.preloader");
@@ -20,15 +20,7 @@ const showProgress = (() => {
     const boot = new Boot();
     boot.addObserver(boot => showProgress(boot.normalizedPercentage()));
     boot.registerProcess(preloadImagesOfCssFile("./bin/main.css"));
-    const context = newAudioContext();
     yield boot.waitForCompletion();
-    window.addEventListener('keydown', (event) => {
-        if (event.code === 'Space') {
-            const device = HTML.query('.tr-909');
-            device.classList.toggle('template');
-            event.preventDefault();
-        }
-    });
     document.querySelectorAll('button.switch')
         .forEach((button, index) => {
         button.addEventListener('pointerdown', () => button.classList.toggle('active'));
