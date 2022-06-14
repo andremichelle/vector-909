@@ -769,6 +769,35 @@ div.tr-909 > div.func-button-group {
   justify-items: center;
   background-color: #43484a;
 }
+div.tr-909 > div.trigger-labels {
+  transform: translate(206px, 656px);
+  display: grid;
+  grid-template-columns: repeat(8, 114px);
+  height: 16px;
+}
+div.tr-909 > div.trigger-labels > div {
+  font-size: 7px;
+  margin: 0 4px;
+  padding: 0;
+  overflow: hidden;
+  display: flex;
+  justify-content: space-around;
+  font-weight: bold;
+  background: url("../svg/trigger-background.svg") no-repeat;
+}
+div.tr-909 > div.trigger-labels > div.bend {
+  background: url("../svg/trigger-background-bend.svg") no-repeat;
+}
+div.tr-909 > div.trigger-labels > div.light {
+  font-size: 6px;
+  font-weight: bolder;
+}
+div.tr-909 > div.trigger-labels > div > span {
+  line-height: 18px;
+  text-align: center;
+  color: #43484a;
+  white-space: nowrap;
+}
 div.tr-909 > hr.bottom-right {
   transform: translate(1120px, 498px);
   margin: 0;

@@ -202,6 +202,35 @@ div.tr-909
     justify-items: center
     background-color: $COLOR_DARK
 
+  > div.trigger-labels
+    transform: translate(206px, 656px)
+    display: grid
+    grid-template-columns: repeat(8, 114px)
+    height: 16px
+
+    > div
+      font-size: 7px
+      margin: 0 4px
+      padding: 0
+      overflow: hidden
+      display: flex
+      justify-content: space-around
+      font-weight: bold
+      background: url("../svg/trigger-background.svg") no-repeat
+
+      &.bend
+        background: url("../svg/trigger-background-bend.svg") no-repeat
+
+      &.light
+        font-size: 6px
+        font-weight: bolder
+
+      > span
+        line-height: 18px
+        text-align: center
+        color: $COLOR_DARK
+        white-space: nowrap
+
   > hr.bottom-right
     transform: translate(1120px, 498px)
     margin: 0
