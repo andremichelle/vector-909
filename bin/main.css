@@ -574,7 +574,7 @@ button.func {
 
 div.tr-909 {
   width: 1226px;
-  height: 717px;
+  height: 728px;
   position: relative;
   image-rendering: pixelated;
   background: radial-gradient(at 50% 0, rgba(255, 255, 255, 0.25), transparent), linear-gradient(to bottom, #d0cbc5, #c7c1b9);
@@ -681,12 +681,36 @@ div.tr-909 > div.wrapper-label.digits > svg {
   height: 48px;
 }
 div.tr-909 > div.pattern-functions {
-  transform: translate(106px, 498px);
-  padding: 12px 0 0 0;
+  transform: translate(90px, 498px);
+  padding: 12px 0 0 13px;
   display: grid;
+  width: 95px;
+  height: 160px;
   grid-template-columns: repeat(2, 40px);
   grid-template-rows: repeat(3, 20px 22px);
   justify-items: center;
+  border-left: 2px #43484a solid;
+  border-bottom: 2px #43484a solid;
+}
+div.tr-909 > div.pattern-functions:before {
+  content: "";
+  width: 104px;
+  height: 2px;
+  top: 0;
+  left: 0;
+  background-color: #43484a;
+  position: absolute;
+  border-radius: 0 1px 1px 0;
+}
+div.tr-909 > div.pattern-functions:after {
+  content: "";
+  width: 2px;
+  height: 116px;
+  bottom: 0;
+  right: 0;
+  background-color: #43484a;
+  position: absolute;
+  border-radius: 1px 1px 0 0;
 }
 div.tr-909 > div.pattern-functions > * {
   position: relative;
@@ -701,6 +725,7 @@ div.tr-909 > div.pattern-functions > span {
   color: #43484a;
   border-radius: 1px;
   font-weight: bold;
+  white-space: nowrap;
 }
 div.tr-909 > div.pattern-functions > span.shift {
   background-color: #d97e41;
@@ -711,7 +736,7 @@ div.tr-909 > svg.scales {
   transform: translate(198px, 498px);
 }
 div.tr-909 > div.step-button-group {
-  transform: translate(212px, 574px);
+  transform: translate(212px, 582px);
   display: grid;
   grid-template-columns: repeat(8, 104px 10px);
   justify-items: center;
@@ -737,7 +762,7 @@ div.tr-909 > div.step-button-group > div.two > * {
   position: relative;
 }
 div.tr-909 > div.func-button-group {
-  transform: translate(208px, 630px);
+  transform: translate(208px, 638px);
   display: grid;
   grid-template-columns: repeat(16, 57px);
   align-items: end;
