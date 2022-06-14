@@ -12,9 +12,19 @@ main
   @media (orientation: portrait)
     transform: scale(var(--scale)) rotate(90deg)
 
-span.zoom
-  top: 8px
+div.zoom-control
   left: 8px
-  font-size: 9px
-  color: rgba(black, 0.5)
+  bottom: 8px
   position: absolute
+  display: grid
+  grid-template-columns: min-content 32px
+  column-gap: 4px
+  align-items: center
+
+  span.zoom
+    font-size: 9px
+    white-space: nowrap
+    color: rgba(black, 0.5)
+
+  label.zoom
+    pointer-events: all

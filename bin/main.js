@@ -32,16 +32,23 @@ const showProgress = (() => {
     });
     document.addEventListener('touchmove', (event) => event.preventDefault(), { passive: false });
     document.addEventListener('dblclick', (event) => event.preventDefault(), { passive: false });
+    const main = HTML.query('main');
+    const tr909 = HTML.query('.tr-909');
+    const zoomLabel = HTML.query('span.zoom');
+    const zoomCheckbox = HTML.query('input[data-control=zoom-enabled]');
+    const doZoom = () => {
+        const padding = 64;
+        let scale = Math.min(window.innerWidth / (tr909.clientWidth + padding), window.innerHeight / (tr909.clientHeight + padding));
+        if (zoomCheckbox.checked && scale > 1.0) {
+            scale = 1.0;
+        }
+        zoomLabel.textContent = `Zoom: ${Math.round(scale * 100)}%`;
+        main.style.setProperty("--scale", `${scale}`);
+    };
+    zoomCheckbox.oninput = () => doZoom();
     const resize = () => {
         document.body.style.height = `${window.innerHeight}px`;
-        if (location.href.includes('localhost'))
-            return;
-        const element = HTML.query('.tr-909');
-        const padding = 64;
-        const scale = Math.min(Math.min(window.innerWidth / (element.clientWidth + padding), window.innerHeight / (element.clientHeight + padding)), 1.0);
-        const main = HTML.query('main');
-        HTML.query('span.zoom').textContent = `Zoom: ${Math.round(scale * 100)}%`;
-        main.style.setProperty("--scale", `${scale}`);
+        doZoom();
     };
     window.addEventListener("resize", resize);
     resize();
