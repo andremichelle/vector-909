@@ -762,12 +762,22 @@ div.tr-909 > div.step-button-group > div.two > * {
   position: relative;
 }
 div.tr-909 > div.func-button-group {
-  transform: translate(208px, 638px);
+  transform: translate(206px, 638px);
   display: grid;
   grid-template-columns: repeat(16, 57px);
   align-items: end;
   justify-items: center;
   background-color: #43484a;
+}
+div.tr-909 > hr.bottom-right {
+  transform: translate(1120px, 498px);
+  margin: 0;
+  padding: 0;
+  width: 2px;
+  height: 172px;
+  border: none;
+  background-color: #43484a;
+  border-radius: 1px;
 }
 div.tr-909 > footer {
   width: 100%;
