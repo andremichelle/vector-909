@@ -796,6 +796,14 @@ div.tr-909 > div.trigger-labels > div > span {
   color: #43484a;
   white-space: nowrap;
 }
+div.tr-909 > hr.step-border {
+  margin: 0;
+  padding: 0;
+  height: 2px;
+  border: none;
+  background-color: #43484a;
+  border-radius: 1px;
+}
 div.tr-909 > hr.bottom-right {
   transform: translate(1120px, 498px);
   margin: 0;
