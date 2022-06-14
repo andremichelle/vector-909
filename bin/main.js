@@ -37,7 +37,7 @@ const showProgress = (() => {
     const zoomLabel = HTML.query('span.zoom');
     const zoomCheckbox = HTML.query('input[data-control=zoom-enabled]');
     const doZoom = () => {
-        if (zoomCheckbox.checked)
+        if (!zoomCheckbox.checked)
             return;
         const padding = 64;
         let scale = Math.min(window.innerWidth / (tr909.clientWidth + padding), window.innerHeight / (tr909.clientHeight + padding));
