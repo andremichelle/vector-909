@@ -597,6 +597,7 @@ div.tr-909 > div.tr-909-logo {
   width: 270px;
   height: 35px;
   background-repeat: no-repeat;
+  background-size: contain;
   background-image: url("../svg/tr-909.svg");
 }
 div.tr-909 > div.rhythm-composer-logo {
