@@ -1,4 +1,4 @@
-### CSS-909
+### VECTOR-909
 
 Roland TR-909 drum-machine with only hand-made html, svg & css. 100% vector graphics. No textures. No sound engine ... just yet!
 
@@ -8,7 +8,7 @@ Logo SVGs (Roland, TR-909 & Rhythm Composer) by [Isaac Cotec](https://subaqueous
 ### Disclaimer
 _**The use of any trade name or trademark is for identification and educational purposes only and does not imply any association with the trademark holder of their product brand.**_
 
-[Open](https://andremichelle.github.io/css-909/) | [Wiki](https://en.wikipedia.org/wiki/Roland_TR-909)
+[Open](https://andremichelle.github.io/vector-909/) | [Wiki](https://en.wikipedia.org/wiki/Roland_TR-909)
 ![alt screenshot](screenshot.png)
 
 ### Build
