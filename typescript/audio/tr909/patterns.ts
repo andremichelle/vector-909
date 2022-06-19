@@ -28,6 +28,10 @@ export enum Step {
     None = 0, Active = 1, Accent = 2
 }
 
+export interface PatternFormat {
+    steps: Step[][]
+}
+
 export class Pattern implements Observable<void> {
     private readonly steps: Step[][] = ArrayUtils.fill(Instrument.count, () => ArrayUtils.fill(16, () => Step.None))
     private readonly observable: ObservableImpl<void> = new ObservableImpl<void>()
@@ -47,12 +51,12 @@ export class Pattern implements Observable<void> {
         return this.steps[instrument][index]
     }
 
-    serialize(): Step[][] {
-        return this.steps
+    serialize(): PatternFormat {
+        return {steps: this.steps}
     }
 
-    deserialize(format: Step[][]): void {
-        format.forEach((steps: Step[], instruments: number) =>
+    deserialize(format: PatternFormat): void {
+        format.steps.forEach((steps: Step[], instruments: number) =>
             steps.forEach((step: Step, stepIndex: number) =>
                 this.steps[instruments][stepIndex] = step))
         this.observable.notify()
@@ -76,7 +80,7 @@ export class PatternMemory {
     readonly patterns: Pattern[] = ArrayUtils.fill(8, () => new Pattern())
     readonly index: Parameter<number> = new Parameter<number>(new LinearInteger(0, 8), PrintMapping.INTEGER, 0)
 
-    pattern(): Pattern {
+    current(): Pattern {
         return this.patterns[this.index.get()]
     }
 }

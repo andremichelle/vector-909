@@ -1,8 +1,10 @@
 import {LimiterWorklet} from "./audio/limiter/worklet.js"
 import {MeterWorklet} from "./audio/meter/worklet.js"
 import {MetronomeWorklet} from "./audio/metronome/worklet.js"
+import {Instrument, Step} from "./audio/tr909/patterns.js"
 import {TR909Worklet} from "./audio/tr909/worklet.js"
 import {Boot, newAudioContext, preloadImagesOfCssFile} from "./lib/boot.js"
+import {ObservableValueImpl} from "./lib/common.js"
 import {HTML} from "./lib/dom.js"
 import {Knob} from "./tr909/knobs.js"
 
@@ -39,17 +41,38 @@ const showProgress = (() => {
     })
     tr909Worklet.connect(context.destination)
 
+    new Knob(HTML.query('[data-instrument=global] [data-parameter=accent]'), tr909Worklet.preset.accent)
+
     const bassdrumElement = HTML.query('[data-instrument=bassdrum]')
     new Knob(HTML.query('[data-parameter=tune]', bassdrumElement), tr909Worklet.preset.bassdrum.tune)
     new Knob(HTML.query('[data-parameter=level]', bassdrumElement), tr909Worklet.preset.bassdrum.level)
     new Knob(HTML.query('[data-parameter=attack]', bassdrumElement), tr909Worklet.preset.bassdrum.attack)
     new Knob(HTML.query('[data-parameter=decay]', bassdrumElement), tr909Worklet.preset.bassdrum.decay)
 
-    document.querySelectorAll('button.switch')
-        .forEach((button: Element, index: number) => {
-            button.addEventListener('pointerdown', () => button.classList.toggle('active'))
-            button.classList.toggle('active', index % 4 === 0)
+    const instrument = new ObservableValueImpl<Instrument>(Instrument.Bassdrum)
+    const pattern = tr909Worklet.memory.current()
+
+    const stepButtons = Array.from(HTML.queryAll('[data-control=step]', HTML.query('[data-control=steps]')))
+    const updateStepButtons = () => {
+        for (let stepIndex = 0; stepIndex < 16; stepIndex++) {
+            const step: Step = pattern.getStep(instrument.get(), stepIndex)
+            const button = stepButtons[stepIndex]
+            button.classList.toggle('half', step === Step.Active)
+            button.classList.toggle('active', step === Step.Accent)
+        }
+    }
+
+    pattern.addObserver(() => updateStepButtons(), true)
+
+    stepButtons
+        .forEach((button: Element, stepIndex: number) => {
+            button.addEventListener('pointerdown', () => {
+                const step: Step = pattern.getStep(instrument.get(), stepIndex)
+                pattern.setStep(instrument.get(), stepIndex, (step + 1) % 3) // cycle through states
+            })
         })
+
+
     document.querySelectorAll('button.translucent-button')
         .forEach((button: Element, index: number) => {
             button.addEventListener('pointerdown', () => button.classList.toggle('active'))

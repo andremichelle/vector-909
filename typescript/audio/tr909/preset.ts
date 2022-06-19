@@ -1,9 +1,17 @@
 import {Parameter, PrintMapping, Terminable, Terminator} from "../../lib/common.js"
-import {Exp, Volume} from "../../lib/mapping.js"
+import {Exp, Linear, Volume} from "../../lib/mapping.js"
 
-export type BassdrumPreset = { level: Parameter<number>; attack: Parameter<number>; decay: Parameter<number>; tune: Parameter<number> }
+const AccentMapping = new Linear(-18.0, 0.0)
+
+export type BassdrumPreset = {
+    level: Parameter<number>
+    attack: Parameter<number>
+    decay: Parameter<number>
+    tune: Parameter<number>
+}
 
 export class Preset {
+    readonly accent = new Parameter<number>(AccentMapping, PrintMapping.DECIBEL, -9.0)
     readonly bassdrum: BassdrumPreset = Object.seal({
         tune: new Parameter<number>(new Exp(0.007, 0.0294), PrintMapping.UnipolarPercent, 0.007),
         level: new Parameter<number>(Volume.Default, PrintMapping.DECIBEL, -12.0),

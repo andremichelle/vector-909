@@ -1,3 +1,4 @@
+import {Parameter} from "../../../lib/common.js"
 import {dbToGain} from "../../common.js"
 import {BassdrumPreset} from "../preset.js"
 import {Resources} from "../resources.js"
@@ -22,14 +23,15 @@ export class BassdrumVoice extends Voice {
     private phase: number = 0.0
     private attackPosition: number = 0 | 0
 
-    constructor(resources: Resources, preset: BassdrumPreset, sampleRate: number, offset: number) {
+    constructor(resources: Resources, preset: BassdrumPreset, sampleRate: number, offset: number, level: number) {
         super(Channel.Bassdrum, sampleRate, offset)
 
         this.cycle = resources.bassdrum.cycle
         this.attack = resources.bassdrum.attack
         this.gainInterpolator = new Interpolator(sampleRate)
         this.gainInterpolator.set(0.0, false) // gain attack for free
-        this.terminator.with(preset.level.addObserver(db => this.gainInterpolator.set(dbToGain(db), true), true))
+        this.terminator.with(preset.level.addObserver(value =>
+            this.gainInterpolator.set(dbToGain(value + level), true), true))
         this.terminator.with(preset.decay.addObserver(value =>
             this.gainCoefficient = Math.exp(-1.0 / (sampleRate * value)), true))
         this.terminator.with(preset.tune.addObserver(value =>

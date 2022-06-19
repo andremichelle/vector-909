@@ -42,6 +42,10 @@ export class HTML {
         }
         return element as E
     }
+
+    static queryAll<E extends Element>(selectors: string, parent: ParentNode = document): E[] {
+        return Array.from(parent.querySelectorAll(selectors))
+    }
 }
 
 export interface SVGPathBuilder {

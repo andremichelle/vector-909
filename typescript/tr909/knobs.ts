@@ -4,6 +4,7 @@ export class Knob {
     private readonly terminator: Terminator = new Terminator()
 
     constructor(private readonly element: HTMLElement, private readonly parameter: Parameter<any>) {
+        console.assert(element !== null)
         this.parameter.addObserver(() => {
             const degree = -150.0 + parameter.getUnipolar() * 300.0
             element.style.setProperty('--angle', `${degree}deg`)

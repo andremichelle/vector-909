@@ -1,5 +1,6 @@
-import {ArrayUtils, Terminable, Terminator} from "../../lib/common.js"
+import {ArrayUtils, Terminable, TerminableVoid, Terminator} from "../../lib/common.js"
 import {Message} from "./messages.js"
+import {PatternMemory} from "./patterns.js"
 import {Preset} from "./preset.js"
 import {Resources} from "./resources.js"
 
@@ -10,7 +11,10 @@ export class TR909Worklet extends AudioWorkletNode implements Terminable {
 
     private readonly terminator: Terminator = new Terminator()
 
+    private patternSubscription: Terminable = TerminableVoid
+
     readonly preset: Preset = new Preset()
+    readonly memory: PatternMemory = new PatternMemory()
 
     constructor(context, resources: Resources) {
         super(context, "tr-909", {
@@ -30,8 +34,15 @@ export class TR909Worklet extends AudioWorkletNode implements Terminable {
                 unipolar: parameter.getUnipolar()
             } as Message)
         }))
-
-        // setTimeout(() => this.preset.bassdrum.decay.setUnipolar(1.0), 1000)
+        this.terminator.with(this.memory.index.addObserver((index: number) => {
+            const pattern = this.memory.current()
+            this.patternSubscription.terminate()
+            this.patternSubscription = pattern.addObserver(() => this.port.postMessage({
+                type: 'update-pattern',
+                index,
+                format: pattern.serialize()
+            } as Message), false)
+        }, true))
     }
 
     terminate(): void {
