@@ -191,7 +191,7 @@ export class Parameter<T> implements ObservableValue<T> {
     }
 
     setUnipolar(value: number): void {
-        this.set(this.valueMapping.y(value))
+        this.set(this.valueMapping.y(Math.min(1.0, Math.max(0.0, value))))
     }
 
     print(): string {
@@ -231,6 +231,7 @@ export type Printer<Y> = (value: Y) => string
 export class PrintMapping<Y> {
     static INTEGER = PrintMapping.integer("")
     static FLOAT_ONE = PrintMapping.float(1, "", "")
+    static DECIBEL = PrintMapping.float(1, "", "db")
 
     static createBoolean(trueValue: string, falseValue: string) {
         return new PrintMapping(text => {

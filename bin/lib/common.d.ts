@@ -101,6 +101,7 @@ export declare class PrintMapping<Y> {
     private readonly postUnit;
     static INTEGER: PrintMapping<number>;
     static FLOAT_ONE: PrintMapping<number>;
+    static DECIBEL: PrintMapping<number>;
     static createBoolean(trueValue: string, falseValue: string): PrintMapping<boolean>;
     static UnipolarPercent: PrintMapping<number>;
     static RGB: PrintMapping<number>;

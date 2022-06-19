@@ -9,6 +9,7 @@ $light: lighten(rgba($COLOR_DARK, 0.7), 30)
     transform: rotate(150deg) translate(0, -20px)
 
 .knob-control
+  --angle: -150deg
   width: 42px
   height: 56px
   position: absolute
@@ -48,7 +49,7 @@ $light: lighten(rgba($COLOR_DARK, 0.7), 30)
       border-radius: 0.5px
       position: absolute
       background-color: $COLOR_ORANGE
-      transform: rotate(-150deg) translate(0, -11.5px)
+      transform: rotate(var(--angle)) translate(0, -11.5px)
       box-shadow: 0 0.5px 0.5px 0 rgba(white, 0.2)
       z-index: 1
 

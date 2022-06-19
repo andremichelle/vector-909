@@ -134,7 +134,7 @@ export class Parameter {
         return this.valueMapping.x(this.value);
     }
     setUnipolar(value) {
-        this.set(this.valueMapping.y(value));
+        this.set(this.valueMapping.y(Math.min(1.0, Math.max(0.0, value))));
     }
     print() {
         return this.printMapping.print(this.value);
@@ -220,6 +220,7 @@ export class PrintMapping {
 }
 PrintMapping.INTEGER = PrintMapping.integer("");
 PrintMapping.FLOAT_ONE = PrintMapping.float(1, "", "");
+PrintMapping.DECIBEL = PrintMapping.float(1, "", "db");
 PrintMapping.UnipolarPercent = new PrintMapping(text => {
     const value = parseFloat(text);
     if (isNaN(value))

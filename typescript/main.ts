@@ -1,5 +1,10 @@
-import {Boot, preloadImagesOfCssFile} from "./lib/boot.js"
+import {LimiterWorklet} from "./audio/limiter/worklet.js"
+import {MeterWorklet} from "./audio/meter/worklet.js"
+import {MetronomeWorklet} from "./audio/metronome/worklet.js"
+import {TR909Worklet} from "./audio/tr909/worklet.js"
+import {Boot, newAudioContext, preloadImagesOfCssFile} from "./lib/boot.js"
 import {HTML} from "./lib/dom.js"
+import {Knob} from "./tr909/knobs.js"
 
 const showProgress = (() => {
     const progress: SVGSVGElement = document.querySelector("svg.preloader")
@@ -12,11 +17,24 @@ const showProgress = (() => {
     console.debug("booting...")
 
     // --- BOOT STARTS ---
+    const context = newAudioContext()
     const boot = new Boot()
     boot.addObserver(boot => showProgress(boot.normalizedPercentage()))
     boot.registerProcess(preloadImagesOfCssFile("./bin/main.css"))
+    boot.registerProcess(LimiterWorklet.loadModule(context))
+    boot.registerProcess(MeterWorklet.loadModule(context))
+    boot.registerProcess(MetronomeWorklet.loadModule(context))
+    boot.registerProcess(TR909Worklet.loadModule(context))
     await boot.waitForCompletion()
     // --- BOOT ENDS ---
+
+    const tr909Worklet = new TR909Worklet(context)
+    tr909Worklet.connect(context.destination)
+
+    new Knob(HTML.query('[data-instrument=bassdrum] [data-parameter=tune]'), tr909Worklet.preset.bassdrum.tune)
+    new Knob(HTML.query('[data-instrument=bassdrum] [data-parameter=level]'), tr909Worklet.preset.bassdrum.level)
+    new Knob(HTML.query('[data-instrument=bassdrum] [data-parameter=attack]'), tr909Worklet.preset.bassdrum.attack)
+    new Knob(HTML.query('[data-instrument=bassdrum] [data-parameter=decay]'), tr909Worklet.preset.bassdrum.decay)
 
     document.querySelectorAll('button.switch')
         .forEach((button: Element, index: number) => {
@@ -39,7 +57,7 @@ const showProgress = (() => {
     const zoomLabel = HTML.query('span.zoom')
     const zoomCheckbox: HTMLInputElement = HTML.query('input[data-control=zoom-enabled]')
     const doZoom = () => {
-        if(!zoomCheckbox.checked) return
+        if (!zoomCheckbox.checked) return
         const padding = 64
         let scale = Math.min(
             window.innerWidth / (tr909.clientWidth + padding),
