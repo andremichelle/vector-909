@@ -6,6 +6,7 @@ import {TR909Worklet} from "./audio/tr909/worklet.js"
 import {Boot, newAudioContext, preloadImagesOfCssFile} from "./lib/boot.js"
 import {ObservableValueImpl} from "./lib/common.js"
 import {HTML} from "./lib/dom.js"
+import {Digits} from "./tr909/digits.js"
 import {Knob} from "./tr909/knobs.js"
 
 const showProgress = (() => {
@@ -41,11 +42,8 @@ const showProgress = (() => {
     })
     tr909Worklet.connect(context.destination)
 
-    tr909Worklet.preset.tempo.addObserver(bpm => {
-        // TODO
-        // const display = document.querySelector('svg.digits')
-        // display.querySelectorAll('g').forEach(g => console.log(g.querySelectorAll('path')))
-    }, true)
+    const digits: Digits = new Digits(document.querySelector('svg[data-display=led-display]'))
+    tr909Worklet.preset.tempo.addObserver(bpm => digits.show(bpm), true)
 
     new Knob(HTML.query('[data-parameter=tempo]'), tr909Worklet.preset.tempo)
     new Knob(HTML.query('[data-parameter=volume]'), tr909Worklet.preset.volume)
