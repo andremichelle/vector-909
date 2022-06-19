@@ -13,11 +13,9 @@ export class Knob {
 
     private attachEvents(): void {
         this.terminator.with(Events.bindEventListener(this.element, 'pointerdown', (event: PointerEvent) => {
-            console.log(event)
             this.element.setPointerCapture(event.pointerId)
             let startValue = this.parameter.getUnipolar()
             let startPointer = event.clientY
-
             const moving = new Terminator()
             moving.with(Events.bindEventListener(this.element, 'pointermove', (event: PointerEvent) =>
                 this.parameter.setUnipolar(startValue - (event.clientY - startPointer) * 0.01)))

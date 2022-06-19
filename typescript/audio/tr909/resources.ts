@@ -1,0 +1,8 @@
+// TODO Arrays should be shared with SAB for no costs when using multiple instances.
+// However, it is a pain right now with all those security pitfalls.
+export type Resources = {
+    bassdrum: {
+        attack: Float32Array,
+        cycle: Float32Array
+    }
+}

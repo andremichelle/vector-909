@@ -28,13 +28,21 @@ const showProgress = (() => {
     await boot.waitForCompletion()
     // --- BOOT ENDS ---
 
-    const tr909Worklet = new TR909Worklet(context)
+    const bassdrumCycle = await fetch('./resources/bassdrum-cycle.raw').then(x => x.arrayBuffer()).then(x => new Float32Array(x))
+
+    const tr909Worklet = new TR909Worklet(context, {
+        bassdrum: {
+            attack: new Float32Array([7, 8, 9]),
+            cycle: bassdrumCycle
+        }
+    })
     tr909Worklet.connect(context.destination)
 
-    new Knob(HTML.query('[data-instrument=bassdrum] [data-parameter=tune]'), tr909Worklet.preset.bassdrum.tune)
-    new Knob(HTML.query('[data-instrument=bassdrum] [data-parameter=level]'), tr909Worklet.preset.bassdrum.level)
-    new Knob(HTML.query('[data-instrument=bassdrum] [data-parameter=attack]'), tr909Worklet.preset.bassdrum.attack)
-    new Knob(HTML.query('[data-instrument=bassdrum] [data-parameter=decay]'), tr909Worklet.preset.bassdrum.decay)
+    const bassdrumElement = HTML.query('[data-instrument=bassdrum]')
+    new Knob(HTML.query('[data-parameter=tune]', bassdrumElement), tr909Worklet.preset.bassdrum.tune)
+    new Knob(HTML.query('[data-parameter=level]', bassdrumElement), tr909Worklet.preset.bassdrum.level)
+    new Knob(HTML.query('[data-parameter=attack]', bassdrumElement), tr909Worklet.preset.bassdrum.attack)
+    new Knob(HTML.query('[data-parameter=decay]', bassdrumElement), tr909Worklet.preset.bassdrum.decay)
 
     document.querySelectorAll('button.switch')
         .forEach((button: Element, index: number) => {

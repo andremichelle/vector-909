@@ -1,7 +1,7 @@
 import {Terminable, Terminator} from "../../../lib/common.js"
 import {dbToGain} from "../../common.js"
 
-export const SilentGain = dbToGain(-40.0)
+export const SilentGain = dbToGain(-72.0)
 
 export enum Channel {
     Bassdrum, Snaredrum, TomLow, TomMid, TomHi, Rim, Clap, Hihat, Crash, Ride

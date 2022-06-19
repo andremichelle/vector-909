@@ -1,6 +1,7 @@
 import {ArrayUtils, Terminable, Terminator} from "../../lib/common.js"
 import {Message} from "./messages.js"
 import {Preset} from "./preset.js"
+import {Resources} from "./resources.js"
 
 export class TR909Worklet extends AudioWorkletNode implements Terminable {
     static loadModule(context: AudioContext): Promise<void> {
@@ -11,7 +12,7 @@ export class TR909Worklet extends AudioWorkletNode implements Terminable {
 
     readonly preset: Preset = new Preset()
 
-    constructor(context) {
+    constructor(context, resources: Resources) {
         super(context, "tr-909", {
             numberOfInputs: 1,
             numberOfOutputs: 9,
@@ -19,12 +20,7 @@ export class TR909Worklet extends AudioWorkletNode implements Terminable {
             channelCount: 2,
             channelCountMode: "explicit",
             channelInterpretation: "speakers",
-            processorOptions: {
-                bassdrum: {
-                    attack: new Float32Array([7, 8, 9]),
-                    cycle: new Float32Array([1, 2, 3])
-                }
-            }
+            processorOptions: resources
         })
 
         this.terminator.with(this.preset.observeAll(parameter => {

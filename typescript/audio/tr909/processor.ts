@@ -1,6 +1,7 @@
 import {barsToNumFrames, numFramesToBars} from "../common.js"
 import {Message} from "./messages.js"
 import {Preset} from "./preset.js"
+import {Resources} from "./resources.js"
 import {BassdrumVoice} from "./voices/bassdrum.js"
 import {Channel, Voice} from "./voices/common.js"
 
@@ -8,14 +9,17 @@ registerProcessor('tr-909', class extends AudioWorkletProcessor {
     private readonly preset: Preset = new Preset()
     private readonly channels: Map<Channel, Voice> = new Map<Channel, Voice>()
     private readonly processing: Voice[] = []
+    private readonly resources: Resources
 
     private bpm: number = 120.0
     private bar: number = 0.0
     private barIncr: number = numFramesToBars(128, this.bpm, sampleRate)
     private scale: number = 1.0 / 16.0
 
-    constructor() {
-        super()
+    constructor(options: { processorOptions: Resources }) {
+        super(options)
+
+        this.resources = options.processorOptions
 
         this.port.onmessage = (event: MessageEvent) => {
             const message: Message = event.data
@@ -53,7 +57,7 @@ registerProcessor('tr-909', class extends AudioWorkletProcessor {
                     if (offset < 0 || offset >= 128) {
                         throw new Error(`Offset is out of bounds (${offset})`)
                     }
-                    const newVoice = new BassdrumVoice(this.preset.bassdrum, sampleRate, offset)
+                    const newVoice = new BassdrumVoice(this.resources, this.preset.bassdrum, sampleRate, offset)
                     this.channels.get(newVoice.channel)?.stop()
                     this.channels.set(newVoice.channel, newVoice)
                     this.processing.push(newVoice)

@@ -8,7 +8,7 @@ export class Preset {
         tune: new Parameter<number>(new Exp(0.007, 0.0294), PrintMapping.UnipolarPercent, 0.007),
         level: new Parameter<number>(Volume.Default, PrintMapping.DECIBEL, 0.0),
         attack: new Parameter<number>(Volume.Default, PrintMapping.DECIBEL, 0.0),
-        decay: new Parameter<number>(new Exp(0.012, 0.100), PrintMapping.UnipolarPercent, 0.012)
+        decay: new Parameter<number>(new Exp(0.012, 0.100), PrintMapping.UnipolarPercent, 0.1)
     })
 
     observeAll(callback: (parameter: Parameter<any>) => void): Terminable {
