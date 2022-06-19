@@ -41,6 +41,14 @@ const showProgress = (() => {
     })
     tr909Worklet.connect(context.destination)
 
+    tr909Worklet.preset.tempo.addObserver(bpm => {
+        // TODO
+        // const display = document.querySelector('svg.digits')
+        // display.querySelectorAll('g').forEach(g => console.log(g.querySelectorAll('path')))
+    }, true)
+
+    new Knob(HTML.query('[data-parameter=tempo]'), tr909Worklet.preset.tempo)
+    new Knob(HTML.query('[data-parameter=volume]'), tr909Worklet.preset.volume)
     new Knob(HTML.query('[data-instrument=global] [data-parameter=accent]'), tr909Worklet.preset.accent)
 
     const bassdrumElement = HTML.query('[data-instrument=bassdrum]')
@@ -77,9 +85,6 @@ const showProgress = (() => {
         .forEach((button: Element, index: number) => {
             button.addEventListener('pointerdown', () => button.classList.toggle('active'))
         })
-
-    // const display = document.querySelector('svg.digits')
-    // display.querySelectorAll('g').forEach(g => console.log(g.querySelectorAll('path')))
 
     // prevent dragging entire document on mobile
     document.addEventListener('touchmove', (event: TouchEvent) => event.preventDefault(), {passive: false})

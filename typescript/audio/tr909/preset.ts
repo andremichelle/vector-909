@@ -11,10 +11,12 @@ export type BassdrumPreset = {
 }
 
 export class Preset {
+    readonly tempo = new Parameter<number>(new Exp(30.0, 300.0), PrintMapping.FLOAT_ONE, 120.0)
+    readonly volume = new Parameter<number>(Volume.Default, PrintMapping.DECIBEL, 0.0)
     readonly accent = new Parameter<number>(AccentMapping, PrintMapping.DECIBEL, -9.0)
     readonly bassdrum: BassdrumPreset = Object.seal({
         tune: new Parameter<number>(new Exp(0.007, 0.0294), PrintMapping.UnipolarPercent, 0.007),
-        level: new Parameter<number>(Volume.Default, PrintMapping.DECIBEL, -12.0),
+        level: new Parameter<number>(Volume.Default, PrintMapping.DECIBEL, -6.0),
         attack: new Parameter<number>(Volume.Default, PrintMapping.DECIBEL, 0.0),
         decay: new Parameter<number>(new Exp(0.012, 0.100), PrintMapping.UnipolarPercent, 0.1)
     })

@@ -15,7 +15,7 @@ registerProcessor('tr-909', class extends AudioWorkletProcessor {
 
     private bpm: number = 120.0
     private bar: number = 0.0
-    private barIncr: number = numFramesToBars(128, this.bpm, sampleRate)
+    private barIncr: number
     private scale: number = 1.0 / 16.0
 
     constructor(options: { processorOptions: Resources }) {
@@ -23,9 +23,15 @@ registerProcessor('tr-909', class extends AudioWorkletProcessor {
 
         this.resources = options.processorOptions
 
+        this.preset.tempo.addObserver(value => {
+            this.bpm = value
+            this.barIncr = numFramesToBars(128, this.bpm, sampleRate)
+        }, true)
+
         this.port.onmessage = (event: MessageEvent) => {
             const message: Message = event.data
             if (message.type === 'update-parameter') {
+                // console.debug(`update parameter '${message.path}' to ${message.unipolar}`)
                 this.preset.deserialize(message.path).setUnipolar(message.unipolar)
             } else if (message.type === 'update-pattern') {
                 this.memory.patterns[message.index].deserialize(message.format)
@@ -65,7 +71,7 @@ registerProcessor('tr-909', class extends AudioWorkletProcessor {
                         if (offset < 0 || offset >= 128) {
                             throw new Error(`Offset is out of bounds (${offset})`)
                         }
-                        const level: number = step === Step.Accent ? 1.0 : this.preset.accent.get()
+                        const level: number = this.preset.volume.get() + (step === Step.Accent ? 0.0 : this.preset.accent.get())
                         const newVoice: Voice = new BassdrumVoice(this.resources, this.preset.bassdrum, sampleRate, offset, level)
                         this.channels.get(newVoice.channel)?.stop()
                         this.channels.set(newVoice.channel, newVoice)

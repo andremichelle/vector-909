@@ -390,10 +390,15 @@
         <hr class="bottom-right">
         <hr class="step-border" style="transform: translate(230px, 564px); width: 354px;">
         <hr class="step-border" style="transform: translate(688px, 564px); width: 408px;">
-        <div class="knob-control big minmax-units" data-label="TEMPO" style="transform: translate(390px, 400px)">
-            <div class="knob" data-parameter="tempo"></div>
+        <div class="knob-control big minmax-units" data-parameter="tempo" data-label="TEMPO" style="transform: translate(390px, 400px)">
+            <div class="knob"></div>
             <span>SLOW</span>
             <span>FAST</span>
+        </div>
+        <div class="knob-control big minmax-units" data-parameter="volume" data-label="VOLUME" style="transform: translate(1038px, 400px)">
+            <div class="knob"></div>
+            <span>MIN</span>
+            <span>MAX</span>
         </div>
         <div class="wrapper-label digits" data-label="MEAS/TEMPO">
             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 142 70">
@@ -460,11 +465,6 @@
                     </g>
                 </g>
             </svg>
-        </div>
-        <div class="knob-control big minmax-units" data-label="VOLUME" style="transform: translate(1038px, 400px)">
-            <div class="knob" data-parameter="volume"></div>
-            <span>MIN</span>
-            <span>MAX</span>
         </div>
         <div class="wrapper-label start" data-label="START">
             <button class="trigger bright"></button>
