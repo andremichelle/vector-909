@@ -29,10 +29,11 @@ const showProgress = (() => {
     // --- BOOT ENDS ---
 
     const bassdrumCycle = await fetch('./resources/bassdrum-cycle.raw').then(x => x.arrayBuffer()).then(x => new Float32Array(x))
+    const bassdrumAttack = await fetch('./resources/bassdrum-attack.raw').then(x => x.arrayBuffer()).then(x => new Float32Array(x))
 
     const tr909Worklet = new TR909Worklet(context, {
         bassdrum: {
-            attack: new Float32Array([7, 8, 9]),
+            attack: bassdrumAttack,
             cycle: bassdrumCycle
         }
     })

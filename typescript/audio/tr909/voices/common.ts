@@ -37,17 +37,17 @@ export class Interpolator {
     }
 
     set(target: number, smooth: boolean): void {
-        if (this.target === this.value) {
+        if (target === this.value) {
             return
         }
-        if (smooth && !isNaN(this.value)) {
-            this.target = target
-            this.delta = (target - this.value) / this.length
-            this.remaining = this.length
-        } else {
+        if (!smooth || isNaN(this.value)) {
             this.value = this.target = target
             this.delta = 0.0
             this.remaining = 0 | 0
+        } else {
+            this.target = target
+            this.delta = (target - this.value) / this.length
+            this.remaining = this.length
         }
     }
 
