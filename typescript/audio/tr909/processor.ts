@@ -7,6 +7,45 @@ import {BassdrumPreset, Preset} from "./preset.js"
 const SilentGain = dbToGain(-40.0)
 const sampleRateInv = 1.0 / sampleRate
 
+class Smoother {
+    private readonly length: number
+
+    private value: number = NaN
+    private target: number = NaN
+    private delta: number = 0.0
+    private remaining: number = 0 | 0
+
+    constructor() {
+        this.length = (sampleRate * 0.005) | 0
+    }
+
+    set(target: number, smooth: boolean): void {
+        if (this.target === this.value) {
+            return
+        }
+        if (smooth && !isNaN(this.value)) {
+            this.target = target
+            this.delta = (target - this.value) / this.length
+            this.remaining = this.length
+        } else {
+            this.value = this.target = target
+            this.delta = 0.0
+            this.remaining = 0 | 0
+        }
+    }
+
+    moveAndGet(): number {
+        if (0 < this.remaining) {
+            this.value += this.delta
+            if (0 == --this.remaining) {
+                this.delta = 0.0
+                this.value = this.target
+            }
+        }
+        return this.value
+    }
+}
+
 enum Exclusive {
     Bassdrum, Snaredrum, TomLow, TomMid, TomHi, Rim, Clap, Hihat, Crash, Ride
 }
@@ -32,7 +71,9 @@ class BassdrumVoice extends Voice {
     private static FreqEnd: number = 52.0
 
     private time: number = 0.0
-    private gain: number
+    private processed: boolean = false
+    private gainSmoother: Smoother = new Smoother()
+    private gainEnvelope: number = 1.0
     private freq: number = BassdrumVoice.FreqStart
     private releaseCoefficient: number
     private freqCoefficient: number
@@ -40,7 +81,7 @@ class BassdrumVoice extends Voice {
     constructor(preset: BassdrumPreset, offset: number) {
         super(Exclusive.Bassdrum, offset)
 
-        this.terminator.with(preset.level.addObserver(db => this.gain = dbToGain(db), true)) // TODO Interpolation
+        this.terminator.with(preset.level.addObserver(db => this.gainSmoother.set(dbToGain(db), this.processed), true))
         this.terminator.with(preset.decay.addObserver(value =>
             this.releaseCoefficient = Math.exp(-1.0 / (sampleRate * value)), true))
         this.terminator.with(preset.tune.addObserver(value =>
@@ -54,14 +95,15 @@ class BassdrumVoice extends Voice {
     process(output: Float32Array): boolean {
         for (let i = this.offset; i < output.length; i++) {
             if (this.time > BassdrumVoice.ReleaseStartTime) {
-                this.gain *= this.releaseCoefficient
+                this.gainEnvelope *= this.releaseCoefficient
             }
             this.freq = BassdrumVoice.FreqEnd + this.freqCoefficient * (this.freq - BassdrumVoice.FreqEnd)
-            output[i] += Math.sin(this.time * this.freq * TAU) * this.gain
+            output[i] += Math.sin(this.time * this.freq * TAU) * this.gainEnvelope * this.gainSmoother.moveAndGet()
             this.time += sampleRateInv
         }
         this.offset = 0
-        return this.gain > SilentGain
+        this.processed = true
+        return this.gainEnvelope > SilentGain
     }
 }
 
