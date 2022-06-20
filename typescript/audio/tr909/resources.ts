@@ -8,3 +8,5 @@ export type Resources = {
     rim: Float32Array,
     clap: Float32Array
 }
+
+export const ResourceSampleRate = 44100.0

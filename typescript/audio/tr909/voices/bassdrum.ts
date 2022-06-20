@@ -1,6 +1,6 @@
 import {dbToGain} from "../../common.js"
 import {BassdrumPreset} from "../preset.js"
-import {Resources} from "../resources.js"
+import {Resources, ResourceSampleRate} from "../resources.js"
 import {Channel, Interpolator, SilentGain, Voice} from "./common.js"
 
 export class BassdrumVoice extends Voice {
@@ -12,6 +12,7 @@ export class BassdrumVoice extends Voice {
     private readonly attack: Float32Array
     private readonly gainInterpolator: Interpolator
     private readonly attackGain: number
+    private readonly attackRate: number
 
     private gainEnvelope: number = 1.0
     private gainCoefficient: number
@@ -20,7 +21,7 @@ export class BassdrumVoice extends Voice {
     private processed: boolean = false
     private time: number = 0.0
     private phase: number = 0.0
-    private attackPosition: number = 0 | 0
+    private attackPosition: number = 0.0
 
     constructor(resources: Resources, preset: BassdrumPreset, sampleRate: number, offset: number, level: number) {
         super(Channel.Bassdrum, sampleRate, offset)
@@ -35,7 +36,8 @@ export class BassdrumVoice extends Voice {
             this.gainCoefficient = Math.exp(-1.0 / (sampleRate * value)), true))
         this.terminator.with(preset.tune.addObserver(value =>
             this.freqCoefficient = Math.exp(-1.0 / (sampleRate * value)), true))
-        this.attackGain = dbToGain(preset.attack.get())
+        this.attackGain = dbToGain(preset.attack.get() + preset.level.get() + level)
+        this.attackRate = ResourceSampleRate / sampleRate
     }
 
     stop(): void {
@@ -54,8 +56,11 @@ export class BassdrumVoice extends Voice {
             const p0 = this.cycle[posInt % this.cycle.length]
             const value = p0 + alpha * (this.cycle[(posInt + 1) % this.cycle.length] - p0)
             output[i] += value * this.gainEnvelope * gainInterpolated
-            if (this.attackPosition < this.attack.length) {
-                output[i] += this.attack[this.attackPosition++] * this.attackGain * gainInterpolated
+            if (this.attackPosition < this.attack.length - 1) {
+                const pi = this.attackPosition | 0
+                const p0 = this.attack[pi]
+                output[i] += (p0 + (this.attackPosition - pi) * (this.attack[pi + 1] - p0)) * this.attackGain
+                this.attackPosition += this.attackRate
             }
             this.time += this.sampleRateInv
             this.phase += this.freqEnvelope * this.sampleRateInv

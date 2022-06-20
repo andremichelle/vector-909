@@ -1,11 +1,13 @@
+import {dbToGain} from "../../common.js"
 import {RimOrClapPreset} from "../preset.js"
+import {ResourceSampleRate} from "../resources.js"
 import {Channel, Voice} from "./common.js"
 
 export class RimOrClapVoice extends Voice {
     private readonly rate: number
+    private readonly gain: number
 
     private position: number
-    private gain: number
 
     constructor(private readonly array: Float32Array,
                 preset: RimOrClapPreset,
@@ -16,8 +18,8 @@ export class RimOrClapVoice extends Voice {
         super(channel, sampleRate, offset)
 
         this.position = 0.0
-        this.rate = 44100.0 / sampleRate
-        this.gain = 1.0
+        this.rate = ResourceSampleRate / sampleRate
+        this.gain = dbToGain(preset.level.get() + level)
     }
 
     stop(): void {

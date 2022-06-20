@@ -70,6 +70,11 @@ let shiftMode: boolean = false
         .addEventListener('pointerdown', () => transport.restart())
     HTML.query('button[data-control=transport-stop-continue]', parentNode)
         .addEventListener('pointerdown', () => transport.togglePlayback())
+    window.addEventListener('keydown', (event: KeyboardEvent) => {
+        if(event.code === 'Space' && !event.repeat) {
+            transport.togglePlayback()
+        }
+    })
 
     const selectedInstruments = new ObservableValueImpl<Instrument>(Instrument.Bassdrum)
     const pattern = tr909Worklet.memory.current()
@@ -146,7 +151,6 @@ let shiftMode: boolean = false
         .forEach((button: Element, index: number) => {
             button.addEventListener('pointerdown', () => button.classList.toggle('active'))
         })
-
 
     // debugging
     const debugTransporting = HTML.query('[data-output=transporting]')
