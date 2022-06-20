@@ -32,6 +32,7 @@ export class RimOrClapOrCymbalVoice extends Voice {
 
     stop(offset: number): void {
         this.fadeOutIndex = offset
+        this.terminate()
     }
 
     process(output: Float32Array): isRunning {

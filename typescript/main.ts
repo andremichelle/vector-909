@@ -37,24 +37,26 @@ let shiftMode: boolean = false
     boot.registerProcess(MeterWorklet.loadModule(context))
     boot.registerProcess(MetronomeWorklet.loadModule(context))
     boot.registerProcess(TR909Worklet.loadModule(context))
-    const bassdrumAttack = boot.registerProcess(fetchFloat32Array('./resources/bassdrum-attack.raw'))
-    const bassdrumCycle = boot.registerProcess(fetchFloat32Array('./resources/bassdrum-cycle.raw'))
-    const rim = boot.registerProcess(fetchFloat32Array('./resources/rim.raw'))
-    const clap = boot.registerProcess(fetchFloat32Array('./resources/clap.raw'))
-    const crash = boot.registerProcess(fetchFloat32Array('./resources/crash.raw'))
-    const ride = boot.registerProcess(fetchFloat32Array('./resources/ride.raw'))
+    const RD = {
+        bassdrumAttack: boot.registerProcess(fetchFloat32Array('./resources/bassdrum-attack.raw')),
+        bassdrumCycle: boot.registerProcess(fetchFloat32Array('./resources/bassdrum-cycle.raw')),
+        rim: boot.registerProcess(fetchFloat32Array('./resources/rim.raw')),
+        clap: boot.registerProcess(fetchFloat32Array('./resources/clap.raw')),
+        crash: boot.registerProcess(fetchFloat32Array('./resources/crash.raw')),
+        ride: boot.registerProcess(fetchFloat32Array('./resources/ride.raw'))
+    }
     await boot.waitForCompletion()
     // --- BOOT ENDS ---
 
     const resources: Resources = {
         bassdrum: {
-            attack: bassdrumAttack.get(),
-            cycle: bassdrumCycle.get()
+            attack: RD.bassdrumAttack.get(),
+            cycle: RD.bassdrumCycle.get()
         },
-        rim: rim.get(),
-        clap: clap.get(),
-        crash: crash.get(),
-        ride: ride.get()
+        rim: RD.rim.get(),
+        clap: RD.clap.get(),
+        crash: RD.crash.get(),
+        ride: RD.ride.get()
     }
 
     const tr909Worklet = new TR909Worklet(context, resources)
@@ -63,11 +65,12 @@ let shiftMode: boolean = false
     const transport = new Transport()
     tr909Worklet.listenToTransport(transport)
 
-    const digits: Digits = new Digits(document.querySelector('svg[data-display=led-display]'))
-    tr909Worklet.preset.tempo.addObserver(bpm => digits.show(bpm), true)
 
     const parentNode = HTML.query('div.tr-909')
     GUI.installKnobs(parentNode, tr909Worklet.preset)
+
+    const digits: Digits = new Digits(HTML.query('svg[data-display=led-display]', parentNode))
+    tr909Worklet.preset.tempo.addObserver(bpm => digits.show(bpm), true)
 
     // Transport
     HTML.query('button[data-control=transport-start]', parentNode)
@@ -151,10 +154,11 @@ let shiftMode: boolean = false
     window.addEventListener('keydown', event => setShiftMode(event.shiftKey), {capture: true})
     window.addEventListener('keyup', event => setShiftMode(event.shiftKey), {capture: true})
 
+    // test
     document.querySelectorAll('button.translucent-button')
-        .forEach((button: Element, index: number) => {
-            button.addEventListener('pointerdown', () => button.classList.toggle('active'))
-        })
+        .forEach((button: Element) =>
+            button.addEventListener('pointerdown', () =>
+                button.classList.toggle('active')))
 
     // debugging
     const debugTransporting = HTML.query('[data-output=transporting]')

@@ -44,6 +44,7 @@ export class BassdrumVoice extends Voice {
 
     stop(offset: number): void {
         this.fadeOutIndex = offset
+        this.terminate()
     }
 
     process(output: Float32Array): isRunning {
