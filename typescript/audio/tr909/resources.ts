@@ -1,10 +1,13 @@
-// TODO Arrays should be shared with SAB for no costs when using multiple instances.
-// However, it is a pain right now with all those security pitfalls.
+export const ResourceSampleRate = 44100.0
 export type Resources = {
     sine: Float32Array, // testing
     bassdrum: {
         attack: Float32Array,
         cycle: Float32Array
+    },
+    snaredrum: {
+        tone: Float32Array,
+        noise: Float32Array
     },
     tomLow: Float32Array,
     tomMid: Float32Array,
@@ -16,5 +19,3 @@ export type Resources = {
     crash: Float32Array,
     ride: Float32Array,
 }
-
-export const ResourceSampleRate = 44100.0

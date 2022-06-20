@@ -17,9 +17,9 @@ export abstract class Voice implements Terminable {
     protected constructor(readonly channel: Channel, readonly sampleRate: number, protected offset: number) {
     }
 
-    abstract process(output: Float32Array): isRunning
-
     abstract stop(offset: number): void
+
+    abstract process(output: Float32Array): isRunning
 
     terminate(): void {
         this.terminator.terminate()

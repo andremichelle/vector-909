@@ -2,6 +2,7 @@ import {barsToNumFrames, numFramesToBars, RENDER_QUANTUM, TransportMessage} from
 import {BasicTuneDecayVoice} from "./dsp/basic-voice.js"
 import {BassdrumVoice} from "./dsp/bassdrum.js"
 import {Channel, Voice} from "./dsp/common.js"
+import {SnaredrumVoice} from "./dsp/snaredrum.js"
 import {Message} from "./messages.js"
 import {Instrument, PatternMemory, Step} from "./patterns.js"
 import {Preset} from "./preset.js"
@@ -98,6 +99,8 @@ registerProcessor('tr-909', class extends AudioWorkletProcessor {
         switch (instrument) {
             case Instrument.Bassdrum:
                 return new BassdrumVoice(this.resources, this.preset.bassdrum, sampleRate, offset, level)
+            case Instrument.Snaredrum:
+                return new SnaredrumVoice(this.resources, this.preset.snaredrum, sampleRate, offset, level)
             case Instrument.TomLow:
                 return new BasicTuneDecayVoice(this.resources.tomLow, this.preset.tomLow, Channel.TomLow, sampleRate, offset, level)
             case Instrument.TomMid:
@@ -117,6 +120,6 @@ registerProcessor('tr-909', class extends AudioWorkletProcessor {
             case Instrument.Ride:
                 return new BasicTuneDecayVoice(this.resources.ride, this.preset.ride, Channel.Ride, sampleRate, offset, level)
         }
-        throw new Error(`${instrument} not yet implemented.`)
+        throw new Error(`${instrument} not found.`)
     }
 })

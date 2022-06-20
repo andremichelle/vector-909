@@ -41,6 +41,8 @@ let shiftMode: boolean = false
         sine: boot.registerProcess(fetchFloat32Array('./resources/sine.raw')),
         bassdrumAttack: boot.registerProcess(fetchFloat32Array('./resources/bassdrum-attack.raw')),
         bassdrumCycle: boot.registerProcess(fetchFloat32Array('./resources/bassdrum-cycle.raw')),
+        snareTone: boot.registerProcess(fetchFloat32Array('./resources/snare-tone.raw')),
+        snareSnappy: boot.registerProcess(fetchFloat32Array('./resources/snare-noise.raw')),
         tomLow: boot.registerProcess(fetchFloat32Array('./resources/tom-low.raw')),
         tomMid: boot.registerProcess(fetchFloat32Array('./resources/tom-mid.raw')),
         tomHi: boot.registerProcess(fetchFloat32Array('./resources/tom-hi.raw')),
@@ -60,6 +62,10 @@ let shiftMode: boolean = false
             attack: RD.bassdrumAttack.get(),
             cycle: RD.bassdrumCycle.get()
         },
+        snaredrum: {
+            tone: RD.snareTone.get(),
+            noise: RD.snareSnappy.get()
+        },
         tomLow: RD.tomLow.get(),
         tomMid: RD.tomMid.get(),
         tomHi: RD.tomHi.get(),
@@ -76,7 +82,6 @@ let shiftMode: boolean = false
 
     const transport = new Transport()
     tr909Worklet.listenToTransport(transport)
-
 
     const parentNode = HTML.query('div.tr-909')
     GUI.installKnobs(parentNode, tr909Worklet.preset)
@@ -99,7 +104,7 @@ let shiftMode: boolean = false
     const pattern = tr909Worklet.memory.current()
 
     // for (let i = 0; i < 16; i++) {
-    //     pattern.setStep(Instrument.Ride, i, (i % 2 === 0) ? Step.Active : Step.Accent)
+    //     pattern.setStep(Instrument.Snaredrum, i, Math.floor(Math.random() * 3))
     // }
 
     const stepButtons = Array.from(HTML.queryAll('[data-control=step]', HTML.query('[data-control=steps]')))
