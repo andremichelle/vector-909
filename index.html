@@ -18,6 +18,14 @@
     <script src="./bin/main.js" type="module"></script>
 </head>
 <body>
+<div class="debug">
+    <label>Shift Mode</label>
+    <output data-output="shift-mode"></output>
+    <label>Instrument</label>
+    <output data-output="instrument"></output>
+    <label>Transporting</label>
+    <output data-output="transporting"></output>
+</div>
 <main class="invisible">
     <div class="tr-909">
         <div class="roland-logo"></div>
@@ -469,10 +477,10 @@
             </svg>
         </div>
         <div class="wrapper-label start" data-label="START">
-            <button class="trigger bright"></button>
+            <button class="trigger bright" data-control="transport-start"></button>
         </div>
         <div class="wrapper-label stop" data-label="STOP/CONT">
-            <button class="trigger bright"></button>
+            <button class="trigger bright" data-control="transport-stop-continue"></button>
         </div>
         <div class="wrapper-label cartridge" data-label="CARTRIDGE&#10/ENTER" data-below="TOTAL ACCENT">
             <button class="switch"></button>
@@ -483,10 +491,6 @@
 <a class="github" href="https://github.com/andremichelle/css-909">github project</a>
 <div class="zoom-control">
     <span class="zoom">Zoom 100%</span>
-    <label class="zoom checkbox slider">
-        <input type="checkbox" data-control="zoom-enabled" checked>
-        <span></span>
-    </label>
 </div>
 <svg class="preloader" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
     <circle r="7" cx="10" cy="10" fill="none" stroke="#21242D" stroke-width="5"></circle>

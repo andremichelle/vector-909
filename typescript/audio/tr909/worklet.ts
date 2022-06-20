@@ -1,4 +1,5 @@
 import {ArrayUtils, Terminable, TerminableVoid, Terminator} from "../../lib/common.js"
+import {Transport} from "../common.js"
 import {Message} from "./messages.js"
 import {PatternMemory} from "./patterns.js"
 import {Preset} from "./preset.js"
@@ -43,6 +44,10 @@ export class TR909Worklet extends AudioWorkletNode implements Terminable {
                 format: pattern.serialize()
             } as Message), false)
         }, true))
+    }
+
+    listenToTransport(transport: Transport): Terminable {
+        return transport.addObserver(message => this.port.postMessage(message), false)
     }
 
     terminate(): void {

@@ -1,3 +1,4 @@
+import {Transport} from "./audio/common.js"
 import {LimiterWorklet} from "./audio/limiter/worklet.js"
 import {MeterWorklet} from "./audio/meter/worklet.js"
 import {MetronomeWorklet} from "./audio/metronome/worklet.js"
@@ -16,6 +17,10 @@ const showProgress = (() => {
     return (percentage: number) => progress.style.setProperty("--percentage", percentage.toFixed(2))
 })()
 
+const fetchFloat32Array = (path: string): Promise<Float32Array> => {
+    return fetch(path).then(x => x.arrayBuffer()).then(x => new Float32Array(x))
+}
+
 let shiftMode: boolean = false
 
 ;(async () => {
@@ -30,24 +35,35 @@ let shiftMode: boolean = false
     boot.registerProcess(MeterWorklet.loadModule(context))
     boot.registerProcess(MetronomeWorklet.loadModule(context))
     boot.registerProcess(TR909Worklet.loadModule(context))
+    const bassdrumAttack = boot.registerProcess(fetchFloat32Array('./resources/bassdrum-attack.raw'))
+    const bassdrumCycle = boot.registerProcess(fetchFloat32Array('./resources/bassdrum-cycle.raw'))
     await boot.waitForCompletion()
     // --- BOOT ENDS ---
 
-    const bassdrumCycle = await fetch('./resources/bassdrum-cycle.raw').then(x => x.arrayBuffer()).then(x => new Float32Array(x))
-    const bassdrumAttack = await fetch('./resources/bassdrum-attack.raw').then(x => x.arrayBuffer()).then(x => new Float32Array(x))
-
-    const tr909Worklet = new TR909Worklet(context, {
+    const resources = {
         bassdrum: {
-            attack: bassdrumAttack,
-            cycle: bassdrumCycle
+            attack: bassdrumAttack.get(),
+            cycle: bassdrumCycle.get()
         }
-    })
+    }
+
+    const tr909Worklet = new TR909Worklet(context, resources)
     tr909Worklet.connect(context.destination)
+
+    const transport = new Transport()
+    tr909Worklet.listenToTransport(transport)
 
     const digits: Digits = new Digits(document.querySelector('svg[data-display=led-display]'))
     tr909Worklet.preset.tempo.addObserver(bpm => digits.show(bpm), true)
 
-    GUI.installKnobs(HTML.query('div.tr-909'), tr909Worklet.preset)
+    const parentNode = HTML.query('div.tr-909')
+    GUI.installKnobs(parentNode, tr909Worklet.preset)
+
+    // Transport
+    HTML.query('button[data-control=transport-start]', parentNode)
+        .addEventListener('pointerdown', () => transport.restart())
+    HTML.query('button[data-control=transport-stop-continue]', parentNode)
+        .addEventListener('pointerdown', () => transport.togglePlayback())
 
     const selectedInstruments = new ObservableValueImpl<Instrument>(Instrument.Bassdrum)
     const pattern = tr909Worklet.memory.current()
@@ -55,7 +71,6 @@ let shiftMode: boolean = false
     const stepButtons = Array.from(HTML.queryAll('[data-control=step]', HTML.query('[data-control=steps]')))
     const updateStepButtons = () => {
         const instrument = selectedInstruments.get()
-        console.log(`instrument: ${instrument}`)
         for (let stepIndex = 0; stepIndex < 16; stepIndex++) {
             const step: Step = pattern.getStep(instrument, stepIndex)
             const button = stepButtons[stepIndex]
@@ -121,11 +136,24 @@ let shiftMode: boolean = false
     window.addEventListener('keydown', event => setShiftMode(event.shiftKey), {capture: true})
     window.addEventListener('keyup', event => setShiftMode(event.shiftKey), {capture: true})
 
-
     document.querySelectorAll('button.translucent-button')
         .forEach((button: Element, index: number) => {
             button.addEventListener('pointerdown', () => button.classList.toggle('active'))
         })
+
+
+    // debugging
+    const debugTransporting = HTML.query('[data-output=transporting]')
+    const debugInstrument = HTML.query('[data-output=instrument]')
+    const debugShiftMode = HTML.query('[data-output=shift-mode]')
+    const run = () => {
+        debugShiftMode.textContent = shiftMode ? 'Shift' : 'No'
+        debugInstrument.textContent = Instrument[selectedInstruments.get()]
+        debugTransporting.textContent = transport.isMoving() ? 'Moving' : 'Paused'
+        requestAnimationFrame(run)
+    }
+    requestAnimationFrame(run)
+
 
     // prevent dragging entire document on mobile
     document.addEventListener('touchmove', (event: TouchEvent) => event.preventDefault(), {passive: false})
@@ -133,9 +161,8 @@ let shiftMode: boolean = false
     const main: HTMLElement = HTML.query('main')
     const tr909 = HTML.query('.tr-909')
     const zoomLabel = HTML.query('span.zoom')
-    const zoomCheckbox: HTMLInputElement = HTML.query('input[data-control=zoom-enabled]')
-    const doZoom = () => {
-        if (!zoomCheckbox.checked) return
+    const resize = () => {
+        document.body.style.height = `${window.innerHeight}px`
         const padding = 64
         let scale = Math.min(
             window.innerWidth / (tr909.clientWidth + padding),
@@ -145,11 +172,6 @@ let shiftMode: boolean = false
         }
         zoomLabel.textContent = `Zoom: ${Math.round(scale * 100)}%`
         main.style.setProperty("--scale", `${scale}`)
-    }
-    zoomCheckbox.oninput = () => doZoom()
-    const resize = () => {
-        document.body.style.height = `${window.innerHeight}px`
-        doZoom()
     }
     window.addEventListener("resize", resize)
     resize()

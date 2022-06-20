@@ -1,4 +1,4 @@
-import {barsToNumFrames, numFramesToBars} from "../common.js"
+import {barsToNumFrames, numFramesToBars, RENDER_QUANTUM, TransportMessage} from "../common.js"
 import {Message} from "./messages.js"
 import {Instrument, PatternMemory, Step} from "./patterns.js"
 import {Preset} from "./preset.js"
@@ -13,6 +13,7 @@ registerProcessor('tr-909', class extends AudioWorkletProcessor {
     private readonly processing: Voice[] = []
     private readonly resources: Resources
 
+    private moving: boolean = false
     private bpm: number = 120.0
     private bar: number = 0.0
     private barIncr: number
@@ -25,23 +26,30 @@ registerProcessor('tr-909', class extends AudioWorkletProcessor {
 
         this.preset.tempo.addObserver(value => {
             this.bpm = value
-            this.barIncr = numFramesToBars(128, this.bpm, sampleRate)
+            this.barIncr = numFramesToBars(RENDER_QUANTUM, this.bpm, sampleRate)
         }, true)
 
         this.port.onmessage = (event: MessageEvent) => {
-            const message: Message = event.data
+            const message: Message | TransportMessage = event.data
             if (message.type === 'update-parameter') {
-                // console.debug(`update parameter '${message.path}' to ${message.unipolar}`)
                 this.preset.deserialize(message.path).setUnipolar(message.unipolar)
             } else if (message.type === 'update-pattern') {
                 this.memory.patterns[message.index].deserialize(message.format)
+            } else if (message.type === "transport-play") {
+                this.moving = true
+            } else if (message.type === "transport-pause") {
+                this.moving = false
+            } else if (message.type === "transport-move") {
+                this.bar = message.position
             }
         }
     }
 
     // noinspection JSUnusedGlobalSymbols
     process(inputs: Float32Array[][], outputs: Float32Array[][]): boolean {
-        this.sequence()
+        if (this.moving) {
+            this.sequence()
+        }
 
         let index = this.processing.length
         while (--index > -1) {
@@ -68,11 +76,11 @@ registerProcessor('tr-909', class extends AudioWorkletProcessor {
                     const step: Step = pattern.getStep(instrument, stepIndex)
                     if (step !== Step.None) {
                         const offset = barsToNumFrames(quantized - b0, this.bpm, sampleRate) | 0
-                        if (offset < 0 || offset >= 128) {
+                        if (offset < 0 || offset >= RENDER_QUANTUM) {
                             throw new Error(`Offset is out of bounds (${offset})`)
                         }
                         const level: number = this.preset.volume.get() + (step === Step.Accent ? 0.0 : this.preset.accent.get())
-                        const newVoice: Voice = new BassdrumVoice(this.resources, this.preset.bassdrum, sampleRate, offset, level)
+                        const newVoice: Voice = this.createVoice(instrument, offset, level)
                         this.channels.get(newVoice.channel)?.stop()
                         this.channels.set(newVoice.channel, newVoice)
                         this.processing.push(newVoice)
@@ -81,5 +89,13 @@ registerProcessor('tr-909', class extends AudioWorkletProcessor {
             }
             quantized = ++index * this.scale
         }
+    }
+
+    createVoice(instrument: Instrument, offset: number, level: number): Voice {
+        switch (instrument) {
+            case Instrument.Bassdrum:
+                return new BassdrumVoice(this.resources, this.preset.bassdrum, sampleRate, offset, level)
+        }
+        throw new Error(`${instrument} not yet implemented.`)
     }
 })

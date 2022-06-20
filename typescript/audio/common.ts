@@ -65,6 +65,11 @@ export class Transport implements Observable<TransportMessage> {
         this.observable.notify({type: "transport-play"})
     }
 
+    restart(): void {
+        this.observable.notify({type: "transport-move", position: 0.0})
+        this.play()
+    }
+
     pause(): void {
         if (!this.moving) return
         this.moving = false
@@ -86,6 +91,10 @@ export class Transport implements Observable<TransportMessage> {
 
     move(position: number): void {
         this.observable.notify({type: "transport-move", position: position})
+    }
+
+    isMoving(): boolean {
+        return this.moving
     }
 
     terminate(): void {
