@@ -43,6 +43,7 @@ const BassdrumDecayMapping = new Exp(0.012, 0.100)
 
 const TomDecayMapping = new Exp(0.1, 1.0)
 const HihatMapping = new Exp(0.02, 1.0)
+const TuneMapping = new Linear(-0.5, 0.5)
 
 export class Preset {
     readonly tempo = new Parameter<number>(TempoMapping, PrintMapping.FLOAT_ONE, 120.0)
@@ -55,23 +56,23 @@ export class Preset {
         decay: new Parameter<number>(BassdrumDecayMapping, PrintMapping.UnipolarPercent, BassdrumDecayMapping.y(0.5))
     })
     readonly snaredrum: Readonly<SnaredrumPreset> = Object.seal({
-        tune: new Parameter<number>(Linear.Identity, PrintMapping.UnipolarPercent, 0.5),
+        tune: new Parameter<number>(TuneMapping, PrintMapping.UnipolarPercent, TuneMapping.y(0.5)),
         level: new Parameter<number>(Volume.Default, PrintMapping.DECIBEL, -6.0),
         tone: new Parameter<number>(Linear.Identity, PrintMapping.UnipolarPercent, 0.5),
         snappy: new Parameter<number>(Linear.Identity, PrintMapping.UnipolarPercent, 0.5),
     })
     readonly tomLow: Readonly<TomPreset> = Object.seal({
-        tune: new Parameter<number>(Linear.Bipolar, PrintMapping.UnipolarPercent, 0.0),
+        tune: new Parameter<number>(TuneMapping, PrintMapping.UnipolarPercent, TuneMapping.y(0.5)),
         level: new Parameter<number>(Volume.Default, PrintMapping.DECIBEL, -6.0),
         decay: new Parameter<number>(TomDecayMapping, PrintMapping.UnipolarPercent, TomDecayMapping.y(1.0))
     })
     readonly tomMid: Readonly<TomPreset> = Object.seal({
-        tune: new Parameter<number>(Linear.Bipolar, PrintMapping.UnipolarPercent, 0.0),
+        tune: new Parameter<number>(TuneMapping, PrintMapping.UnipolarPercent, TuneMapping.y(0.5)),
         level: new Parameter<number>(Volume.Default, PrintMapping.DECIBEL, -6.0),
         decay: new Parameter<number>(TomDecayMapping, PrintMapping.UnipolarPercent, TomDecayMapping.y(1.0))
     })
     readonly tomHi: Readonly<TomPreset> = Object.seal({
-        tune: new Parameter<number>(Linear.Bipolar, PrintMapping.UnipolarPercent, 0.0),
+        tune: new Parameter<number>(TuneMapping, PrintMapping.UnipolarPercent, TuneMapping.y(0.5)),
         level: new Parameter<number>(Volume.Default, PrintMapping.DECIBEL, -6.0),
         decay: new Parameter<number>(TomDecayMapping, PrintMapping.UnipolarPercent, TomDecayMapping.y(1.0))
     })
@@ -92,11 +93,11 @@ export class Preset {
     }
     readonly crash: Readonly<CrashOrRidePreset> = Object.seal({
         level: new Parameter<number>(Volume.Default, PrintMapping.DECIBEL, -6.0),
-        tune: new Parameter<number>(Linear.Bipolar, PrintMapping.UnipolarPercent, 0.0)
+        tune: new Parameter<number>(TuneMapping, PrintMapping.UnipolarPercent, TuneMapping.y(0.5))
     })
     readonly ride: Readonly<CrashOrRidePreset> = Object.seal({
         level: new Parameter<number>(Volume.Default, PrintMapping.DECIBEL, -6.0),
-        tune: new Parameter<number>(Linear.Bipolar, PrintMapping.UnipolarPercent, 0.0)
+        tune: new Parameter<number>(TuneMapping, PrintMapping.UnipolarPercent, TuneMapping.y(0.5))
     })
 
     constructor() {
