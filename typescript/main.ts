@@ -41,6 +41,8 @@ let shiftMode: boolean = false
     const bassdrumCycle = boot.registerProcess(fetchFloat32Array('./resources/bassdrum-cycle.raw'))
     const rim = boot.registerProcess(fetchFloat32Array('./resources/rim.raw'))
     const clap = boot.registerProcess(fetchFloat32Array('./resources/clap.raw'))
+    const crash = boot.registerProcess(fetchFloat32Array('./resources/crash.raw'))
+    const ride = boot.registerProcess(fetchFloat32Array('./resources/ride.raw'))
     await boot.waitForCompletion()
     // --- BOOT ENDS ---
 
@@ -50,11 +52,21 @@ let shiftMode: boolean = false
             cycle: bassdrumCycle.get()
         },
         rim: rim.get(),
-        clap: clap.get()
+        clap: clap.get(),
+        crash: crash.get(),
+        ride: ride.get()
     }
 
     const tr909Worklet = new TR909Worklet(context, resources)
     tr909Worklet.connect(context.destination)
+    // tr909Worklet.memory.current().setStep(Instrument.Ride, 0, Step.Accent)
+    // tr909Worklet.memory.current().setStep(Instrument.Ride, 2, Step.Active)
+    // tr909Worklet.memory.current().setStep(Instrument.Ride, 4, Step.Accent)
+    // tr909Worklet.memory.current().setStep(Instrument.Ride, 6, Step.Active)
+    // tr909Worklet.memory.current().setStep(Instrument.Ride, 8, Step.Accent)
+    // tr909Worklet.memory.current().setStep(Instrument.Ride, 10, Step.Active)
+    // tr909Worklet.memory.current().setStep(Instrument.Ride, 12, Step.Accent)
+    // tr909Worklet.memory.current().setStep(Instrument.Ride, 14, Step.Active)
 
     const transport = new Transport()
     tr909Worklet.listenToTransport(transport)
@@ -71,7 +83,7 @@ let shiftMode: boolean = false
     HTML.query('button[data-control=transport-stop-continue]', parentNode)
         .addEventListener('pointerdown', () => transport.togglePlayback())
     window.addEventListener('keydown', (event: KeyboardEvent) => {
-        if(event.code === 'Space' && !event.repeat) {
+        if (event.code === 'Space' && !event.repeat) {
             transport.togglePlayback()
         }
     })

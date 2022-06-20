@@ -1,7 +1,7 @@
 import {dbToGain} from "../../common.js"
 import {BassdrumPreset} from "../preset.js"
 import {Resources, ResourceSampleRate} from "../resources.js"
-import {Channel, Interpolator, SilentGain, Voice} from "./common.js"
+import {Channel, Interpolator, isRunning, SilentGain, Voice} from "./common.js"
 
 export class BassdrumVoice extends Voice {
     private static ReleaseStartTime: number = 0.060
@@ -22,6 +22,7 @@ export class BassdrumVoice extends Voice {
     private time: number = 0.0
     private phase: number = 0.0
     private attackPosition: number = 0.0
+    private fadeOutIndex: number = -1
 
     constructor(resources: Resources, preset: BassdrumPreset, sampleRate: number, offset: number, level: number) {
         super(Channel.Bassdrum, sampleRate, offset)
@@ -40,13 +41,16 @@ export class BassdrumVoice extends Voice {
         this.attackRate = ResourceSampleRate / sampleRate
     }
 
-    stop(): void {
-        this.gainCoefficient = Math.exp(-1.0 / (sampleRate * 0.005))
+    stop(offset: number): void {
+        this.fadeOutIndex = offset
     }
 
-    process(output: Float32Array): boolean {
+    process(output: Float32Array): isRunning {
         for (let i = this.offset; i < output.length; i++) {
-            if (this.time > BassdrumVoice.ReleaseStartTime) {
+            if (this.fadeOutIndex === i) {
+                this.gainCoefficient = Math.exp(-1.0 / (sampleRate * 0.005))
+                this.fadeOutIndex = -1
+            } else if (this.time > BassdrumVoice.ReleaseStartTime) {
                 this.gainEnvelope *= this.gainCoefficient
             }
             const gainInterpolated = this.gainInterpolator.moveAndGet()

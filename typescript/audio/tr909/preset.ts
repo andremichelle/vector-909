@@ -82,49 +82,31 @@ export class Preset {
     })
     readonly crash: Readonly<CrashOrRidePreset> = Object.seal({
         level: new Parameter<number>(Volume.Default, PrintMapping.DECIBEL, -6.0),
-        tune: new Parameter<number>(Linear.Identity, PrintMapping.UnipolarPercent, 0.0)
+        tune: new Parameter<number>(Linear.Bipolar, PrintMapping.UnipolarPercent, 0.0)
     })
     readonly ride: Readonly<CrashOrRidePreset> = Object.seal({
         level: new Parameter<number>(Volume.Default, PrintMapping.DECIBEL, -6.0),
-        tune: new Parameter<number>(Linear.Identity, PrintMapping.UnipolarPercent, 0.0)
+        tune: new Parameter<number>(Linear.Bipolar, PrintMapping.UnipolarPercent, 0.0)
     })
 
-    observeAll(callback: (parameter: Parameter<any>) => void): Terminable {
+    observeAll(callback: (parameter: Parameter<any>, path: string[]) => void): Terminable {
         const terminator = new Terminator()
-        const search = (object: any): void => {
+        const search = (object: any, path: string[]): void => {
             for (let key in object) {
                 const element = object[key]
+                const elementPath = path.concat(key)
                 if (element instanceof Parameter) {
-                    terminator.with(element.addObserver(() => callback(element)))
+                    terminator.with(element.addObserver(() => callback(element, elementPath)))
                 } else if (element instanceof Object) {
-                    return search(element)
+                    search(element, elementPath)
                 }
             }
         }
-        search(this)
+        search(this, [])
         return terminator
     }
 
-    serializePath(parameter: Parameter<any>): string {
-        const search = (object: any, path: string[]): string[] => {
-            for (let key in object) {
-                const element = object[key]
-                if (element === parameter) {
-                    return path.concat(key)
-                }
-                if (element instanceof Parameter) {
-                    continue
-                }
-                if (element instanceof Object) {
-                    return search(element, path.concat(key))
-                }
-            }
-            return path
-        }
-        return search(this, []).join(".")
-    }
-
-    deserialize(path: string): Parameter<any> {
+    find(path: string): Parameter<any> {
         return path.split('.').reduce((object: any, key: string) => object[key], this)
     }
 }

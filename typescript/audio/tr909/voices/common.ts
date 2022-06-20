@@ -7,6 +7,8 @@ export enum Channel {
     Bassdrum, Snaredrum, TomLow, TomMid, TomHi, Rim, Clap, Hihat, Crash, Ride
 }
 
+export type isRunning = boolean
+
 export abstract class Voice implements Terminable {
     protected readonly terminator: Terminator = new Terminator()
 
@@ -15,9 +17,9 @@ export abstract class Voice implements Terminable {
     protected constructor(readonly channel: Channel, readonly sampleRate: number, protected offset: number) {
     }
 
-    abstract process(output: Float32Array): boolean
+    abstract process(output: Float32Array): isRunning
 
-    abstract stop(): void
+    abstract stop(offset: number): void
 
     terminate(): void {
         this.terminator.terminate()

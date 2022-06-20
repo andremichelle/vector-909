@@ -5,7 +5,7 @@ import {Preset} from "./preset.js"
 import {Resources} from "./resources.js"
 import {BassdrumVoice} from "./voices/bassdrum.js"
 import {Channel, Voice} from "./voices/common.js"
-import {RimOrClapVoice} from "./voices/rim-clap.js"
+import {RimOrClapOrCymbalVoice} from "./voices/rim-clap-cymbal.js"
 
 registerProcessor('tr-909', class extends AudioWorkletProcessor {
     private readonly preset: Preset = new Preset()
@@ -33,7 +33,7 @@ registerProcessor('tr-909', class extends AudioWorkletProcessor {
         this.port.onmessage = (event: MessageEvent) => {
             const message: Message | TransportMessage = event.data
             if (message.type === 'update-parameter') {
-                this.preset.deserialize(message.path).setUnipolar(message.unipolar)
+                this.preset.find(message.path).setUnipolar(message.unipolar)
             } else if (message.type === 'update-pattern') {
                 this.memory.patterns[message.index].deserialize(message.format)
             } else if (message.type === "transport-play") {
@@ -51,7 +51,6 @@ registerProcessor('tr-909', class extends AudioWorkletProcessor {
         if (this.moving) {
             this.sequence()
         }
-
         const master = outputs[0][0]
         let index = this.processing.length
         while (--index > -1) {
@@ -59,7 +58,9 @@ registerProcessor('tr-909', class extends AudioWorkletProcessor {
             if (!voice.process(master)) {
                 voice.terminate()
                 this.processing.splice(index, 1)
-                this.channels.delete(voice.channel)
+                if (voice === this.channels.get(voice.channel)) {
+                    this.channels.delete(voice.channel)
+                }
             }
         }
         return true
@@ -82,10 +83,10 @@ registerProcessor('tr-909', class extends AudioWorkletProcessor {
                             throw new Error(`Offset is out of bounds (${offset})`)
                         }
                         const level: number = this.preset.volume.get() + (step === Step.Accent ? 0.0 : this.preset.accent.get())
-                        const newVoice: Voice = this.createVoice(instrument, offset, level)
-                        this.channels.get(newVoice.channel)?.stop()
-                        this.channels.set(newVoice.channel, newVoice)
-                        this.processing.push(newVoice)
+                        const voice: Voice = this.createVoice(instrument, offset, level)
+                        this.channels.get(voice.channel)?.stop(offset)
+                        this.channels.set(voice.channel, voice)
+                        this.processing.push(voice)
                     }
                 }
             }
@@ -98,9 +99,13 @@ registerProcessor('tr-909', class extends AudioWorkletProcessor {
             case Instrument.Bassdrum:
                 return new BassdrumVoice(this.resources, this.preset.bassdrum, sampleRate, offset, level)
             case Instrument.Rim:
-                return new RimOrClapVoice(this.resources.rim, this.preset.rim, Channel.Rim, sampleRate, offset, level)
+                return new RimOrClapOrCymbalVoice(this.resources.rim, this.preset.rim, Channel.Rim, sampleRate, offset, level)
             case Instrument.Clap:
-                return new RimOrClapVoice(this.resources.clap, this.preset.clap, Channel.Clap, sampleRate, offset, level)
+                return new RimOrClapOrCymbalVoice(this.resources.clap, this.preset.clap, Channel.Clap, sampleRate, offset, level)
+            case Instrument.Crash:
+                return new RimOrClapOrCymbalVoice(this.resources.crash, this.preset.crash, Channel.Crash, sampleRate, offset, level)
+            case Instrument.Ride:
+                return new RimOrClapOrCymbalVoice(this.resources.ride, this.preset.ride, Channel.Ride, sampleRate, offset, level)
         }
         throw new Error(`${instrument} not yet implemented.`)
     }

@@ -6,7 +6,9 @@ export type Resources = {
         cycle: Float32Array
     },
     rim: Float32Array,
-    clap: Float32Array
+    clap: Float32Array,
+    crash: Float32Array,
+    ride: Float32Array,
 }
 
 export const ResourceSampleRate = 44100.0

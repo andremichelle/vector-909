@@ -1,4 +1,4 @@
-import {ArrayUtils, Terminable, TerminableVoid, Terminator} from "../../lib/common.js"
+import {ArrayUtils, Parameter, Terminable, TerminableVoid, Terminator} from "../../lib/common.js"
 import {Transport} from "../common.js"
 import {Message} from "./messages.js"
 import {PatternMemory} from "./patterns.js"
@@ -28,10 +28,10 @@ export class TR909Worklet extends AudioWorkletNode implements Terminable {
             processorOptions: resources
         })
 
-        this.terminator.with(this.preset.observeAll(parameter => {
+        this.terminator.with(this.preset.observeAll((parameter: Parameter<any>, path: string[]) => {
             this.port.postMessage({
                 type: 'update-parameter',
-                path: this.preset.serializePath(parameter),
+                path: path.join('.'),
                 unipolar: parameter.getUnipolar()
             } as Message)
         }))
