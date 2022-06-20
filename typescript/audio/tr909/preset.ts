@@ -29,8 +29,7 @@ export type RimOrClapPreset = {
 
 export type HihatPreset = {
     level: Parameter<number>
-    closedDecay: Parameter<number>
-    openedDecay: Parameter<number>
+    decay: Parameter<number>
 }
 
 export type CrashOrRidePreset = {
@@ -38,15 +37,22 @@ export type CrashOrRidePreset = {
     tune: Parameter<number>
 }
 
+const TempoMapping = new Exp(30.0, 1000.0)
+const BassdrumTuneMapping = new Exp(0.007, 0.0294)
+const BassdrumDecayMapping = new Exp(0.012, 0.100)
+
+const TomDecayMapping = new Exp(0.1, 1.0)
+const HihatMapping = new Exp(0.02, 1.0)
+
 export class Preset {
-    readonly tempo = new Parameter<number>(new Exp(30.0, 300.0), PrintMapping.FLOAT_ONE, 120.0)
+    readonly tempo = new Parameter<number>(TempoMapping, PrintMapping.FLOAT_ONE, 120.0)
     readonly volume = new Parameter<number>(Volume.Default, PrintMapping.DECIBEL, 0.0)
     readonly accent = new Parameter<number>(AccentMapping, PrintMapping.DECIBEL, -12.0)
     readonly bassdrum: Readonly<BassdrumPreset> = Object.seal({
-        tune: new Parameter<number>(new Exp(0.007, 0.0294), PrintMapping.UnipolarPercent, 0.007),
+        tune: new Parameter<number>(BassdrumTuneMapping, PrintMapping.UnipolarPercent, BassdrumTuneMapping.y(0.0)),
         level: new Parameter<number>(Volume.Default, PrintMapping.DECIBEL, -6.0),
         attack: new Parameter<number>(Volume.Default, PrintMapping.DECIBEL, 0.0),
-        decay: new Parameter<number>(new Exp(0.012, 0.100), PrintMapping.UnipolarPercent, 0.1)
+        decay: new Parameter<number>(BassdrumDecayMapping, PrintMapping.UnipolarPercent, BassdrumDecayMapping.y(0.5))
     })
     readonly snaredrum: Readonly<SnaredrumPreset> = Object.seal({
         tune: new Parameter<number>(Linear.Identity, PrintMapping.UnipolarPercent, 0.5),
@@ -55,19 +61,19 @@ export class Preset {
         snappy: new Parameter<number>(Linear.Identity, PrintMapping.UnipolarPercent, 0.5),
     })
     readonly tomLow: Readonly<TomPreset> = Object.seal({
-        tune: new Parameter<number>(Linear.Identity, PrintMapping.UnipolarPercent, 0.5),
+        tune: new Parameter<number>(Linear.Bipolar, PrintMapping.UnipolarPercent, 0.0),
         level: new Parameter<number>(Volume.Default, PrintMapping.DECIBEL, -6.0),
-        decay: new Parameter<number>(Linear.Identity, PrintMapping.UnipolarPercent, 0.0)
+        decay: new Parameter<number>(TomDecayMapping, PrintMapping.UnipolarPercent, TomDecayMapping.y(1.0))
     })
     readonly tomMid: Readonly<TomPreset> = Object.seal({
-        tune: new Parameter<number>(Linear.Identity, PrintMapping.UnipolarPercent, 0.5),
+        tune: new Parameter<number>(Linear.Bipolar, PrintMapping.UnipolarPercent, 0.0),
         level: new Parameter<number>(Volume.Default, PrintMapping.DECIBEL, -6.0),
-        decay: new Parameter<number>(Linear.Identity, PrintMapping.UnipolarPercent, 0.0)
+        decay: new Parameter<number>(TomDecayMapping, PrintMapping.UnipolarPercent, TomDecayMapping.y(1.0))
     })
     readonly tomHi: Readonly<TomPreset> = Object.seal({
-        tune: new Parameter<number>(Linear.Identity, PrintMapping.UnipolarPercent, 0.5),
+        tune: new Parameter<number>(Linear.Bipolar, PrintMapping.UnipolarPercent, 0.0),
         level: new Parameter<number>(Volume.Default, PrintMapping.DECIBEL, -6.0),
-        decay: new Parameter<number>(Linear.Identity, PrintMapping.UnipolarPercent, 0.0)
+        decay: new Parameter<number>(TomDecayMapping, PrintMapping.UnipolarPercent, TomDecayMapping.y(1.0))
     })
     readonly rim: Readonly<RimOrClapPreset> = Object.seal({
         level: new Parameter<number>(Volume.Default, PrintMapping.DECIBEL, -6.0)
@@ -75,11 +81,15 @@ export class Preset {
     readonly clap: Readonly<RimOrClapPreset> = Object.seal({
         level: new Parameter<number>(Volume.Default, PrintMapping.DECIBEL, -6.0)
     })
-    readonly hihat: Readonly<HihatPreset> = Object.seal({
-        level: new Parameter<number>(Volume.Default, PrintMapping.DECIBEL, -6.0),
-        closedDecay: new Parameter<number>(Linear.Identity, PrintMapping.UnipolarPercent, 0.0),
-        openedDecay: new Parameter<number>(Linear.Identity, PrintMapping.UnipolarPercent, 0.0)
-    })
+    readonly hihatLevel = new Parameter<number>(Volume.Default, PrintMapping.DECIBEL, -6.0)
+    readonly closedHihat: Readonly<HihatPreset> = {
+        level: this.hihatLevel,
+        decay: new Parameter<number>(HihatMapping, PrintMapping.UnipolarPercent, HihatMapping.y(1.0))
+    }
+    readonly openedHihat: Readonly<HihatPreset> = {
+        level: this.hihatLevel,
+        decay: new Parameter<number>(HihatMapping, PrintMapping.UnipolarPercent, HihatMapping.y(1.0))
+    }
     readonly crash: Readonly<CrashOrRidePreset> = Object.seal({
         level: new Parameter<number>(Volume.Default, PrintMapping.DECIBEL, -6.0),
         tune: new Parameter<number>(Linear.Bipolar, PrintMapping.UnipolarPercent, 0.0)
@@ -88,6 +98,11 @@ export class Preset {
         level: new Parameter<number>(Volume.Default, PrintMapping.DECIBEL, -6.0),
         tune: new Parameter<number>(Linear.Bipolar, PrintMapping.UnipolarPercent, 0.0)
     })
+
+    constructor() {
+        Object.defineProperty(this.closedHihat, 'level', {enumerable: false})
+        Object.defineProperty(this.openedHihat, 'level', {enumerable: false})
+    }
 
     observeAll(callback: (parameter: Parameter<any>, path: string[]) => void): Terminable {
         const terminator = new Terminator()

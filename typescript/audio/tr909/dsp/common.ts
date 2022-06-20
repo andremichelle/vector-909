@@ -27,6 +27,8 @@ export abstract class Voice implements Terminable {
 }
 
 export class Interpolator {
+    private static DefaultSeconds = 0.007
+
     private readonly length: number
 
     private value: number = NaN
@@ -35,7 +37,7 @@ export class Interpolator {
     private remaining: number = 0 | 0
 
     constructor(sampleRate: number) {
-        this.length = (sampleRate * 0.005) | 0
+        this.length = (Interpolator.DefaultSeconds * sampleRate) | 0
     }
 
     set(target: number, smooth: boolean): void {
@@ -62,5 +64,9 @@ export class Interpolator {
             }
         }
         return this.value
+    }
+
+    equals(value: number): boolean {
+        return this.value === value
     }
 }

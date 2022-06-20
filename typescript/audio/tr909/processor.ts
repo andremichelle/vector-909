@@ -1,11 +1,11 @@
 import {barsToNumFrames, numFramesToBars, RENDER_QUANTUM, TransportMessage} from "../common.js"
+import {BasicTuneDecayVoice} from "./dsp/basic-voice.js"
+import {BassdrumVoice} from "./dsp/bassdrum.js"
+import {Channel, Voice} from "./dsp/common.js"
 import {Message} from "./messages.js"
 import {Instrument, PatternMemory, Step} from "./patterns.js"
 import {Preset} from "./preset.js"
 import {Resources} from "./resources.js"
-import {BassdrumVoice} from "./voices/bassdrum.js"
-import {Channel, Voice} from "./voices/common.js"
-import {RimOrClapOrCymbalVoice} from "./voices/rim-clap-cymbal.js"
 
 registerProcessor('tr-909', class extends AudioWorkletProcessor {
     private readonly preset: Preset = new Preset()
@@ -98,14 +98,24 @@ registerProcessor('tr-909', class extends AudioWorkletProcessor {
         switch (instrument) {
             case Instrument.Bassdrum:
                 return new BassdrumVoice(this.resources, this.preset.bassdrum, sampleRate, offset, level)
+            case Instrument.TomLow:
+                return new BasicTuneDecayVoice(this.resources.tomLow, this.preset.tomLow, Channel.TomLow, sampleRate, offset, level)
+            case Instrument.TomMid:
+                return new BasicTuneDecayVoice(this.resources.tomMid, this.preset.tomMid, Channel.TomMid, sampleRate, offset, level)
+            case Instrument.TomHi:
+                return new BasicTuneDecayVoice(this.resources.tomHi, this.preset.tomHi, Channel.TomHi, sampleRate, offset, level)
             case Instrument.Rim:
-                return new RimOrClapOrCymbalVoice(this.resources.rim, this.preset.rim, Channel.Rim, sampleRate, offset, level)
+                return new BasicTuneDecayVoice(this.resources.rim, this.preset.rim, Channel.Rim, sampleRate, offset, level)
             case Instrument.Clap:
-                return new RimOrClapOrCymbalVoice(this.resources.clap, this.preset.clap, Channel.Clap, sampleRate, offset, level)
+                return new BasicTuneDecayVoice(this.resources.clap, this.preset.clap, Channel.Clap, sampleRate, offset, level)
+            case Instrument.HihatClosed:
+                return new BasicTuneDecayVoice(this.resources.closedHihat, this.preset.closedHihat, Channel.Hihat, sampleRate, offset, level)
+            case Instrument.HihatOpen:
+                return new BasicTuneDecayVoice(this.resources.openedHihat, this.preset.openedHihat, Channel.Hihat, sampleRate, offset, level)
             case Instrument.Crash:
-                return new RimOrClapOrCymbalVoice(this.resources.crash, this.preset.crash, Channel.Crash, sampleRate, offset, level)
+                return new BasicTuneDecayVoice(this.resources.crash, this.preset.crash, Channel.Crash, sampleRate, offset, level)
             case Instrument.Ride:
-                return new RimOrClapOrCymbalVoice(this.resources.ride, this.preset.ride, Channel.Ride, sampleRate, offset, level)
+                return new BasicTuneDecayVoice(this.resources.ride, this.preset.ride, Channel.Ride, sampleRate, offset, level)
         }
         throw new Error(`${instrument} not yet implemented.`)
     }

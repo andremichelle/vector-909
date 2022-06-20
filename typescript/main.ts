@@ -38,10 +38,16 @@ let shiftMode: boolean = false
     boot.registerProcess(MetronomeWorklet.loadModule(context))
     boot.registerProcess(TR909Worklet.loadModule(context))
     const RD = {
+        sine: boot.registerProcess(fetchFloat32Array('./resources/sine.raw')),
         bassdrumAttack: boot.registerProcess(fetchFloat32Array('./resources/bassdrum-attack.raw')),
         bassdrumCycle: boot.registerProcess(fetchFloat32Array('./resources/bassdrum-cycle.raw')),
+        tomLow: boot.registerProcess(fetchFloat32Array('./resources/tom-low.raw')),
+        tomMid: boot.registerProcess(fetchFloat32Array('./resources/tom-mid.raw')),
+        tomHi: boot.registerProcess(fetchFloat32Array('./resources/tom-hi.raw')),
         rim: boot.registerProcess(fetchFloat32Array('./resources/rim.raw')),
         clap: boot.registerProcess(fetchFloat32Array('./resources/clap.raw')),
+        closedHihat: boot.registerProcess(fetchFloat32Array('./resources/closed-hihat.raw')),
+        openedHihat: boot.registerProcess(fetchFloat32Array('./resources/opened-hihat.raw')),
         crash: boot.registerProcess(fetchFloat32Array('./resources/crash.raw')),
         ride: boot.registerProcess(fetchFloat32Array('./resources/ride.raw'))
     }
@@ -49,12 +55,18 @@ let shiftMode: boolean = false
     // --- BOOT ENDS ---
 
     const resources: Resources = {
+        sine: RD.sine.get(),
         bassdrum: {
             attack: RD.bassdrumAttack.get(),
             cycle: RD.bassdrumCycle.get()
         },
+        tomLow: RD.tomLow.get(),
+        tomMid: RD.tomMid.get(),
+        tomHi: RD.tomHi.get(),
         rim: RD.rim.get(),
         clap: RD.clap.get(),
+        closedHihat: RD.closedHihat.get(),
+        openedHihat: RD.openedHihat.get(),
         crash: RD.crash.get(),
         ride: RD.ride.get()
     }
@@ -85,6 +97,10 @@ let shiftMode: boolean = false
 
     const selectedInstruments = new ObservableValueImpl<Instrument>(Instrument.Bassdrum)
     const pattern = tr909Worklet.memory.current()
+
+    // for (let i = 0; i < 16; i++) {
+    //     pattern.setStep(Instrument.Ride, i, (i % 2 === 0) ? Step.Active : Step.Accent)
+    // }
 
     const stepButtons = Array.from(HTML.queryAll('[data-control=step]', HTML.query('[data-control=steps]')))
     const updateStepButtons = () => {
@@ -125,7 +141,7 @@ let shiftMode: boolean = false
             case 12:
                 return Instrument.HihatClosed
             case 13:
-                return Instrument.HihatClosed
+                return Instrument.HihatOpen
             case 14:
                 return Instrument.Crash
             case 15:
