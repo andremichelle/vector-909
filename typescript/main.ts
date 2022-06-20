@@ -39,10 +39,14 @@ let shiftMode: boolean = false
     boot.registerProcess(TR909Worklet.loadModule(context))
     const RD = {
         sine: boot.registerProcess(fetchFloat32Array('./resources/sine.raw')),
-        bassdrumAttack: boot.registerProcess(fetchFloat32Array('./resources/bassdrum-attack.raw')),
-        bassdrumCycle: boot.registerProcess(fetchFloat32Array('./resources/bassdrum-cycle.raw')),
-        snareTone: boot.registerProcess(fetchFloat32Array('./resources/snare-tone.raw')),
-        snareSnappy: boot.registerProcess(fetchFloat32Array('./resources/snare-noise.raw')),
+        bassdrum: {
+            attack: boot.registerProcess(fetchFloat32Array('./resources/bassdrum-attack.raw')),
+            cycle: boot.registerProcess(fetchFloat32Array('./resources/bassdrum-cycle.raw'))
+        },
+        snare: {
+            tone: boot.registerProcess(fetchFloat32Array('./resources/snare-tone.raw')),
+            noise: boot.registerProcess(fetchFloat32Array('./resources/snare-noise.raw')),
+        },
         tomLow: boot.registerProcess(fetchFloat32Array('./resources/tom-low.raw')),
         tomMid: boot.registerProcess(fetchFloat32Array('./resources/tom-mid.raw')),
         tomHi: boot.registerProcess(fetchFloat32Array('./resources/tom-hi.raw')),
@@ -59,12 +63,12 @@ let shiftMode: boolean = false
     const resources: Resources = {
         sine: RD.sine.get(),
         bassdrum: {
-            attack: RD.bassdrumAttack.get(),
-            cycle: RD.bassdrumCycle.get()
+            attack: RD.bassdrum.attack.get(),
+            cycle: RD.bassdrum.cycle.get()
         },
         snaredrum: {
-            tone: RD.snareTone.get(),
-            noise: RD.snareSnappy.get()
+            tone: RD.snare.tone.get(),
+            noise: RD.snare.noise.get()
         },
         tomLow: RD.tomLow.get(),
         tomMid: RD.tomMid.get(),
