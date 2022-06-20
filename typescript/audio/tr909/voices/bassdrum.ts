@@ -1,4 +1,3 @@
-import {Parameter} from "../../../lib/common.js"
 import {dbToGain} from "../../common.js"
 import {BassdrumPreset} from "../preset.js"
 import {Resources} from "../resources.js"

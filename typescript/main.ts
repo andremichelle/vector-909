@@ -1,22 +1,24 @@
 import {LimiterWorklet} from "./audio/limiter/worklet.js"
 import {MeterWorklet} from "./audio/meter/worklet.js"
 import {MetronomeWorklet} from "./audio/metronome/worklet.js"
+import {GUI} from "./audio/tr909/gui.js"
 import {Instrument, Step} from "./audio/tr909/patterns.js"
 import {TR909Worklet} from "./audio/tr909/worklet.js"
 import {Boot, newAudioContext, preloadImagesOfCssFile} from "./lib/boot.js"
 import {ObservableValueImpl} from "./lib/common.js"
 import {HTML} from "./lib/dom.js"
 import {Digits} from "./tr909/digits.js"
-import {Knob} from "./tr909/knobs.js"
 
 const showProgress = (() => {
     const progress: SVGSVGElement = document.querySelector("svg.preloader")
     window.onerror = () => progress.classList.add("error")
     window.onunhandledrejection = () => progress.classList.add("error")
     return (percentage: number) => progress.style.setProperty("--percentage", percentage.toFixed(2))
-})();
+})()
 
-(async () => {
+let shiftMode: boolean = false
+
+;(async () => {
     console.debug("booting...")
 
     // --- BOOT STARTS ---
@@ -45,38 +47,79 @@ const showProgress = (() => {
     const digits: Digits = new Digits(document.querySelector('svg[data-display=led-display]'))
     tr909Worklet.preset.tempo.addObserver(bpm => digits.show(bpm), true)
 
-    new Knob(HTML.query('[data-parameter=tempo]'), tr909Worklet.preset.tempo)
-    new Knob(HTML.query('[data-parameter=volume]'), tr909Worklet.preset.volume)
-    new Knob(HTML.query('[data-instrument=global] [data-parameter=accent]'), tr909Worklet.preset.accent)
+    GUI.installKnobs(HTML.query('div.tr-909'), tr909Worklet.preset)
 
-    const bassdrumElement = HTML.query('[data-instrument=bassdrum]')
-    new Knob(HTML.query('[data-parameter=tune]', bassdrumElement), tr909Worklet.preset.bassdrum.tune)
-    new Knob(HTML.query('[data-parameter=level]', bassdrumElement), tr909Worklet.preset.bassdrum.level)
-    new Knob(HTML.query('[data-parameter=attack]', bassdrumElement), tr909Worklet.preset.bassdrum.attack)
-    new Knob(HTML.query('[data-parameter=decay]', bassdrumElement), tr909Worklet.preset.bassdrum.decay)
-
-    const instrument = new ObservableValueImpl<Instrument>(Instrument.Bassdrum)
+    const selectedInstruments = new ObservableValueImpl<Instrument>(Instrument.Bassdrum)
     const pattern = tr909Worklet.memory.current()
 
     const stepButtons = Array.from(HTML.queryAll('[data-control=step]', HTML.query('[data-control=steps]')))
     const updateStepButtons = () => {
+        const instrument = selectedInstruments.get()
+        console.log(`instrument: ${instrument}`)
         for (let stepIndex = 0; stepIndex < 16; stepIndex++) {
-            const step: Step = pattern.getStep(instrument.get(), stepIndex)
+            const step: Step = pattern.getStep(instrument, stepIndex)
             const button = stepButtons[stepIndex]
             button.classList.toggle('half', step === Step.Active)
             button.classList.toggle('active', step === Step.Accent)
         }
     }
+    pattern.addObserver(() => updateStepButtons(), false)
+    selectedInstruments.addObserver(() => updateStepButtons(), false)
+    updateStepButtons()
 
-    pattern.addObserver(() => updateStepButtons(), true)
+    const buttonIndexToInstrument = (buttonIndex: number): Instrument => {
+        switch (buttonIndex) {
+            case 0:
+            case 1:
+                return Instrument.Bassdrum
+            case 2:
+            case 3:
+                return Instrument.Snaredrum
+            case 4:
+            case 5:
+                return Instrument.TomLow
+            case 6:
+            case 7:
+                return Instrument.TomMid
+            case 8:
+            case 9:
+                return Instrument.TomHi
+            case 10:
+                return Instrument.Rim
+            case 11:
+                return Instrument.Clap
+            // TODO How do we solve the Hihat? 12+13 are open hihats :(
+            case 12:
+                return Instrument.HihatClosed
+            case 13:
+                return Instrument.HihatClosed
+            case 14:
+                return Instrument.Crash
+            case 15:
+                return Instrument.Ride
+        }
+    }
 
     stepButtons
-        .forEach((button: Element, stepIndex: number) => {
+        .forEach((button: Element, buttonIndex: number) => {
             button.addEventListener('pointerdown', () => {
-                const step: Step = pattern.getStep(instrument.get(), stepIndex)
-                pattern.setStep(instrument.get(), stepIndex, (step + 1) % 3) // cycle through states
+                if (shiftMode) {
+                    selectedInstruments.set(buttonIndexToInstrument(buttonIndex))
+                } else {
+                    const step: Step = pattern.getStep(selectedInstruments.get(), buttonIndex)
+                    pattern.setStep(selectedInstruments.get(), buttonIndex, (step + 1) % 3) // cycle through states
+                }
             })
         })
+
+    const shiftButton = HTML.query('[data-button=shift]')
+    const setShiftMode = (enabled: boolean): void => {
+        if (shiftMode === enabled) return
+        shiftMode = enabled
+        shiftButton.classList.toggle('active', shiftMode)
+    }
+    window.addEventListener('keydown', event => setShiftMode(event.shiftKey), {capture: true})
+    window.addEventListener('keyup', event => setShiftMode(event.shiftKey), {capture: true})
 
 
     document.querySelectorAll('button.translucent-button')

@@ -14,7 +14,7 @@ export enum Instrument {
     Snaredrum = 1,
     TomLow = 2,
     TomMid = 3,
-    TomHigh = 4,
+    TomHi = 4,
     Rim = 5,
     Clap = 6,
     HihatClosed = 7,

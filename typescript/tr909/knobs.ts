@@ -1,6 +1,6 @@
-import {Events, Parameter, Terminator} from "../lib/common.js"
+import {Events, Parameter, Terminable, Terminator} from "../lib/common.js"
 
-export class Knob {
+export class Knob implements Terminable {
     private readonly terminator: Terminator = new Terminator()
 
     constructor(private readonly element: HTMLElement, private readonly parameter: Parameter<any>) {
@@ -10,6 +10,10 @@ export class Knob {
             element.style.setProperty('--angle', `${degree}deg`)
         }, true)
         this.attachEvents()
+    }
+
+    terminate() {
+        this.terminator.terminate()
     }
 
     private attachEvents(): void {
