@@ -5,5 +5,6 @@ export type Resources = {
         attack: Float32Array,
         cycle: Float32Array
     },
-    rim: Float32Array
+    rim: Float32Array,
+    clap: Float32Array
 }

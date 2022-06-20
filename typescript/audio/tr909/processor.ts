@@ -99,6 +99,8 @@ registerProcessor('tr-909', class extends AudioWorkletProcessor {
                 return new BassdrumVoice(this.resources, this.preset.bassdrum, sampleRate, offset, level)
             case Instrument.Rim:
                 return new RimOrClapVoice(this.resources.rim, this.preset.rim, Channel.Rim, sampleRate, offset, level)
+            case Instrument.Clap:
+                return new RimOrClapVoice(this.resources.clap, this.preset.clap, Channel.Clap, sampleRate, offset, level)
         }
         throw new Error(`${instrument} not yet implemented.`)
     }

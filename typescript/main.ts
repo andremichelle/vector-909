@@ -4,6 +4,7 @@ import {MeterWorklet} from "./audio/meter/worklet.js"
 import {MetronomeWorklet} from "./audio/metronome/worklet.js"
 import {GUI} from "./audio/tr909/gui.js"
 import {Instrument, Step} from "./audio/tr909/patterns.js"
+import {Resources} from "./audio/tr909/resources.js"
 import {TR909Worklet} from "./audio/tr909/worklet.js"
 import {Boot, newAudioContext, preloadImagesOfCssFile} from "./lib/boot.js"
 import {ObservableValueImpl} from "./lib/common.js"
@@ -39,15 +40,17 @@ let shiftMode: boolean = false
     const bassdrumAttack = boot.registerProcess(fetchFloat32Array('./resources/bassdrum-attack.raw'))
     const bassdrumCycle = boot.registerProcess(fetchFloat32Array('./resources/bassdrum-cycle.raw'))
     const rim = boot.registerProcess(fetchFloat32Array('./resources/rim.raw'))
+    const clap = boot.registerProcess(fetchFloat32Array('./resources/clap.raw'))
     await boot.waitForCompletion()
     // --- BOOT ENDS ---
 
-    const resources = {
+    const resources: Resources = {
         bassdrum: {
             attack: bassdrumAttack.get(),
             cycle: bassdrumCycle.get()
         },
-        rim: rim.get()
+        rim: rim.get(),
+        clap: clap.get()
     }
 
     const tr909Worklet = new TR909Worklet(context, resources)
