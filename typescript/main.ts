@@ -59,14 +59,6 @@ let shiftMode: boolean = false
 
     const tr909Worklet = new TR909Worklet(context, resources)
     tr909Worklet.connect(context.destination)
-    // tr909Worklet.memory.current().setStep(Instrument.Ride, 0, Step.Accent)
-    // tr909Worklet.memory.current().setStep(Instrument.Ride, 2, Step.Active)
-    // tr909Worklet.memory.current().setStep(Instrument.Ride, 4, Step.Accent)
-    // tr909Worklet.memory.current().setStep(Instrument.Ride, 6, Step.Active)
-    // tr909Worklet.memory.current().setStep(Instrument.Ride, 8, Step.Accent)
-    // tr909Worklet.memory.current().setStep(Instrument.Ride, 10, Step.Active)
-    // tr909Worklet.memory.current().setStep(Instrument.Ride, 12, Step.Accent)
-    // tr909Worklet.memory.current().setStep(Instrument.Ride, 14, Step.Active)
 
     const transport = new Transport()
     tr909Worklet.listenToTransport(transport)

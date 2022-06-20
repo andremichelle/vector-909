@@ -23,6 +23,7 @@ export class BassdrumVoice extends Voice {
     private phase: number = 0.0
     private attackPosition: number = 0.0
     private fadeOutIndex: number = -1
+    private fading: boolean = false
 
     constructor(resources: Resources, preset: BassdrumPreset, sampleRate: number, offset: number, level: number) {
         super(Channel.Bassdrum, sampleRate, offset)
@@ -49,8 +50,10 @@ export class BassdrumVoice extends Voice {
         for (let i = this.offset; i < output.length; i++) {
             if (this.fadeOutIndex === i) {
                 this.gainCoefficient = Math.exp(-1.0 / (sampleRate * 0.005))
+                this.fading = true
                 this.fadeOutIndex = -1
-            } else if (this.time > BassdrumVoice.ReleaseStartTime) {
+            }
+            if (this.fading || this.time > BassdrumVoice.ReleaseStartTime) {
                 this.gainEnvelope *= this.gainCoefficient
             }
             const gainInterpolated = this.gainInterpolator.moveAndGet()
