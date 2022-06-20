@@ -28,6 +28,7 @@ let shiftMode: boolean = false
 
     // --- BOOT STARTS ---
     const context = newAudioContext()
+    console.debug(`sampleRate: ${context.sampleRate}`)
     const boot = new Boot()
     boot.addObserver(boot => showProgress(boot.normalizedPercentage()))
     boot.registerProcess(preloadImagesOfCssFile("./bin/main.css"))
@@ -37,6 +38,7 @@ let shiftMode: boolean = false
     boot.registerProcess(TR909Worklet.loadModule(context))
     const bassdrumAttack = boot.registerProcess(fetchFloat32Array('./resources/bassdrum-attack.raw'))
     const bassdrumCycle = boot.registerProcess(fetchFloat32Array('./resources/bassdrum-cycle.raw'))
+    const rim = boot.registerProcess(fetchFloat32Array('./resources/rim.raw'))
     await boot.waitForCompletion()
     // --- BOOT ENDS ---
 
@@ -44,7 +46,8 @@ let shiftMode: boolean = false
         bassdrum: {
             attack: bassdrumAttack.get(),
             cycle: bassdrumCycle.get()
-        }
+        },
+        rim: rim.get()
     }
 
     const tr909Worklet = new TR909Worklet(context, resources)

@@ -5,6 +5,7 @@ import {Preset} from "./preset.js"
 import {Resources} from "./resources.js"
 import {BassdrumVoice} from "./voices/bassdrum.js"
 import {Channel, Voice} from "./voices/common.js"
+import {RimOrClapVoice} from "./voices/rim-clap.js"
 
 registerProcessor('tr-909', class extends AudioWorkletProcessor {
     private readonly preset: Preset = new Preset()
@@ -51,10 +52,11 @@ registerProcessor('tr-909', class extends AudioWorkletProcessor {
             this.sequence()
         }
 
+        const master = outputs[0][0]
         let index = this.processing.length
         while (--index > -1) {
             const voice = this.processing[index]
-            if (!voice.process(outputs[voice.channel][0])) {
+            if (!voice.process(master)) {
                 voice.terminate()
                 this.processing.splice(index, 1)
                 this.channels.delete(voice.channel)
@@ -95,6 +97,8 @@ registerProcessor('tr-909', class extends AudioWorkletProcessor {
         switch (instrument) {
             case Instrument.Bassdrum:
                 return new BassdrumVoice(this.resources, this.preset.bassdrum, sampleRate, offset, level)
+            case Instrument.Rim:
+                return new RimOrClapVoice(this.resources.rim, this.preset.rim, Channel.Rim, sampleRate, offset, level)
         }
         throw new Error(`${instrument} not yet implemented.`)
     }

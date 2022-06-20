@@ -4,5 +4,6 @@ export type Resources = {
     bassdrum: {
         attack: Float32Array,
         cycle: Float32Array
-    }
+    },
+    rim: Float32Array
 }
