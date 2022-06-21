@@ -1,6 +1,7 @@
 import {Transport} from "../audio/common.js"
+import {PatternMemory, Scale} from "../audio/tr909/patterns.js"
 import {Preset} from "../audio/tr909/preset.js"
-import {Terminable, Terminator} from "../lib/common.js"
+import {Events, Terminable, TerminableVoid, Terminator} from "../lib/common.js"
 import {HTML} from "../lib/dom.js"
 import {Knob} from "./knobs.js"
 
@@ -46,6 +47,37 @@ const installKnobs = (parentNode: ParentNode, preset: Preset): Terminable => {
     return terminator
 }
 
+const installScale = (parentNode: ParentNode, memory: PatternMemory): Terminable => {
+    const terminator = new Terminator()
+    terminator.with(Events.bindEventListener(HTML.query('[data-button=scale]'), 'pointerdown', () => {
+        const scale = memory.current().scale
+        scale.set(scale.get().cycleNext())
+    }))
+    const indicator: SVGUseElement = HTML.query('[data-control=scale] [data-control=indicator]')
+    let subscription: Terminable = TerminableVoid
+    memory.patternIndex.addObserver(() => {
+        subscription.terminate()
+        subscription = memory.current().scale.addObserver(scale => {
+            switch (scale) {
+                case Scale.N6D16:
+                    indicator.y.baseVal.value = 0
+                    break
+                case Scale.N3D8:
+                    indicator.y.baseVal.value = 16
+                    break
+                case Scale.D32:
+                    indicator.y.baseVal.value = 32
+                    break
+                case Scale.D16:
+                    indicator.y.baseVal.value = 48
+                    break
+            }
+        })
+    }, true)
+    terminator.with({terminate: () => subscription.terminate()})
+    return terminator
+}
+
 const installGlobalTransportButtons = (parentNode: ParentNode, transport: Transport): void => {
     HTML.query('button[data-control=transport-start]', parentNode)
         .addEventListener('pointerdown', () => transport.restart())
@@ -59,5 +91,5 @@ const installGlobalTransportButtons = (parentNode: ParentNode, transport: Transp
 }
 
 export const GUI = {
-    installKnobs, installGlobalTransportButtons
+    installKnobs, installScale, installGlobalTransportButtons
 }

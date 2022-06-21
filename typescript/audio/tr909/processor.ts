@@ -70,7 +70,7 @@ registerProcessor('tr-909', class extends AudioWorkletProcessor {
 
     sequence(): void {
         const pattern = this.memory.current()
-        const scale = pattern.getScale()
+        const scale = pattern.scale.get()
         const b0 = this.bar
         const b1 = this.bar += this.barIncr
         let index = (b0 / scale.nominator * scale.denominator) | 0

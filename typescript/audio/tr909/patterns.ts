@@ -29,23 +29,40 @@ export enum Step {
 }
 
 export class Scale {
-    static S6D16 = new Scale(6, 16)
-    static S3D8 = new Scale(3, 8)
-    static S32 = new Scale(1, 32)
-    static S16 = new Scale(1, 16)
+    static N6D16 = new Scale(6, 16) // TODO not working yet
+    static N3D8 = new Scale(3, 8) // TODO not working yet
+    static D32 = new Scale(1, 32)
+    static D16 = new Scale(1, 16)
 
-    constructor(readonly nominator: number, readonly denominator: number) {
+    static getByIndex(index: number): Scale {
+        console.assert(index >= 0 && index < 4)
+        return Scale.Available[index]
+    }
+
+    private static Available = [Scale.N6D16, Scale.N3D8, Scale.D32, Scale.D16]
+
+    private constructor(readonly nominator: number, readonly denominator: number) {
+    }
+
+    cycleNext(): Scale {
+        return Scale.getByIndex((this.index() + 1) % Scale.Available.length)
+    }
+
+    index(): number {
+        return Scale.Available.indexOf(this)
     }
 }
 
 export interface PatternFormat {
     steps: Step[][]
+    scale: number
 }
 
 export class Pattern implements Observable<void> {
+    readonly scale: ObservableValueImpl<Scale> = new ObservableValueImpl<Scale>(Scale.D16)
+
     private readonly observable: ObservableImpl<void> = new ObservableImpl<void>()
     private readonly steps: Step[][] = ArrayUtils.fill(Instrument.count, () => ArrayUtils.fill(16, () => Step.None))
-    private readonly scale: ObservableValueImpl<Scale> = new ObservableValueImpl<Scale>(Scale.S16)
     private readonly scaleSubscription = this.scale.addObserver(() => this.observable.notify())
 
     constructor() {
@@ -66,19 +83,15 @@ export class Pattern implements Observable<void> {
         return this.steps[instrument][index]
     }
 
-    getScale(): Scale {
-        return this.scale.get()
-    }
-
     serialize(): PatternFormat {
-        return {steps: this.steps}
+        return {steps: this.steps, scale: this.scale.get().index()}
     }
 
     deserialize(format: PatternFormat): void {
         format.steps.forEach((steps: Step[], instruments: number) =>
             steps.forEach((step: Step, stepIndex: number) =>
                 this.steps[instruments][stepIndex] = step))
-        this.observable.notify()
+        this.scale.set(Scale.getByIndex(format.scale)) // will trigger notify
     }
 
     addObserver(observer: Observer<void>, notify: boolean): Terminable {
