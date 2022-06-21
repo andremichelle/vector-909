@@ -18,9 +18,8 @@ const showProgress = (() => {
     return (percentage: number) => progress.style.setProperty("--percentage", percentage.toFixed(2))
 })()
 
-const fetchFloat32Array = (path: string): Promise<Float32Array> => {
-    return fetch(path).then(x => x.arrayBuffer()).then(x => new Float32Array(x))
-}
+const fetchFloat32Array = (path: string): Promise<Float32Array> =>
+    fetch(path).then(x => x.arrayBuffer()).then(x => new Float32Array(x))
 
 let shiftMode: boolean = false
 
@@ -81,17 +80,17 @@ let shiftMode: boolean = false
         ride: RD.ride.get()
     }
 
-    const tr909Worklet = new TR909Worklet(context, resources)
-    tr909Worklet.connect(context.destination)
+    const worklet = new TR909Worklet(context, resources)
+    worklet.master.connect(context.destination)
 
     const transport = new Transport()
-    tr909Worklet.listenToTransport(transport)
+    worklet.listenToTransport(transport)
 
     const parentNode = HTML.query('div.tr-909')
-    GUI.installKnobs(parentNode, tr909Worklet.preset)
+    GUI.installKnobs(parentNode, worklet.preset)
 
     const digits: Digits = new Digits(HTML.query('svg[data-display=led-display]', parentNode))
-    tr909Worklet.preset.tempo.addObserver(bpm => digits.show(bpm), true)
+    worklet.preset.tempo.addObserver(bpm => digits.show(bpm), true)
 
     // Transport
     HTML.query('button[data-control=transport-start]', parentNode)
@@ -105,7 +104,7 @@ let shiftMode: boolean = false
     })
 
     const selectedInstruments = new ObservableValueImpl<Instrument>(Instrument.Bassdrum)
-    const pattern = tr909Worklet.memory.current()
+    const pattern = worklet.memory.current()
 
     // for (let i = 0; i < 16; i++) {
     //     pattern.setStep(Instrument.Snaredrum, i, Math.floor(Math.random() * 3))
@@ -158,14 +157,19 @@ let shiftMode: boolean = false
         }
     }
 
+    const stepMode: boolean = true
     stepButtons
         .forEach((button: Element, buttonIndex: number) => {
             button.addEventListener('pointerdown', () => {
-                if (shiftMode) {
-                    selectedInstruments.set(buttonIndexToInstrument(buttonIndex))
+                if (stepMode) {
+                    if (shiftMode) {
+                        selectedInstruments.set(buttonIndexToInstrument(buttonIndex))
+                    } else {
+                        const step: Step = pattern.getStep(selectedInstruments.get(), buttonIndex)
+                        pattern.setStep(selectedInstruments.get(), buttonIndex, (step + 1) % 3) // cycle through states
+                    }
                 } else {
-                    const step: Step = pattern.getStep(selectedInstruments.get(), buttonIndex)
-                    pattern.setStep(selectedInstruments.get(), buttonIndex, (step + 1) % 3) // cycle through states
+                    worklet.play(buttonIndexToInstrument(buttonIndex), true) // TODO accent
                 }
             })
         })

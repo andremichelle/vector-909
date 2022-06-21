@@ -43,6 +43,8 @@ registerProcessor('tr-909', class extends AudioWorkletProcessor {
                 this.moving = false
             } else if (message.type === "transport-move") {
                 this.bar = message.position
+            } else if (message.type === "play-instrument") {
+                this.play(message.instrument, 0, message.accent ? 0.0 : this.preset.accent.get())
             }
         }
     }
@@ -83,16 +85,19 @@ registerProcessor('tr-909', class extends AudioWorkletProcessor {
                         if (offset < 0 || offset >= RENDER_QUANTUM) {
                             throw new Error(`Offset is out of bounds (${offset})`)
                         }
-                        const level: number = this.preset.volume.get() + (step === Step.Accent ? 0.0 : this.preset.accent.get())
-                        const voice: Voice = this.createVoice(instrument, offset, level)
-                        this.channels.get(voice.channel)?.stop(offset)
-                        this.channels.set(voice.channel, voice)
-                        this.processing.push(voice)
+                        this.play(instrument, offset, step === Step.Accent ? 0.0 : this.preset.accent.get())
                     }
                 }
             }
             quantized = ++index * this.scale
         }
+    }
+
+    play(instrument: number, offset: number, level: number) {
+        const voice: Voice = this.createVoice(instrument, offset, level)
+        this.channels.get(voice.channel)?.stop(offset)
+        this.channels.set(voice.channel, voice)
+        this.processing.push(voice)
     }
 
     createVoice(instrument: Instrument, offset: number, level: number): Voice {
