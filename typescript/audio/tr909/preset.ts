@@ -41,7 +41,8 @@ const BassdrumTuneMapping = new Exp(0.007, 0.0294)
 const BassdrumDecayMapping = new Exp(0.012, 0.100)
 const TomDecayMapping = new Exp(0.1, 1.0)
 const SnaredrumDecayMapping = new Exp(0.04, 0.2)
-const HihatMapping = new Exp(0.02, 1.0)
+const OpenedHihatMapping = new Exp(0.03, 0.16)
+const ClosedHihatMapping = new Exp(0.008, 0.06)
 const TuneMapping = new Linear(-0.5, 0.5)
 
 export class Preset {
@@ -84,11 +85,11 @@ export class Preset {
     readonly hihatLevel = new Parameter<number>(Volume.Default, PrintMapping.DECIBEL, -6.0)
     readonly closedHihat: Readonly<HihatPreset> = {
         level: this.hihatLevel,
-        decay: new Parameter<number>(HihatMapping, PrintMapping.UnipolarPercent, HihatMapping.y(1.0))
+        decay: new Parameter<number>(ClosedHihatMapping, PrintMapping.UnipolarPercent, ClosedHihatMapping.y(1.0))
     }
     readonly openedHihat: Readonly<HihatPreset> = {
         level: this.hihatLevel,
-        decay: new Parameter<number>(HihatMapping, PrintMapping.UnipolarPercent, HihatMapping.y(1.0))
+        decay: new Parameter<number>(OpenedHihatMapping, PrintMapping.UnipolarPercent, OpenedHihatMapping.y(1.0))
     }
     readonly crash: Readonly<CrashOrRidePreset> = Object.seal({
         level: new Parameter<number>(Volume.Default, PrintMapping.DECIBEL, -6.0),
