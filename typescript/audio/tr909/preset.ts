@@ -40,7 +40,7 @@ const TempoMapping = new LinearInteger(37, 290)
 const BassdrumTuneMapping = new Exp(0.007, 0.0294)
 const BassdrumDecayMapping = new Exp(0.012, 0.100)
 const TomDecayMapping = new Exp(0.1, 1.0)
-const SnaredrumDecayMapping = new Exp(0.04, 1.0)
+const SnaredrumDecayMapping = new Exp(0.04, 0.2)
 const HihatMapping = new Exp(0.02, 1.0)
 const TuneMapping = new Linear(-0.5, 0.5)
 
@@ -57,7 +57,7 @@ export class Preset {
     readonly snaredrum: Readonly<SnaredrumPreset> = Object.seal({
         tune: new Parameter<number>(TuneMapping, PrintMapping.UnipolarPercent, TuneMapping.y(0.5)),
         level: new Parameter<number>(Volume.Default, PrintMapping.DECIBEL, -6.0),
-        tone: new Parameter<number>(SnaredrumDecayMapping, PrintMapping.UnipolarPercent, SnaredrumDecayMapping.y(0.5)),
+        tone: new Parameter<number>(SnaredrumDecayMapping, PrintMapping.UnipolarPercent, SnaredrumDecayMapping.y(1.0)),
         snappy: new Parameter<number>(Volume.Default, PrintMapping.DECIBEL, 0.0)
     })
     readonly tomLow: Readonly<TomPreset> = Object.seal({

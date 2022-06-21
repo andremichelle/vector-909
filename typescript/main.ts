@@ -157,7 +157,7 @@ let shiftMode: boolean = false
         }
     }
 
-    const stepMode: boolean = true
+    const stepMode: boolean = false
     stepButtons
         .forEach((button: Element, buttonIndex: number) => {
             button.addEventListener('pointerdown', () => {
