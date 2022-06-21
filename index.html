@@ -21,6 +21,8 @@
 <div class="debug">
     <label>Shift Mode</label>
     <output data-output="shift-mode"></output>
+    <label>Instrument Select</label>
+    <output data-output="instrument-select"></output>
     <label>Selected Instrument</label>
     <output data-output="instrument"></output>
     <label>Transporting</label>
@@ -212,7 +214,7 @@
             <button class="translucent-button"></button>
             <span>SHUFFLE<br/>/FLAM</span>
             <span>CLEAR</span>
-            <button class="translucent-button"></button>
+            <button class="translucent-button" data-button="instrument-select"></button>
             <button class="translucent-button" data-button="shift"></button>
             <span>INSTRUMENT<br/>SELECT</span>
             <span class="shift">SHIFT</span>
@@ -294,76 +296,76 @@
                 </g>
             </g>
         </svg>
-        <div class="step-button-group" data-control="steps">
+        <div class="main-button-group" data-control="main-buttons">
             <div class="two">
                 <div class="wrapper-label" data-label="1">
-                    <button class="switch" data-control="step"></button>
+                    <button class="switch" data-control="main-button"></button>
                 </div>
                 <div class="wrapper-label" data-label="2">
-                    <button class="switch" data-control="step"></button>
+                    <button class="switch" data-control="main-button"></button>
                 </div>
             </div>
             <hr/>
             <div class="two">
                 <div class="wrapper-label" data-label="3">
-                    <button class="switch" data-control="step"></button>
+                    <button class="switch" data-control="main-button"></button>
                 </div>
                 <div class="wrapper-label" data-label="4">
-                    <button class="switch" data-control="step"></button>
+                    <button class="switch" data-control="main-button"></button>
                 </div>
             </div>
             <hr/>
             <div class="two">
                 <div class="wrapper-label" data-label="5">
-                    <button class="switch" data-control="step"></button>
+                    <button class="switch" data-control="main-button"></button>
                 </div>
                 <div class="wrapper-label" data-label="6">
-                    <button class="switch" data-control="step"></button>
+                    <button class="switch" data-control="main-button"></button>
                 </div>
             </div>
             <hr/>
             <div class="two">
                 <div class="wrapper-label" data-label="7">
-                    <button class="switch" data-control="step"></button>
+                    <button class="switch" data-control="main-button"></button>
                 </div>
                 <div class="wrapper-label" data-label="8">
-                    <button class="switch" data-control="step"></button>
+                    <button class="switch" data-control="main-button"></button>
                 </div>
             </div>
             <hr/>
             <div class="two">
                 <div class="wrapper-label" data-label="9">
-                    <button class="switch" data-control="step"></button>
+                    <button class="switch" data-control="main-button"></button>
                 </div>
                 <div class="wrapper-label" data-label="10">
-                    <button class="switch" data-control="step"></button>
+                    <button class="switch" data-control="main-button"></button>
                 </div>
             </div>
             <hr/>
             <div class="two">
                 <div class="wrapper-label" data-label="11">
-                    <button class="switch" data-control="step"></button>
+                    <button class="switch" data-control="main-button"></button>
                 </div>
                 <div class="wrapper-label" data-label="12">
-                    <button class="switch" data-control="step"></button>
+                    <button class="switch" data-control="main-button"></button>
                 </div>
             </div>
             <hr/>
             <div class="two">
                 <div class="wrapper-label" data-label="13">
-                    <button class="switch" data-control="step"></button>
+                    <button class="switch" data-control="main-button"></button>
                 </div>
                 <div class="wrapper-label" data-label="14">
-                    <button class="switch" data-control="step"></button>
+                    <button class="switch" data-control="main-button"></button>
                 </div>
             </div>
             <hr/>
             <div class="two">
                 <div class="wrapper-label" data-label="15">
-                    <button class="switch" data-control="step"></button>
+                    <button class="switch" data-control="main-button"></button>
                 </div>
                 <div class="wrapper-label" data-label="16">
-                    <button class="switch" data-control="step"></button>
+                    <button class="switch" data-control="main-button"></button>
                 </div>
             </div>
         </div>
@@ -396,8 +398,8 @@
             <div class="light"><span>CRASH</span><span>RIDE</span></div>
         </div>
         <hr class="bottom-right">
-        <hr class="step-border" style="transform: translate(230px, 564px); width: 354px;">
-        <hr class="step-border" style="transform: translate(688px, 564px); width: 408px;">
+        <hr class="main-border" style="transform: translate(230px, 564px); width: 354px;">
+        <hr class="main-border" style="transform: translate(688px, 564px); width: 408px;">
         <div class="knob-control big minmax-units" data-parameter="tempo" data-label="TEMPO"
              style="transform: translate(390px, 400px)">
             <div class="knob"></div>

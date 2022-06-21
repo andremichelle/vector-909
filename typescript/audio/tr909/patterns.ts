@@ -18,7 +18,7 @@ export enum Instrument {
     Rim = 5,
     Clap = 6,
     HihatClosed = 7,
-    HihatOpen = 8,
+    HihatOpened = 8,
     Crash = 9,
     Ride = 10,
     count

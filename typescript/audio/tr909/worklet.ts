@@ -5,7 +5,7 @@ import {Instrument, PatternMemory} from "./patterns.js"
 import {Preset} from "./preset.js"
 import {Resources} from "./resources.js"
 
-export class TR909Worklet implements Terminable {
+export class TR909Machine implements Terminable {
     static loadModule(context: AudioContext): Promise<void> {
         return context.audioWorklet.addModule("bin/audio/tr909/processor.js")
     }
@@ -58,7 +58,7 @@ export class TR909Worklet implements Terminable {
         } as Message)
     }
 
-    listenToTransport(transport: Transport): Terminable {
+    watchTransport(transport: Transport): Terminable {
         return transport.addObserver(message => this.worklet.port.postMessage(message), false)
     }
 

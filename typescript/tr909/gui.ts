@@ -1,7 +1,8 @@
-import {Terminable, Terminator} from "../../lib/common.js"
-import {HTML} from "../../lib/dom.js"
-import {Knob} from "../../tr909/knobs.js"
-import {Preset} from "./preset.js"
+import {Transport} from "../audio/common.js"
+import {Preset} from "../audio/tr909/preset.js"
+import {Terminable, Terminator} from "../lib/common.js"
+import {HTML} from "../lib/dom.js"
+import {Knob} from "./knobs.js"
 
 const installKnobs = (parentNode: ParentNode, preset: Preset): Terminable => {
     const terminator = new Terminator()
@@ -45,6 +46,18 @@ const installKnobs = (parentNode: ParentNode, preset: Preset): Terminable => {
     return terminator
 }
 
+const installGlobalTransportButtons = (parentNode: ParentNode, transport: Transport): void => {
+    HTML.query('button[data-control=transport-start]', parentNode)
+        .addEventListener('pointerdown', () => transport.restart())
+    HTML.query('button[data-control=transport-stop-continue]', parentNode)
+        .addEventListener('pointerdown', () => transport.togglePlayback())
+    window.addEventListener('keydown', (event: KeyboardEvent) => {
+        if (event.code === 'Space' && !event.repeat) {
+            transport.togglePlayback()
+        }
+    })
+}
+
 export const GUI = {
-    installKnobs
+    installKnobs, installGlobalTransportButtons
 }

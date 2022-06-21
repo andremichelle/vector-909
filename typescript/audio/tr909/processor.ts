@@ -118,7 +118,7 @@ registerProcessor('tr-909', class extends AudioWorkletProcessor {
                 return new BasicTuneDecayVoice(this.resources.clap, this.preset.clap, Channel.Clap, sampleRate, offset, level)
             case Instrument.HihatClosed:
                 return new BasicTuneDecayVoice(this.resources.closedHihat, this.preset.closedHihat, Channel.Hihat, sampleRate, offset, level)
-            case Instrument.HihatOpen:
+            case Instrument.HihatOpened:
                 return new BasicTuneDecayVoice(this.resources.openedHihat, this.preset.openedHihat, Channel.Hihat, sampleRate, offset, level)
             case Instrument.Crash:
                 return new BasicTuneDecayVoice(this.resources.crash, this.preset.crash, Channel.Crash, sampleRate, offset, level)
