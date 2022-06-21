@@ -1,5 +1,5 @@
 import {ArrayUtils, Parameter, Terminable, TerminableVoid, Terminator} from "../../lib/common.js"
-import {Transport} from "../common.js"
+import {dbToGain, Transport} from "../common.js"
 import {Message} from "./messages.js"
 import {Instrument, PatternMemory} from "./patterns.js"
 import {Preset} from "./preset.js"
@@ -31,7 +31,7 @@ export class TR909Worklet implements Terminable {
             processorOptions: resources
         })
         this.worklet.connect(this.master)
-
+        this.terminator.with(this.preset.volume.addObserver(value => this.master.gain.value = dbToGain(value), true))
         this.terminator.with(this.preset.observeAll((parameter: Parameter<any>, path: string[]) => {
             this.worklet.port.postMessage({
                 type: 'update-parameter',
