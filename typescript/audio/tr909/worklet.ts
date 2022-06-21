@@ -39,7 +39,7 @@ export class TR909Machine implements Terminable {
                 unipolar: parameter.getUnipolar()
             } as Message)
         }))
-        this.terminator.with(this.memory.index.addObserver((index: number) => {
+        this.terminator.with(this.memory.patternIndex.addObserver((index: number) => {
             const pattern = this.memory.current()
             this.patternSubscription.terminate()
             this.patternSubscription = pattern.addObserver(() => this.worklet.port.postMessage({

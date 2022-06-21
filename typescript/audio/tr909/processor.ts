@@ -78,14 +78,15 @@ registerProcessor('tr-909', class extends AudioWorkletProcessor {
             if (quantized >= b0) {
                 const pattern = this.memory.current()
                 const stepIndex = index % 16
-                for (let instrument = 0; instrument < Instrument.count; instrument++) {
+                const totalAccent: boolean = pattern.getStep(Instrument.TotalAccent, stepIndex) !== Step.None
+                for (let instrument = 0; instrument < Instrument.TotalAccent; instrument++) {
                     const step: Step = pattern.getStep(instrument, stepIndex)
                     if (step !== Step.None) {
                         const offset = barsToNumFrames(quantized - b0, this.bpm, sampleRate) | 0
                         if (offset < 0 || offset >= RENDER_QUANTUM) {
                             throw new Error(`Offset is out of bounds (${offset})`)
                         }
-                        this.play(instrument, offset, step === Step.Accent ? 0.0 : this.preset.accent.get())
+                        this.play(instrument, offset, step === Step.Accent || totalAccent ? 0.0 : this.preset.accent.get())
                     }
                 }
             }

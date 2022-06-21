@@ -2,12 +2,11 @@ import {
     ArrayUtils,
     Observable,
     ObservableImpl,
+    ObservableValue,
+    ObservableValueImpl,
     Observer,
-    Parameter,
-    PrintMapping,
     Terminable
 } from "../../lib/common.js"
-import {LinearInteger} from "../../lib/mapping.js"
 
 export enum Instrument {
     Bassdrum = 0,
@@ -21,6 +20,7 @@ export enum Instrument {
     HihatOpened = 8,
     Crash = 9,
     Ride = 10,
+    TotalAccent = 11,
     count
 }
 
@@ -40,6 +40,9 @@ export class Pattern implements Observable<void> {
     }
 
     setStep(instrument: Instrument, index: number, step: Step): void {
+        if (instrument === Instrument.TotalAccent && step === Step.Active) {
+            step = Step.Accent
+        }
         if (this.steps[instrument][index] === step) {
             return
         }
@@ -77,10 +80,10 @@ export class Pattern implements Observable<void> {
 }
 
 export class PatternMemory {
-    readonly patterns: Pattern[] = ArrayUtils.fill(8, () => new Pattern())
-    readonly index: Parameter<number> = new Parameter<number>(new LinearInteger(0, 8), PrintMapping.INTEGER, 0)
+    readonly patterns: Pattern[] = ArrayUtils.fill(96, () => new Pattern())
+    readonly patternIndex: ObservableValue<number> = new ObservableValueImpl<number>(0)
 
     current(): Pattern {
-        return this.patterns[this.index.get()]
+        return this.patterns[this.patternIndex.get()]
     }
 }

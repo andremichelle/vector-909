@@ -418,6 +418,7 @@
                     <filter id="blur-digits">
                         <feGaussianBlur stdDeviation="1"/>
                     </filter>
+                    <!--suppress CssUnusedSymbol -->
                     <style>
                         path.digit, circle.digit {
                             fill: black;
@@ -485,7 +486,7 @@
             <button class="trigger bright" data-control="transport-stop-continue"></button>
         </div>
         <div class="wrapper-label cartridge" data-label="CARTRIDGE&#10/ENTER" data-below="TOTAL ACCENT">
-            <button class="switch"></button>
+            <button class="switch" data-control="main-button" data-parameter="total-accent"></button>
         </div>
         <footer></footer>
     </div>

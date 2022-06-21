@@ -52,6 +52,7 @@ let instrumentSelectMode: boolean = false
     machine.preset.tempo.addObserver(bpm => digits.show(bpm), true)
 
     const mainButtons = Array.from<HTMLButtonElement>(HTML.queryAll('[data-control=main-buttons] [data-control=main-button]', parentNode))
+    mainButtons.push(HTML.query('[data-control=main-button][data-parameter=total-accent]'))
     const mainButtonsContext = new MainButtonsContext(machine, mainButtons)
 
     const shiftButton = HTML.query('[data-button=shift]')

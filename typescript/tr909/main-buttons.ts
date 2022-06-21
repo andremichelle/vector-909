@@ -75,7 +75,7 @@ class StepMode implements MainButtonState {
 
     constructor(readonly context: MainButtonsContext) {
         const memory = this.context.machine.memory
-        this.patternIndexSubscription = memory.index.addObserver(() => {
+        this.patternIndexSubscription = memory.patternIndex.addObserver(() => {
             this.patternStepsSubscription.terminate()
             this.patternStepsSubscription = memory.current().addObserver(() => this.update(), true)
         }, true)
@@ -182,6 +182,8 @@ class Mappings {
                 return {instrument: Instrument.Crash, accent: true}
             case 15:
                 return {instrument: Instrument.Ride, accent: true}
+            case 16:
+                return {instrument: Instrument.TotalAccent, accent: true}
         }
     }
 
@@ -209,6 +211,8 @@ class Mappings {
                 return [14]
             case Instrument.Ride:
                 return [15]
+            case Instrument.TotalAccent:
+                return [16]
         }
     }
 }
