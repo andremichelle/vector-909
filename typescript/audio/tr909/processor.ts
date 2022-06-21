@@ -19,7 +19,6 @@ registerProcessor('tr-909', class extends AudioWorkletProcessor {
     private bpm: number = 120.0
     private bar: number = 0.0
     private barIncr: number
-    private scale: number = 1.0 / 16.0
 
     constructor(options: { processorOptions: Resources }) {
         super(options)
@@ -70,13 +69,14 @@ registerProcessor('tr-909', class extends AudioWorkletProcessor {
     }
 
     sequence(): void {
+        const pattern = this.memory.current()
+        const scale = pattern.getScale()
         const b0 = this.bar
         const b1 = this.bar += this.barIncr
-        let index = (b0 / this.scale) | 0
-        let quantized = index * this.scale
+        let index = (b0 / scale.nominator * scale.denominator) | 0
+        let quantized = index / scale.denominator * scale.nominator
         while (quantized < b1) {
             if (quantized >= b0) {
-                const pattern = this.memory.current()
                 const stepIndex = index % 16
                 const totalAccent: boolean = pattern.getStep(Instrument.TotalAccent, stepIndex) !== Step.None
                 for (let instrument = 0; instrument < Instrument.TotalAccent; instrument++) {
@@ -90,7 +90,7 @@ registerProcessor('tr-909', class extends AudioWorkletProcessor {
                     }
                 }
             }
-            quantized = ++index * this.scale
+            quantized = ++index / scale.denominator * scale.nominator
         }
     }
 

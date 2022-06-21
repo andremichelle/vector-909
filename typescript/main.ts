@@ -48,6 +48,8 @@ let instrumentSelectMode: boolean = false
     GUI.installKnobs(parentNode, machine.preset)
     GUI.installGlobalTransportButtons(parentNode, transport)
 
+    // TODO Scales
+
     const digits: Digits = new Digits(HTML.query('svg[data-display=led-display]', parentNode))
     machine.preset.tempo.addObserver(bpm => digits.show(bpm), true)
 

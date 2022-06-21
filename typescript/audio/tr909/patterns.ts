@@ -28,13 +28,25 @@ export enum Step {
     None = 0, Active = 1, Accent = 2
 }
 
+export class Scale {
+    static S6D16 = new Scale(6, 16)
+    static S3D8 = new Scale(3, 8)
+    static S32 = new Scale(1, 32)
+    static S16 = new Scale(1, 16)
+
+    constructor(readonly nominator: number, readonly denominator: number) {
+    }
+}
+
 export interface PatternFormat {
     steps: Step[][]
 }
 
 export class Pattern implements Observable<void> {
-    private readonly steps: Step[][] = ArrayUtils.fill(Instrument.count, () => ArrayUtils.fill(16, () => Step.None))
     private readonly observable: ObservableImpl<void> = new ObservableImpl<void>()
+    private readonly steps: Step[][] = ArrayUtils.fill(Instrument.count, () => ArrayUtils.fill(16, () => Step.None))
+    private readonly scale: ObservableValueImpl<Scale> = new ObservableValueImpl<Scale>(Scale.S16)
+    private readonly scaleSubscription = this.scale.addObserver(() => this.observable.notify())
 
     constructor() {
     }
@@ -52,6 +64,10 @@ export class Pattern implements Observable<void> {
 
     getStep(instrument: Instrument, index: number): Step {
         return this.steps[instrument][index]
+    }
+
+    getScale(): Scale {
+        return this.scale.get()
     }
 
     serialize(): PatternFormat {
@@ -76,6 +92,7 @@ export class Pattern implements Observable<void> {
 
     terminate(): void {
         this.observable.terminate()
+        this.scaleSubscription.terminate()
     }
 }
 

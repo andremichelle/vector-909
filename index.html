@@ -219,7 +219,7 @@
             <span>INSTRUMENT<br/>SELECT</span>
             <span class="shift">SHIFT</span>
         </div>
-        <svg class="scales" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 920 80">
+        <svg class="scales" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 920 80" data-control="scale">
             <defs>
                 <filter id="blur-led">
                     <feGaussianBlur stdDeviation="1"/>
@@ -245,6 +245,11 @@
                     <use xlink:href="#note-8" x="89" y="0" width="11" height="14"/>
                     <use xlink:href="#note-8" x="146" y="0" width="11" height="14"/>
                     <path d="M18 6.5L26 1.5H164L172 6.5" stroke="#d9d5d0" fill="none"/>
+                </symbol>
+                <symbol id="led-on">
+                    <circle cx="8" cy="6" r="4" fill="#ee3b2e"/>
+                    <circle cx="8" cy="8" r="0.75" fill="#f8aaa4"/>
+                    <circle cx="8" cy="4" r="0.75" fill="white"/>
                 </symbol>
             </defs>
             <g>
@@ -289,11 +294,7 @@
                 <circle cx="8" cy="22" r="4" fill="#1c0809"/>
                 <circle cx="8" cy="38" r="4" fill="#1c0809"/>
                 <circle cx="8" cy="54" r="4" fill="#1c0809"/>
-                <g filter="url(#blur-led)">
-                    <circle cx="8" cy="6" r="4" fill="#ee3b2e"/>
-                    <circle cx="8" cy="8" r="0.75" fill="#f8aaa4"/>
-                    <circle cx="8" cy="4" r="0.75" fill="white"/>
-                </g>
+                <use xlink:href="#led-on" x="0" y="48" filter="url(#blur-led)" data-control="indicator"/>
             </g>
         </svg>
         <div class="main-button-group" data-control="main-buttons">
