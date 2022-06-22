@@ -158,7 +158,7 @@ export class PatternMemory {
     readonly patternIndex: ObservableValue<number> = new ObservableValueImpl<number>(0)
 
     constructor() {
-        this.patterns[0].test()
+        // this.patterns[0].test()
     }
 
     current(): Pattern {

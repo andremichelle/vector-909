@@ -13,12 +13,12 @@ export class SnaredrumVoice extends Voice {
 
     private tonePosition: number = 0.0
     private noisePosition: number = 0.0
-    private fadeOutIndex: number = -1
+    private fadeOutDelay: number = -1
     private noiseGain: number
     private noiseGainCoefficient: number
 
-    constructor(resources: Resources, preset: SnaredrumPreset, sampleRate: number, offset: number, level: number) {
-        super(Channel.Snaredrum, sampleRate, offset)
+    constructor(resources: Resources, preset: SnaredrumPreset, sampleRate: number, delay: number, level: number) {
+        super(Channel.Snaredrum, sampleRate, delay)
 
         this.tune = resources.snaredrum.tone
         this.noise = resources.snaredrum.noise
@@ -33,16 +33,16 @@ export class SnaredrumVoice extends Voice {
         this.initPhase = false
     }
 
-    stop(offset: number): void {
-        this.fadeOutIndex = offset
+    stop(delay: number): void {
+        this.fadeOutDelay = delay
         this.terminate()
     }
 
     process(output: Float32Array): isRunning {
         let pi: number
-        for (let i = this.offset; i < output.length; i++) {
-            if (this.fadeOutIndex === i) {
-                this.fadeOutIndex = -1
+        for (let i = this.delay; i < output.length; i++) {
+            if (this.fadeOutDelay === i) {
+                this.fadeOutDelay = -1
                 this.gainInterpolator.set(0.0, true)
             }
             const gain = this.gainInterpolator.moveAndGet()
@@ -62,7 +62,7 @@ export class SnaredrumVoice extends Voice {
                 return false
             }
         }
-        this.offset = 0
+        this.delay = 0
         return !(this.gainInterpolator.equals(0.0) || this.noiseGain < SilentGain)
     }
 }

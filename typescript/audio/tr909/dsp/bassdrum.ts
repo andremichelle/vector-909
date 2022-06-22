@@ -22,11 +22,10 @@ export class BassdrumVoice extends Voice {
     private time: number = 0.0
     private phase: number = 0.0
     private attackPosition: number = 0.0
-    private fadeOutIndex: number = -1
-    private fading: boolean = false
+    private fadeOutDelay: number = -1
 
-    constructor(resources: Resources, preset: BassdrumPreset, sampleRate: number, offset: number, level: number) {
-        super(Channel.Bassdrum, sampleRate, offset)
+    constructor(resources: Resources, preset: BassdrumPreset, sampleRate: number, delay: number, level: number) {
+        super(Channel.Bassdrum, sampleRate, delay)
 
         this.cycle = resources.bassdrum.cycle
         this.attack = resources.bassdrum.attack
@@ -42,28 +41,26 @@ export class BassdrumVoice extends Voice {
         this.attackRate = ResourceSampleRate / sampleRate
     }
 
-    stop(offset: number): void {
-        this.fadeOutIndex = offset
+    stop(delay: number): void {
+        this.fadeOutDelay = delay
         this.terminate()
     }
 
     process(output: Float32Array): isRunning {
-        for (let i = this.offset; i < output.length; i++) {
-            if (this.fadeOutIndex === i) {
-                this.gainCoefficient = Math.exp(-1.0 / (sampleRate * 0.005))
-                this.fading = true
-                this.fadeOutIndex = -1
+        for (let i = this.delay; i < output.length; i++) {
+            if (this.fadeOutDelay === i) {
+                this.gainInterpolator.set(0.0, true)
+                this.fadeOutDelay = -1
             }
-            if (this.fading || this.time > BassdrumVoice.ReleaseStartTime) {
+            if (this.time > BassdrumVoice.ReleaseStartTime) {
                 this.gainEnvelope *= this.gainCoefficient
             }
-            const gainInterpolated = this.gainInterpolator.moveAndGet()
             const pos = this.phase * this.cycle.length
             const posInt = Math.floor(pos)
             const alpha = pos - posInt
             const p0 = this.cycle[posInt % this.cycle.length]
             const value = p0 + alpha * (this.cycle[(posInt + 1) % this.cycle.length] - p0)
-            output[i] += value * this.gainEnvelope * gainInterpolated
+            output[i] += value * this.gainEnvelope * this.gainInterpolator.moveAndGet()
             if (this.attackPosition < this.attack.length - 1) {
                 const pi = this.attackPosition | 0
                 const p0 = this.attack[pi]
@@ -75,8 +72,8 @@ export class BassdrumVoice extends Voice {
             this.phase -= Math.floor(this.phase)
             this.freqEnvelope = BassdrumVoice.FreqEnd + this.freqCoefficient * (this.freqEnvelope - BassdrumVoice.FreqEnd)
         }
-        this.offset = 0
+        this.delay = 0
         this.processed = true
-        return this.gainEnvelope > SilentGain
+        return this.gainEnvelope > SilentGain && !this.gainInterpolator.equals(0.0)
     }
 }

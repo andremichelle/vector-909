@@ -86,11 +86,11 @@ registerProcessor('tr-909', class extends AudioWorkletProcessor {
                 for (let instrument = 0; instrument < Instrument.TotalAccent; instrument++) {
                     const step: Step = pattern.getStep(instrument, stepIndex)
                     if (step !== Step.None) {
-                        const offset = barsToNumFrames(position - b0, this.bpm, sampleRate) | 0
-                        if (offset < 0 || offset >= RENDER_QUANTUM) {
-                            throw new Error(`Offset is out of bounds (${offset})`)
+                        const delay = barsToNumFrames(position - b0, this.bpm, sampleRate) | 0
+                        if (delay < 0 || delay >= RENDER_QUANTUM) {
+                            throw new Error(`Offset is out of bounds (${delay})`)
                         }
-                        this.play(instrument, offset, step === Step.Accent || totalAccent ? 0.0 : this.preset.accent.get())
+                        this.play(instrument, delay, step === Step.Accent || totalAccent ? 0.0 : this.preset.accent.get())
                     }
                 }
             }
@@ -98,37 +98,37 @@ registerProcessor('tr-909', class extends AudioWorkletProcessor {
         }
     }
 
-    play(instrument: number, offset: number, level: number) {
-        const voice: Voice = this.createVoice(instrument, offset, level)
-        this.channels.get(voice.channel)?.stop(offset)
+    play(instrument: number, delay: number, level: number) {
+        const voice: Voice = this.createVoice(instrument, delay, level)
+        this.channels.get(voice.channel)?.stop(delay)
         this.channels.set(voice.channel, voice)
         this.processing.push(voice)
     }
 
-    createVoice(instrument: Instrument, offset: number, level: number): Voice {
+    createVoice(instrument: Instrument, delay: number, level: number): Voice {
         switch (instrument) {
             case Instrument.Bassdrum:
-                return new BassdrumVoice(this.resources, this.preset.bassdrum, sampleRate, offset, level)
+                return new BassdrumVoice(this.resources, this.preset.bassdrum, sampleRate, delay, level)
             case Instrument.Snaredrum:
-                return new SnaredrumVoice(this.resources, this.preset.snaredrum, sampleRate, offset, level)
+                return new SnaredrumVoice(this.resources, this.preset.snaredrum, sampleRate, delay, level)
             case Instrument.TomLow:
-                return new BasicTuneDecayVoice(this.resources.tomLow, this.preset.tomLow, Channel.TomLow, sampleRate, offset, level)
+                return new BasicTuneDecayVoice(this.resources.tomLow, this.preset.tomLow, Channel.TomLow, sampleRate, delay, level)
             case Instrument.TomMid:
-                return new BasicTuneDecayVoice(this.resources.tomMid, this.preset.tomMid, Channel.TomMid, sampleRate, offset, level)
+                return new BasicTuneDecayVoice(this.resources.tomMid, this.preset.tomMid, Channel.TomMid, sampleRate, delay, level)
             case Instrument.TomHi:
-                return new BasicTuneDecayVoice(this.resources.tomHi, this.preset.tomHi, Channel.TomHi, sampleRate, offset, level)
+                return new BasicTuneDecayVoice(this.resources.tomHi, this.preset.tomHi, Channel.TomHi, sampleRate, delay, level)
             case Instrument.Rim:
-                return new BasicTuneDecayVoice(this.resources.rim, this.preset.rim, Channel.Rim, sampleRate, offset, level)
+                return new BasicTuneDecayVoice(this.resources.rim, this.preset.rim, Channel.Rim, sampleRate, delay, level)
             case Instrument.Clap:
-                return new BasicTuneDecayVoice(this.resources.clap, this.preset.clap, Channel.Clap, sampleRate, offset, level)
+                return new BasicTuneDecayVoice(this.resources.clap, this.preset.clap, Channel.Clap, sampleRate, delay, level)
             case Instrument.HihatClosed:
-                return new BasicTuneDecayVoice(this.resources.closedHihat, this.preset.closedHihat, Channel.Hihat, sampleRate, offset, level)
+                return new BasicTuneDecayVoice(this.resources.closedHihat, this.preset.closedHihat, Channel.Hihat, sampleRate, delay, level)
             case Instrument.HihatOpened:
-                return new BasicTuneDecayVoice(this.resources.openedHihat, this.preset.openedHihat, Channel.Hihat, sampleRate, offset, level)
+                return new BasicTuneDecayVoice(this.resources.openedHihat, this.preset.openedHihat, Channel.Hihat, sampleRate, delay, level)
             case Instrument.Crash:
-                return new BasicTuneDecayVoice(this.resources.crash, this.preset.crash, Channel.Crash, sampleRate, offset, level)
+                return new BasicTuneDecayVoice(this.resources.crash, this.preset.crash, Channel.Crash, sampleRate, delay, level)
             case Instrument.Ride:
-                return new BasicTuneDecayVoice(this.resources.ride, this.preset.ride, Channel.Ride, sampleRate, offset, level)
+                return new BasicTuneDecayVoice(this.resources.ride, this.preset.ride, Channel.Ride, sampleRate, delay, level)
         }
         throw new Error(`${instrument} not found.`)
     }

@@ -8,7 +8,7 @@ export class BasicTuneDecayVoice extends Voice {
     private readonly gainInterpolator: Interpolator
 
     private position: number
-    private fadeOutIndex: number = -1
+    private fadeOutDelay: number = -1
     private gain: number
     private gainCoefficient: number
 
@@ -16,9 +16,9 @@ export class BasicTuneDecayVoice extends Voice {
                 preset: TomPreset | RimOrClapPreset | HihatPreset | CrashOrRidePreset,
                 channel: Channel,
                 sampleRate: number,
-                offset: number,
+                delay: number,
                 level: number) {
-        super(channel, sampleRate, offset)
+        super(channel, sampleRate, delay)
 
         this.gainInterpolator = new Interpolator(sampleRate)
         this.terminator.with(preset.level.addObserver(value =>
@@ -36,19 +36,19 @@ export class BasicTuneDecayVoice extends Voice {
         }
     }
 
-    stop(offset: number): void {
-        this.fadeOutIndex = offset
+    stop(delay: number): void {
+        this.fadeOutDelay = delay
         this.terminate()
     }
 
     process(output: Float32Array): isRunning {
-        for (let i = this.offset; i < output.length; i++) {
+        for (let i = this.delay; i < output.length; i++) {
             const pi = this.position | 0
             if (pi >= this.array.length - 1) {
                 return false
             }
-            if (this.fadeOutIndex === i) {
-                this.fadeOutIndex = -1
+            if (this.fadeOutDelay === i) {
+                this.fadeOutDelay = -1
                 this.gainInterpolator.set(0.0, true)
             }
             const p0 = this.array[pi]
@@ -56,7 +56,7 @@ export class BasicTuneDecayVoice extends Voice {
             this.gain *= this.gainCoefficient
             this.position += this.rate
         }
-        this.offset = 0
+        this.delay = 0
         return !this.gainInterpolator.equals(0.0)
     }
 }

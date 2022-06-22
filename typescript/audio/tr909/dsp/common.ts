@@ -14,10 +14,10 @@ export abstract class Voice implements Terminable {
 
     protected readonly sampleRateInv: number = 1.0 / this.sampleRate
 
-    protected constructor(readonly channel: Channel, readonly sampleRate: number, protected offset: number) {
+    protected constructor(readonly channel: Channel, readonly sampleRate: number, public delay: number) {
     }
 
-    abstract stop(offset: number): void
+    abstract stop(delay: number): void
 
     abstract process(output: Float32Array): isRunning
 
