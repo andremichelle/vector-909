@@ -85,11 +85,11 @@ export class Preset {
     readonly hihatLevel = new Parameter<number>(Volume.Default, PrintMapping.DECIBEL, -6.0)
     readonly closedHihat: Readonly<HihatPreset> = {
         level: this.hihatLevel,
-        decay: new Parameter<number>(ClosedHihatMapping, PrintMapping.UnipolarPercent, ClosedHihatMapping.y(1.0))
+        decay: new Parameter<number>(ClosedHihatMapping, PrintMapping.UnipolarPercent, ClosedHihatMapping.y(0.0))
     }
     readonly openedHihat: Readonly<HihatPreset> = {
         level: this.hihatLevel,
-        decay: new Parameter<number>(OpenedHihatMapping, PrintMapping.UnipolarPercent, OpenedHihatMapping.y(1.0))
+        decay: new Parameter<number>(OpenedHihatMapping, PrintMapping.UnipolarPercent, OpenedHihatMapping.y(0.5))
     }
     readonly crash: Readonly<CrashOrRidePreset> = Object.seal({
         level: new Parameter<number>(Volume.Default, PrintMapping.DECIBEL, -6.0),

@@ -57,12 +57,6 @@ const showProgress = (() => {
     }
     requestAnimationFrame(run)
 
-    // test
-    /*document.querySelectorAll('button.translucent-button')
-        .forEach((button: Element) =>
-            button.addEventListener('pointerdown', () =>
-                button.classList.toggle('active')))*/
-
     // prevent dragging entire document on mobile
     document.addEventListener('touchmove', (event: TouchEvent) => event.preventDefault(), {passive: false})
     document.addEventListener('dblclick', (event: Event) => event.preventDefault(), {passive: false})

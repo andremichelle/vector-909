@@ -13,7 +13,10 @@ export class MainButtonsContext {
                 readonly buttons: HTMLButtonElement[]) {
         this.buttons.forEach((button: HTMLButtonElement, index: number) => {
             button.setAttribute('data-index', `${index}`)
-            button.addEventListener('pointerdown', (event: PointerEvent) => this.state.onButtonPress(event, index))
+            button.addEventListener('pointerdown', (event: PointerEvent) => {
+                button.setPointerCapture(event.pointerId)
+                this.state.onButtonPress(event, index)
+            })
             button.addEventListener('pointerup', (event: PointerEvent) => this.state.onButtonUp(event, index))
         })
     }

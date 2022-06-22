@@ -83,13 +83,21 @@ export class Pattern implements Observable<void> {
     }, false)
 
     constructor() {
+    }
+
+    test() {
         for (let i = 0; i < 16; i++) {
             if ((i + 2) % 4 !== 0) {
                 this.setStep(Instrument.HihatClosed, i, Step.Accent)
             } else {
                 this.setStep(Instrument.HihatOpened, i, Step.Accent)
             }
+            if (i % 4 === 0) {
+                this.setStep(Instrument.Bassdrum, i, Step.Accent)
+            }
         }
+        this.setStep(Instrument.Clap, 4, Step.Accent)
+        this.setStep(Instrument.Clap, 12, Step.Accent)
     }
 
     setStep(instrument: Instrument, index: number, step: Step): void {
@@ -148,6 +156,10 @@ export class Pattern implements Observable<void> {
 export class PatternMemory {
     readonly patterns: Pattern[] = ArrayUtils.fill(96, () => new Pattern())
     readonly patternIndex: ObservableValue<number> = new ObservableValueImpl<number>(0)
+
+    constructor() {
+        this.patterns[0].test()
+    }
 
     current(): Pattern {
         return this.patterns[this.patternIndex.get()]

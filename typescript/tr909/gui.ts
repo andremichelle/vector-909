@@ -144,7 +144,10 @@ export class GUI {
             [Mode.SelectInstrument, HTML.query('[data-button=instrument-select]')]
         ])
         const configButton = (mode: Mode, button: HTMLButtonElement): void => {
-            button.addEventListener('pointerdown', () => this.currentMode.set(mode))
+            button.addEventListener('pointerdown', (event: PointerEvent) => {
+                button.setPointerCapture(event.pointerId)
+                this.currentMode.set(mode)
+            })
             button.addEventListener('pointerup', () => this.currentMode.set(Mode.Steps))
         }
         for (const entry of buttons) {
