@@ -8,6 +8,24 @@ import {Instrument, Pattern, PatternMemory, Step} from "./patterns.js"
 import {Preset} from "./preset.js"
 import {Resources} from "./resources.js"
 
+// Normal run
+// X-----|
+//       X--------->
+// Flame cancel
+// X--|
+//       X---------> delete completely
+//    X------>
+
+class Automation {
+    play(time: number): void {
+
+    }
+
+    stop(time: number): void {
+
+    }
+}
+
 registerProcessor('tr-909', class extends AudioWorkletProcessor {
     private readonly preset: Preset = new Preset()
     private readonly memory: PatternMemory = new PatternMemory()
@@ -18,17 +36,13 @@ registerProcessor('tr-909', class extends AudioWorkletProcessor {
     private moving: boolean = false
     private bpm: number = 120.0
     private bar: number = 0.0
-    private barIncr: number
 
     constructor(options: { processorOptions: Resources }) {
         super(options)
 
         this.resources = options.processorOptions
 
-        this.preset.tempo.addObserver(value => {
-            this.bpm = value
-            this.barIncr = numFramesToBars(RENDER_QUANTUM, this.bpm, sampleRate)
-        }, true)
+        this.preset.tempo.addObserver((bpm: number) => this.bpm = bpm, true)
 
         this.port.onmessage = (event: MessageEvent) => {
             const message: Message | TransportMessage = event.data
@@ -73,7 +87,7 @@ registerProcessor('tr-909', class extends AudioWorkletProcessor {
         const groove = pattern.groove.get()
         const scale = pattern.scale.get().value()
         const b0 = this.bar
-        const b1 = this.bar += this.barIncr
+        const b1 = this.bar += numFramesToBars(RENDER_QUANTUM, this.bpm, sampleRate)
         const t0 = groove.inverse(b0)
         const t1 = groove.inverse(b1)
         let index = (t0 / scale) | 0

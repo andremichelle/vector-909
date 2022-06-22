@@ -5,6 +5,7 @@ import {MetronomeWorklet} from "./audio/metronome/worklet.js"
 import {loadResources} from "./audio/tr909/resources.js"
 import {TR909Machine} from "./audio/tr909/worklet.js"
 import {Boot, newAudioContext, preloadImagesOfCssFile} from "./lib/boot.js"
+import {Waiting} from "./lib/common.js"
 import {HTML} from "./lib/dom.js"
 import {Digits} from "./tr909/digits.js"
 import {GUI, Mode} from "./tr909/gui.js"
@@ -52,7 +53,7 @@ const showProgress = (() => {
     const debugTransporting = HTML.query('[data-output=transporting]')
     const run = () => {
         debugMode.textContent = Mode[gui.currentMode.get()]
-        debugTransporting.textContent = transport.isMoving() ? 'Moving' : 'Paused'
+        debugTransporting.textContent = transport.isMoving() ? 'Playing' : 'Paused'
         requestAnimationFrame(run)
     }
     requestAnimationFrame(run)
@@ -77,9 +78,8 @@ const showProgress = (() => {
     }
     window.addEventListener("resize", resize)
     resize()
-    requestAnimationFrame(() => {
-        document.querySelectorAll("body svg.preloader").forEach(element => element.remove())
-        document.querySelectorAll("body main").forEach(element => element.classList.remove("invisible"))
-    })
+    await Waiting.forFrame()
+    document.querySelectorAll("body svg.preloader").forEach(element => element.remove())
+    document.querySelectorAll("body main").forEach(element => element.classList.remove("invisible"))
     console.debug("boot complete.")
 })()

@@ -99,7 +99,20 @@ export interface Observable<VALUE> extends Terminable {
 export class ObservableImpl<T> implements Observable<T> {
     private readonly observers: Observer<T>[] = []
 
-    notify(value: T) {
+    private muted: boolean = false
+
+    mute(): void {
+        this.muted = true
+    }
+
+    unmute(): void {
+        this.muted = false
+    }
+
+    notify(value: T): void {
+        if (this.muted) {
+            return
+        }
         this.observers.forEach(observer => observer(value))
     }
 

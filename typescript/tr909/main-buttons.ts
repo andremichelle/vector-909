@@ -127,7 +127,7 @@ class StepMode implements MainButtonState {
 }
 
 class ShuffleFlamState implements MainButtonState {
-    private static Exponents: number[] = ArrayUtils.fill(7, index => 1.0 + index * 0.2)
+    private static GrooveExp: number[] = ArrayUtils.fill(7, index => 1.0 + index * 0.2)
 
     private patternShuffleSubscription: Terminable = TerminableVoid
     private patternIndexSubscription: Terminable = TerminableVoid
@@ -147,7 +147,7 @@ class ShuffleFlamState implements MainButtonState {
         } else {
             const grooveFunction = new GrooveFunction()
             const powInjective = new PowInjective()
-            powInjective.exponent.set(ShuffleFlamState.Exponents[index])
+            powInjective.exponent.set(ShuffleFlamState.GrooveExp[index])
             grooveFunction.injective.set(powInjective)
             groove.set(grooveFunction)
         }
@@ -169,7 +169,7 @@ class ShuffleFlamState implements MainButtonState {
         } else if (groove instanceof GrooveFunction) {
             const injective = groove.injective.get()
             if (injective instanceof PowInjective) {
-                const index = ShuffleFlamState.Exponents.indexOf(injective.exponent.get())
+                const index = ShuffleFlamState.GrooveExp.indexOf(injective.exponent.get())
                 if (index >= 0 && index < 7) {
                     this.context.getByIndex(index).classList.add('active')
                 }

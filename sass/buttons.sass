@@ -67,6 +67,12 @@ button.switch, button.trigger
     transition: all 20ms linear
     box-shadow: 0 0 0.5px 1px rgba(black, 0.2) inset, 0 1px 0.5px 0 rgba(white, 0.4)
 
+@keyframes blink
+  0%
+    visibility: hidden
+  50%
+    visibility: visible
+
 button.translucent-button
   margin: 0
   padding: 0
@@ -77,14 +83,30 @@ button.translucent-button
   height: 20px
   display: flex
   border-radius: 1px
+  background-color: #444
+  background-position: 0 0
   background-repeat: no-repeat
   background-image: url('../svg/translucent-button-normal.svg')
   box-shadow: 0 0 1px 1px rgba(black, 0.6) inset, 0 0.5px 2px 0 rgba(white, 0.8), 0 0 1px 1px rgba(white, 0.4) inset
   color: lighten(#ee3b2e, 10)
   pointer-events: all
 
+  // workaround to prevent flickr when changing background-image
+  &:after
+    content: ''
+    top: 0
+    left: 0
+    width: 20px
+    height: 20px
+    position: absolute
+    visibility: hidden
+    background-image: url('../svg/translucent-button-active.svg')
+
   &:active
     filter: brightness(98%)
 
-  &.active
-    background-image: url('../svg/translucent-button-active.svg')
+  &.blink:after
+    animation: blink 1s infinite steps(1, end)
+
+  &.active:after
+    visibility: visible

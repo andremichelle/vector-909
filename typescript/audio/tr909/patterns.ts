@@ -125,14 +125,15 @@ export class Pattern implements Observable<void> {
     }
 
     deserialize(format: PatternFormat): void {
+        this.observable.mute()
         format.steps.forEach((steps: Step[], instruments: number) =>
             steps.forEach((step: Step, stepIndex: number) =>
                 this.steps[instruments][stepIndex] = step))
-
-        // FIXME Both will trigger an update, hence sending update to worklet
         this.lastStep.set(format.lastStep)
         this.scale.set(Scale.getByIndex(format.scale))
         this.groove.set(Grooves.deserialize(format.groove))
+        this.observable.unmute()
+        this.observable.notify()
     }
 
     addObserver(observer: Observer<void>, notify: boolean): Terminable {
@@ -158,7 +159,7 @@ export class PatternMemory {
     readonly patternIndex: ObservableValue<number> = new ObservableValueImpl<number>(0)
 
     constructor() {
-        // this.patterns[0].test()
+        this.patterns[0].test()
     }
 
     current(): Pattern {

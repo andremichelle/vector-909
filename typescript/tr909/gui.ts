@@ -113,25 +113,23 @@ export class GUI {
             scale.set(scale.get().cycleNext())
         }))
         const indicator: SVGUseElement = HTML.query('[data-control=scale] [data-control=indicator]')
+        const scaleToY = scale => {
+            switch (scale) {
+                case Scale.N6D16:
+                    return 0
+                case Scale.N3D8:
+                    return 16
+                case Scale.D32:
+                    return 32
+                case Scale.D16:
+                    return 48
+            }
+        }
         let subscription: Terminable = TerminableVoid
         memory.patternIndex.addObserver(() => {
             subscription.terminate()
-            subscription = memory.current().scale.addObserver(scale => {
-                switch (scale) {
-                    case Scale.N6D16:
-                        indicator.y.baseVal.value = 0
-                        break
-                    case Scale.N3D8:
-                        indicator.y.baseVal.value = 16
-                        break
-                    case Scale.D32:
-                        indicator.y.baseVal.value = 32
-                        break
-                    case Scale.D16:
-                        indicator.y.baseVal.value = 48
-                        break
-                }
-            }, true)
+            subscription = memory.current().scale
+                .addObserver(scale => indicator.y.baseVal.value = scaleToY(scale), true)
         }, true)
         this.terminator.with({terminate: () => subscription.terminate()})
     }
