@@ -86,7 +86,7 @@ registerProcessor('tr-909', class extends AudioWorkletProcessor {
                 for (let instrument = 0; instrument < Instrument.TotalAccent; instrument++) {
                     const step: Step = pattern.getStep(instrument, stepIndex)
                     if (step !== Step.None) {
-                        const delay = barsToNumFrames(position - b0, this.bpm, sampleRate) | 0
+                        const delay = Math.floor(barsToNumFrames(position - b0, this.bpm, sampleRate))
                         if (delay < 0 || delay >= RENDER_QUANTUM) {
                             throw new Error(`Offset is out of bounds (${delay})`)
                         }
