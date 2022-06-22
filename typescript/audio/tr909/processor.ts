@@ -70,19 +70,23 @@ registerProcessor('tr-909', class extends AudioWorkletProcessor {
 
     sequence(): void {
         const pattern: Pattern = this.memory.current()
+        const groove = pattern.groove.get()
         const scale = pattern.scale.get().value()
         const b0 = this.bar
         const b1 = this.bar += this.barIncr
-        let index = (b0 / scale) | 0
-        let quantized = index * scale
-        while (quantized < b1) {
-            if (quantized >= b0) {
+        const t0 = groove.inverse(b0)
+        const t1 = groove.inverse(b1)
+        let index = (t0 / scale) | 0
+        let search = index * scale
+        while (search < t1) {
+            if (search >= t0) {
+                const position = groove.transform(search)
                 const stepIndex = index % pattern.lastStep.get()
                 const totalAccent: boolean = pattern.getStep(Instrument.TotalAccent, stepIndex) !== Step.None
                 for (let instrument = 0; instrument < Instrument.TotalAccent; instrument++) {
                     const step: Step = pattern.getStep(instrument, stepIndex)
                     if (step !== Step.None) {
-                        const offset = barsToNumFrames(quantized - b0, this.bpm, sampleRate) | 0
+                        const offset = barsToNumFrames(position - b0, this.bpm, sampleRate) | 0
                         if (offset < 0 || offset >= RENDER_QUANTUM) {
                             throw new Error(`Offset is out of bounds (${offset})`)
                         }
@@ -90,7 +94,7 @@ registerProcessor('tr-909', class extends AudioWorkletProcessor {
                     }
                 }
             }
-            quantized = ++index * scale
+            search = ++index * scale
         }
     }
 

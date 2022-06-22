@@ -85,18 +85,14 @@ let instrumentSelectMode: boolean = false
             mainButtonsContext.switchToStepMode()
         }
     }
-    window.addEventListener('keydown', event => {
-        event.preventDefault()
+    const listener = (event: KeyboardEvent) => {
         setShiftMode(event.shiftKey)
-        setInstrumentSelectMode(event.altKey)
-        setLastStepMode(event.metaKey)
-    }, {capture: true})
-    window.addEventListener('keyup', event => {
-        event.preventDefault()
-        setShiftMode(event.shiftKey)
-        setInstrumentSelectMode(event.altKey)
-        setLastStepMode(event.metaKey)
-    }, {capture: true})
+        const keyDown = event.type === 'keydown'
+        setInstrumentSelectMode(event.code === 'KeyI' && keyDown)
+        setLastStepMode(event.code === 'KeyL' && keyDown)
+    }
+    window.addEventListener('keydown', listener, {capture: true})
+    window.addEventListener('keyup', listener, {capture: true})
 
     // debugging
     const debugTransporting = HTML.query('[data-output=transporting]')

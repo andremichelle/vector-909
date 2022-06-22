@@ -7,6 +7,7 @@ import {
     Observer,
     Terminable
 } from "../../lib/common.js"
+import {Groove, GrooveFormat, GrooveFunction} from "../grooves.js"
 
 export enum Instrument {
     Bassdrum = 0,
@@ -61,18 +62,23 @@ export interface PatternFormat {
     steps: Step[][]
     scale: number
     lastStep: number
+    groove: GrooveFormat
 }
 
 export class Pattern implements Observable<void> {
-    readonly scale: ObservableValueImpl<Scale> = new ObservableValueImpl<Scale>(Scale.D16)
-    readonly lastStep: ObservableValueImpl<number> = new ObservableValueImpl<number>(16)
+    readonly scale: ObservableValue<Scale> = new ObservableValueImpl<Scale>(Scale.D16)
+    readonly lastStep: ObservableValue<number> = new ObservableValueImpl<number>(16)
+    readonly groove: ObservableValue<Groove> = new ObservableValueImpl<Groove>(new GrooveFunction())
 
     private readonly observable: ObservableImpl<void> = new ObservableImpl<void>()
     private readonly steps: Step[][] = ArrayUtils.fill(Instrument.count, () => ArrayUtils.fill(16, () => Step.None))
-    private readonly scaleSubscription = this.scale.addObserver(() => this.observable.notify())
-    private readonly lastStepSubscription = this.lastStep.addObserver(() => this.observable.notify())
+    private readonly scaleSubscription = this.scale.addObserver(() => this.observable.notify(), false)
+    private readonly lastStepSubscription = this.lastStep.addObserver(() => this.observable.notify(), false)
 
     constructor() {
+        for (let i = 0; i < 16; i++) {
+            this.setStep(Instrument.HihatClosed, i, Step.Accent)
+        }
     }
 
     setStep(instrument: Instrument, index: number, step: Step): void {
@@ -91,7 +97,12 @@ export class Pattern implements Observable<void> {
     }
 
     serialize(): PatternFormat {
-        return {steps: this.steps, scale: this.scale.get().index(), lastStep: this.lastStep.get()}
+        return {
+            steps: this.steps,
+            scale: this.scale.get().index(),
+            lastStep: this.lastStep.get(),
+            groove: this.groove.get().serialize()
+        }
     }
 
     deserialize(format: PatternFormat): void {
@@ -102,6 +113,7 @@ export class Pattern implements Observable<void> {
         // FIXME Both will trigger an update, hence talking to worklet
         this.lastStep.set(format.lastStep)
         this.scale.set(Scale.getByIndex(format.scale)) // will trigger notify
+        // this.groove.set()
     }
 
     addObserver(observer: Observer<void>, notify: boolean): Terminable {
