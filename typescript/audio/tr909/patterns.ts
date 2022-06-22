@@ -78,7 +78,6 @@ export class Pattern implements Observable<void> {
     private readonly lastStepSubscription = this.lastStep.addObserver(this.listener, false)
     private grooveSubscription = TerminableVoid
     private readonly grooveFieldSubscription = this.groove.addObserver((groove: Groove) => {
-        console.log('new groove', groove)
         this.grooveSubscription.terminate()
         this.grooveSubscription = groove.addObserver(this.listener, true)
     }, false)
@@ -122,7 +121,7 @@ export class Pattern implements Observable<void> {
             steps.forEach((step: Step, stepIndex: number) =>
                 this.steps[instruments][stepIndex] = step))
 
-        // FIXME Both will trigger an update, hence talking to worklet
+        // FIXME Both will trigger an update, hence sending update to worklet
         this.lastStep.set(format.lastStep)
         this.scale.set(Scale.getByIndex(format.scale))
         this.groove.set(Grooves.deserialize(format.groove))

@@ -38,7 +38,10 @@ export interface Groove extends Observable<Groove> {
     deserialize(format: GrooveFormat): this
 }
 
-export const GrooveIdentity = new class implements Groove {
+export const GrooveIdentity: Groove = new class implements Groove {
+    constructor() {
+    }
+
     inverse(position: number): number {
         return position
     }
