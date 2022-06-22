@@ -4,7 +4,7 @@ import {BassdrumVoice} from "./dsp/bassdrum.js"
 import {Channel, Voice} from "./dsp/common.js"
 import {SnaredrumVoice} from "./dsp/snaredrum.js"
 import {Message} from "./messages.js"
-import {Instrument, PatternMemory, Step} from "./patterns.js"
+import {Instrument, Pattern, PatternMemory, Step} from "./patterns.js"
 import {Preset} from "./preset.js"
 import {Resources} from "./resources.js"
 
@@ -69,15 +69,15 @@ registerProcessor('tr-909', class extends AudioWorkletProcessor {
     }
 
     sequence(): void {
-        const pattern = this.memory.current()
-        const scale = pattern.scale.get()
+        const pattern: Pattern = this.memory.current()
+        const scale = pattern.scale.get().value()
         const b0 = this.bar
         const b1 = this.bar += this.barIncr
-        let index = (b0 / scale.nominator * scale.denominator) | 0
-        let quantized = index / scale.denominator * scale.nominator
+        let index = (b0 / scale) | 0
+        let quantized = index * scale
         while (quantized < b1) {
             if (quantized >= b0) {
-                const stepIndex = index % 16
+                const stepIndex = index % pattern.lastStep.get()
                 const totalAccent: boolean = pattern.getStep(Instrument.TotalAccent, stepIndex) !== Step.None
                 for (let instrument = 0; instrument < Instrument.TotalAccent; instrument++) {
                     const step: Step = pattern.getStep(instrument, stepIndex)
@@ -90,7 +90,7 @@ registerProcessor('tr-909', class extends AudioWorkletProcessor {
                     }
                 }
             }
-            quantized = ++index / scale.denominator * scale.nominator
+            quantized = ++index * scale
         }
     }
 

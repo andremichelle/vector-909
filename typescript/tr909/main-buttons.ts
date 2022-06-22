@@ -26,12 +26,21 @@ export class MainButtonsContext {
         this.state = new InstrumentSelectState(this)
     }
 
+    switchToLastStepSelectState(): void {
+        this.state.terminate()
+        this.state = new LastStepSelectState(this)
+    }
+
     map(indices: number[]): HTMLButtonElement[] {
         return indices.map(index => this.buttons[index])
     }
 
     forEach(fn: (value: HTMLButtonElement, index: number, array: HTMLButtonElement[]) => void): void {
         this.buttons.forEach(fn)
+    }
+
+    getByIndex(index: number): HTMLButtonElement {
+        return this.buttons[index]
     }
 
     clear(): void {
@@ -107,13 +116,45 @@ class StepMode implements MainButtonState {
     }
 }
 
+class LastStepSelectState implements MainButtonState {
+    private patternLastStepSubscription: Terminable = TerminableVoid
+    private patternIndexSubscription: Terminable = TerminableVoid
+
+    constructor(readonly context: MainButtonsContext) {
+        const memory = this.context.machine.memory
+        this.patternIndexSubscription = memory.patternIndex.addObserver(() => {
+            this.patternLastStepSubscription.terminate()
+            this.patternLastStepSubscription = memory.current().addObserver(() => this.update(), true)
+        }, true)
+    }
+
+    onButtonPress(event: PointerEvent, index: number): void {
+        const pattern = this.context.machine.memory.current()
+        pattern.lastStep.set(index + 1)
+    }
+
+    onButtonUp(event: PointerEvent, index: number): void {
+    }
+
+    terminate(): void {
+        this.patternLastStepSubscription.terminate()
+        this.patternIndexSubscription.terminate()
+    }
+
+    update(): void {
+        const pattern = this.context.machine.memory.current()
+        this.context.clear()
+        this.context.getByIndex(pattern.lastStep.get() - 1).classList.add('active')
+    }
+}
+
 class InstrumentSelectState implements MainButtonState {
     private readonly multiTouches: Set<number> = new Set<number>()
 
     private readonly update = () => {
         this.context.clear()
         this.context
-            .map(Mappings.instrumentToIndex(this.context.selectedInstruments.get()))
+            .map(Mappings.instrumentToIndices(this.context.selectedInstruments.get()))
             .forEach(button => button.classList.add('active'))
     }
 
@@ -187,7 +228,7 @@ class Mappings {
         }
     }
 
-    static instrumentToIndex(instrument: Instrument): number[] {
+    static instrumentToIndices(instrument: Instrument): number[] {
         switch (instrument) {
             case Instrument.Bassdrum:
                 return [0]

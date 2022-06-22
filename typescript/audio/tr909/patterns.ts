@@ -29,8 +29,8 @@ export enum Step {
 }
 
 export class Scale {
-    static N6D16 = new Scale(6, 16) // TODO not working yet
-    static N3D8 = new Scale(3, 8) // TODO not working yet
+    static N6D16 = new Scale(3, 16)
+    static N3D8 = new Scale(3, 32)
     static D32 = new Scale(1, 32)
     static D16 = new Scale(1, 16)
 
@@ -42,6 +42,10 @@ export class Scale {
     private static Available = [Scale.N6D16, Scale.N3D8, Scale.D32, Scale.D16]
 
     private constructor(readonly nominator: number, readonly denominator: number) {
+    }
+
+    value(): number {
+        return this.nominator / this.denominator
     }
 
     cycleNext(): Scale {
@@ -56,14 +60,17 @@ export class Scale {
 export interface PatternFormat {
     steps: Step[][]
     scale: number
+    lastStep: number
 }
 
 export class Pattern implements Observable<void> {
     readonly scale: ObservableValueImpl<Scale> = new ObservableValueImpl<Scale>(Scale.D16)
+    readonly lastStep: ObservableValueImpl<number> = new ObservableValueImpl<number>(16)
 
     private readonly observable: ObservableImpl<void> = new ObservableImpl<void>()
     private readonly steps: Step[][] = ArrayUtils.fill(Instrument.count, () => ArrayUtils.fill(16, () => Step.None))
     private readonly scaleSubscription = this.scale.addObserver(() => this.observable.notify())
+    private readonly lastStepSubscription = this.lastStep.addObserver(() => this.observable.notify())
 
     constructor() {
     }
@@ -84,13 +91,16 @@ export class Pattern implements Observable<void> {
     }
 
     serialize(): PatternFormat {
-        return {steps: this.steps, scale: this.scale.get().index()}
+        return {steps: this.steps, scale: this.scale.get().index(), lastStep: this.lastStep.get()}
     }
 
     deserialize(format: PatternFormat): void {
         format.steps.forEach((steps: Step[], instruments: number) =>
             steps.forEach((step: Step, stepIndex: number) =>
                 this.steps[instruments][stepIndex] = step))
+
+        // FIXME Both will trigger an update, hence talking to worklet
+        this.lastStep.set(format.lastStep)
         this.scale.set(Scale.getByIndex(format.scale)) // will trigger notify
     }
 
@@ -106,6 +116,7 @@ export class Pattern implements Observable<void> {
     terminate(): void {
         this.observable.terminate()
         this.scaleSubscription.terminate()
+        this.lastStepSubscription.terminate()
     }
 }
 

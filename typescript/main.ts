@@ -19,6 +19,7 @@ const showProgress = (() => {
 })()
 
 let shiftMode: boolean = false
+let lastStepMode: boolean = false
 let instrumentSelectMode: boolean = false
 
 ;(async () => {
@@ -62,6 +63,17 @@ let instrumentSelectMode: boolean = false
         shiftMode = enabled
         shiftButton.classList.toggle('active', enabled)
     }
+    const lastStepButton = HTML.query('[data-button=last-step]')
+    const setLastStepMode = (enabled: boolean): void => {
+        if (lastStepMode === enabled) return
+        lastStepMode = enabled
+        lastStepButton.classList.toggle('active', enabled)
+        if (enabled) {
+            mainButtonsContext.switchToLastStepSelectState()
+        } else {
+            mainButtonsContext.switchToStepMode()
+        }
+    }
     const instrumentSelectButton = HTML.query('[data-button=instrument-select]')
     const setInstrumentSelectMode = (enabled: boolean): void => {
         if (instrumentSelectMode === enabled) return
@@ -74,21 +86,27 @@ let instrumentSelectMode: boolean = false
         }
     }
     window.addEventListener('keydown', event => {
+        event.preventDefault()
         setShiftMode(event.shiftKey)
         setInstrumentSelectMode(event.altKey)
+        setLastStepMode(event.metaKey)
     }, {capture: true})
     window.addEventListener('keyup', event => {
+        event.preventDefault()
         setShiftMode(event.shiftKey)
         setInstrumentSelectMode(event.altKey)
+        setLastStepMode(event.metaKey)
     }, {capture: true})
 
     // debugging
     const debugTransporting = HTML.query('[data-output=transporting]')
+    const debugLastStep = HTML.query('[data-output=last-step]')
     const debugInstrumentSelect = HTML.query('[data-output=instrument-select]')
     const debugInstrument = HTML.query('[data-output=instrument]')
     const debugShiftMode = HTML.query('[data-output=shift-mode]')
     const run = () => {
         debugShiftMode.textContent = shiftMode ? 'Shift' : 'No'
+        debugLastStep.textContent = lastStepMode ? 'Select' : 'No'
         debugInstrumentSelect.textContent = instrumentSelectMode ? 'Select' : 'No'
         debugInstrument.textContent = Instrument[mainButtonsContext.selectedInstruments.get()]
         debugTransporting.textContent = transport.isMoving() ? 'Moving' : 'Paused'
