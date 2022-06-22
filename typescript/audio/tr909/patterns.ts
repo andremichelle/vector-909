@@ -5,9 +5,10 @@ import {
     ObservableValue,
     ObservableValueImpl,
     Observer,
-    Terminable
+    Terminable,
+    TerminableVoid
 } from "../../lib/common.js"
-import {Groove, GrooveFormat, GrooveFunction} from "../grooves.js"
+import {Groove, GrooveFormat, GrooveIdentity, Grooves} from "../grooves.js"
 
 export enum Instrument {
     Bassdrum = 0,
@@ -68,16 +69,27 @@ export interface PatternFormat {
 export class Pattern implements Observable<void> {
     readonly scale: ObservableValue<Scale> = new ObservableValueImpl<Scale>(Scale.D16)
     readonly lastStep: ObservableValue<number> = new ObservableValueImpl<number>(16)
-    readonly groove: ObservableValue<Groove> = new ObservableValueImpl<Groove>(new GrooveFunction())
+    readonly groove: ObservableValue<Groove> = new ObservableValueImpl<Groove>(GrooveIdentity)
 
+    private readonly listener: () => void = () => this.observable.notify()
     private readonly observable: ObservableImpl<void> = new ObservableImpl<void>()
     private readonly steps: Step[][] = ArrayUtils.fill(Instrument.count, () => ArrayUtils.fill(16, () => Step.None))
-    private readonly scaleSubscription = this.scale.addObserver(() => this.observable.notify(), false)
-    private readonly lastStepSubscription = this.lastStep.addObserver(() => this.observable.notify(), false)
+    private readonly scaleSubscription = this.scale.addObserver(this.listener, false)
+    private readonly lastStepSubscription = this.lastStep.addObserver(this.listener, false)
+    private grooveSubscription = TerminableVoid
+    private readonly grooveFieldSubscription = this.groove.addObserver((groove: Groove) => {
+        console.log('new groove', groove)
+        this.grooveSubscription.terminate()
+        this.grooveSubscription = groove.addObserver(this.listener, true)
+    }, false)
 
     constructor() {
         for (let i = 0; i < 16; i++) {
-            this.setStep(Instrument.HihatClosed, i, Step.Accent)
+            if ((i + 2) % 4 !== 0) {
+                this.setStep(Instrument.HihatClosed, i, Step.Accent)
+            } else {
+                this.setStep(Instrument.HihatOpened, i, Step.Accent)
+            }
         }
     }
 
@@ -112,8 +124,8 @@ export class Pattern implements Observable<void> {
 
         // FIXME Both will trigger an update, hence talking to worklet
         this.lastStep.set(format.lastStep)
-        this.scale.set(Scale.getByIndex(format.scale)) // will trigger notify
-        // this.groove.set()
+        this.scale.set(Scale.getByIndex(format.scale))
+        this.groove.set(Grooves.deserialize(format.groove))
     }
 
     addObserver(observer: Observer<void>, notify: boolean): Terminable {
@@ -129,6 +141,8 @@ export class Pattern implements Observable<void> {
         this.observable.terminate()
         this.scaleSubscription.terminate()
         this.lastStepSubscription.terminate()
+        this.grooveSubscription.terminate()
+        this.grooveFieldSubscription.terminate()
     }
 }
 

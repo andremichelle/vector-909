@@ -2,25 +2,19 @@ import {Transport} from "./audio/common.js"
 import {LimiterWorklet} from "./audio/limiter/worklet.js"
 import {MeterWorklet} from "./audio/meter/worklet.js"
 import {MetronomeWorklet} from "./audio/metronome/worklet.js"
-import {Instrument} from "./audio/tr909/patterns.js"
 import {loadResources} from "./audio/tr909/resources.js"
 import {TR909Machine} from "./audio/tr909/worklet.js"
 import {Boot, newAudioContext, preloadImagesOfCssFile} from "./lib/boot.js"
 import {HTML} from "./lib/dom.js"
 import {Digits} from "./tr909/digits.js"
-import {GUI} from "./tr909/gui.js"
-import {MainButtonsContext} from "./tr909/main-buttons.js"
+import {GUI, Mode} from "./tr909/gui.js"
 
 const showProgress = (() => {
-    const progress: SVGSVGElement = document.querySelector("svg.preloader")
-    window.onerror = () => progress.classList.add("error")
-    window.onunhandledrejection = () => progress.classList.add("error")
-    return (percentage: number) => progress.style.setProperty("--percentage", percentage.toFixed(2))
-})()
-
-let shiftMode: boolean = false
-let lastStepMode: boolean = false
-let instrumentSelectMode: boolean = false
+        const progress: SVGSVGElement = document.querySelector("svg.preloader")
+        window.onerror = () => progress.classList.add("error")
+        window.onunhandledrejection = () => progress.classList.add("error")
+        return (percentage: number) => progress.style.setProperty("--percentage", percentage.toFixed(2))
+    })()
 
 ;(async () => {
     console.debug("booting...")
@@ -46,65 +40,18 @@ let instrumentSelectMode: boolean = false
     machine.watchTransport(transport)
 
     const parentNode = HTML.query('div.tr-909')
-    GUI.installKnobs(parentNode, machine.preset)
+    const gui = new GUI(parentNode, machine)
+    GUI.installGlobalShortcuts(gui)
     GUI.installGlobalTransportButtons(parentNode, transport)
-    GUI.installScale(parentNode, machine.memory)
 
     const digits: Digits = new Digits(HTML.query('svg[data-display=led-display]', parentNode))
     machine.preset.tempo.addObserver(bpm => digits.show(bpm), true)
 
-    const mainButtons = Array.from<HTMLButtonElement>(HTML.queryAll('[data-control=main-buttons] [data-control=main-button]', parentNode))
-    mainButtons.push(HTML.query('[data-control=main-button][data-parameter=total-accent]'))
-    const mainButtonsContext = new MainButtonsContext(machine, mainButtons)
-
-    const shiftButton = HTML.query('[data-button=shift]')
-    const setShiftMode = (enabled: boolean): void => {
-        if (shiftMode === enabled) return
-        shiftMode = enabled
-        shiftButton.classList.toggle('active', enabled)
-    }
-    const lastStepButton = HTML.query('[data-button=last-step]')
-    const setLastStepMode = (enabled: boolean): void => {
-        if (lastStepMode === enabled) return
-        lastStepMode = enabled
-        lastStepButton.classList.toggle('active', enabled)
-        if (enabled) {
-            mainButtonsContext.switchToLastStepSelectState()
-        } else {
-            mainButtonsContext.switchToStepMode()
-        }
-    }
-    const instrumentSelectButton = HTML.query('[data-button=instrument-select]')
-    const setInstrumentSelectMode = (enabled: boolean): void => {
-        if (instrumentSelectMode === enabled) return
-        instrumentSelectMode = enabled
-        instrumentSelectButton.classList.toggle('active', enabled)
-        if (enabled) {
-            mainButtonsContext.switchToInstrumentSelectMode()
-        } else {
-            mainButtonsContext.switchToStepMode()
-        }
-    }
-    const listener = (event: KeyboardEvent) => {
-        setShiftMode(event.shiftKey)
-        const keyDown = event.type === 'keydown'
-        setInstrumentSelectMode(event.code === 'KeyI' && keyDown)
-        setLastStepMode(event.code === 'KeyL' && keyDown)
-    }
-    window.addEventListener('keydown', listener, {capture: true})
-    window.addEventListener('keyup', listener, {capture: true})
-
     // debugging
+    const debugMode = HTML.query('[data-output=mode]')
     const debugTransporting = HTML.query('[data-output=transporting]')
-    const debugLastStep = HTML.query('[data-output=last-step]')
-    const debugInstrumentSelect = HTML.query('[data-output=instrument-select]')
-    const debugInstrument = HTML.query('[data-output=instrument]')
-    const debugShiftMode = HTML.query('[data-output=shift-mode]')
     const run = () => {
-        debugShiftMode.textContent = shiftMode ? 'Shift' : 'No'
-        debugLastStep.textContent = lastStepMode ? 'Select' : 'No'
-        debugInstrumentSelect.textContent = instrumentSelectMode ? 'Select' : 'No'
-        debugInstrument.textContent = Instrument[mainButtonsContext.selectedInstruments.get()]
+        debugMode.textContent = Mode[gui.currentMode.get()]
         debugTransporting.textContent = transport.isMoving() ? 'Moving' : 'Paused'
         requestAnimationFrame(run)
     }

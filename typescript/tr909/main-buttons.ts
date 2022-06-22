@@ -1,6 +1,8 @@
+import {GrooveFunction, GrooveIdentity} from "../audio/grooves.js"
 import {Instrument, Step} from "../audio/tr909/patterns.js"
 import {TR909Machine} from "../audio/tr909/worklet.js"
-import {ObservableValueImpl, Terminable, TerminableVoid} from "../lib/common.js"
+import {ArrayUtils, ObservableValueImpl, Terminable, TerminableVoid} from "../lib/common.js"
+import {PowInjective} from "../lib/injective.js"
 
 export class MainButtonsContext {
     readonly selectedInstruments: ObservableValueImpl<Instrument> = new ObservableValueImpl<Instrument>(Instrument.Bassdrum)
@@ -19,6 +21,11 @@ export class MainButtonsContext {
     switchToStepMode(): void {
         this.state.terminate()
         this.state = new StepMode(this)
+    }
+
+    switchToShuffleFlamState() {
+        this.state.terminate()
+        this.state = new ShuffleFlamState(this)
     }
 
     switchToInstrumentSelectMode(): void {
@@ -56,7 +63,7 @@ interface MainButtonState extends Terminable {
     onButtonUp(event: PointerEvent, index: number): void
 }
 
-class PlayState implements MainButtonState {
+class TapState implements MainButtonState {
     private readonly multiTouches: Set<number> = new Set<number>()
 
     constructor(readonly context: MainButtonsContext) {
@@ -113,6 +120,58 @@ class StepMode implements MainButtonState {
             button.classList.toggle('half', step === Step.Active)
             button.classList.toggle('active', step === Step.Accent)
         })
+    }
+}
+
+class ShuffleFlamState implements MainButtonState {
+    private static Exponents: number[] = ArrayUtils.fill(7, index => 1.0 + index * 0.2)
+
+    private patternShuffleSubscription: Terminable = TerminableVoid
+    private patternIndexSubscription: Terminable = TerminableVoid
+
+    constructor(readonly context: MainButtonsContext) {
+        const memory = this.context.machine.memory
+        this.patternIndexSubscription = memory.patternIndex.addObserver(() => {
+            this.patternShuffleSubscription.terminate()
+            this.patternShuffleSubscription = memory.current().groove.addObserver(() => this.update(), true)
+        }, true)
+    }
+
+    onButtonPress(event: PointerEvent, index: number): void {
+        const groove = this.context.machine.memory.current().groove
+        if (index === 0) {
+            groove.set(GrooveIdentity)
+        } else {
+            const grooveFunction = new GrooveFunction()
+            const powInjective = new PowInjective()
+            powInjective.exponent.set(ShuffleFlamState.Exponents[index])
+            grooveFunction.injective.set(powInjective)
+            groove.set(grooveFunction)
+        }
+    }
+
+    onButtonUp(event: PointerEvent, index: number): void {
+    }
+
+    terminate(): void {
+        this.patternShuffleSubscription.terminate()
+        this.patternIndexSubscription.terminate()
+    }
+
+    update(): void {
+        this.context.clear()
+        const groove = this.context.machine.memory.current().groove.get()
+        if (groove === GrooveIdentity) {
+            this.context.getByIndex(0).classList.add('active')
+        } else if (groove instanceof GrooveFunction) {
+            const injective = groove.injective.get()
+            if (injective instanceof PowInjective) {
+                const index = ShuffleFlamState.Exponents.indexOf(injective.exponent.get())
+                if (index >= 0 && index < 7) {
+                    this.context.getByIndex(index).classList.add('active')
+                }
+            }
+        }
     }
 }
 
