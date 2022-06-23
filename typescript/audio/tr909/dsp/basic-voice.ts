@@ -1,14 +1,13 @@
-import {dbToGain} from "../../common.js"
+import {dbToGain, decibel, Interpolator} from "../../common.js"
 import {CrashOrRidePreset, HihatPreset, RimOrClapPreset, TomPreset} from "../preset.js"
 import {ResourceSampleRate} from "../resources.js"
-import {Channel, Interpolator, isRunning, Voice} from "./common.js"
+import {Channel, isRunning, Voice} from "./voice.js"
 
 export class BasicTuneDecayVoice extends Voice {
     private readonly rate: number
     private readonly gainInterpolator: Interpolator
 
     private position: number
-    private fadeOutDelay: number = -1
     private gain: number
     private gainCoefficient: number
 
@@ -16,9 +15,8 @@ export class BasicTuneDecayVoice extends Voice {
                 preset: TomPreset | RimOrClapPreset | HihatPreset | CrashOrRidePreset,
                 channel: Channel,
                 sampleRate: number,
-                delay: number,
-                level: number) {
-        super(channel, sampleRate, delay)
+                level: decibel) {
+        super(sampleRate)
 
         this.gainInterpolator = new Interpolator(sampleRate)
         this.terminator.with(preset.level.addObserver(value =>
@@ -36,27 +34,23 @@ export class BasicTuneDecayVoice extends Voice {
         }
     }
 
-    stop(delay: number): void {
-        this.fadeOutDelay = delay
+    stop(): void {
+        this.gainInterpolator.set(0.0, true)
         this.terminate()
     }
 
-    process(output: Float32Array): isRunning {
-        for (let i = this.delay; i < output.length; i++) {
+    process(output: Float32Array, from: number, to: number): isRunning {
+        for (let i = from; i < to; i++) {
             const pi = this.position | 0
             if (pi >= this.array.length - 1) {
                 return false
             }
-            if (this.fadeOutDelay === i) {
-                this.fadeOutDelay = -1
-                this.gainInterpolator.set(0.0, true)
-            }
             const p0 = this.array[pi]
-            output[i] += (p0 + (this.position - pi) * (this.array[pi + 1] - p0)) * this.gain * this.gainInterpolator.moveAndGet()
+            output[i] += (p0 + (this.position - pi) * (this.array[pi + 1] - p0))
+                * this.gain * this.gainInterpolator.moveAndGet()
             this.gain *= this.gainCoefficient
             this.position += this.rate
         }
-        this.delay = 0
         return !this.gainInterpolator.equals(0.0)
     }
 }

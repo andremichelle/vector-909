@@ -1,7 +1,7 @@
-import {dbToGain} from "../../common.js"
+import {dbToGain, decibel, Interpolator} from "../../common.js"
 import {BassdrumPreset} from "../preset.js"
 import {Resources, ResourceSampleRate} from "../resources.js"
-import {Channel, Interpolator, isRunning, SilentGain, Voice} from "./common.js"
+import {isRunning, SilentGain, Voice} from "./voice.js"
 
 export class BassdrumVoice extends Voice {
     private static ReleaseStartTime: number = 0.060
@@ -18,14 +18,12 @@ export class BassdrumVoice extends Voice {
     private gainCoefficient: number
     private freqEnvelope: number = BassdrumVoice.FreqStart
     private freqCoefficient: number
-    private processed: boolean = false
     private time: number = 0.0
     private phase: number = 0.0
     private attackPosition: number = 0.0
-    private fadeOutDelay: number = -1
 
-    constructor(resources: Resources, preset: BassdrumPreset, sampleRate: number, delay: number, level: number) {
-        super(Channel.Bassdrum, sampleRate, delay)
+    constructor(resources: Resources, preset: BassdrumPreset, sampleRate: number, level: decibel) {
+        super(sampleRate)
 
         this.cycle = resources.bassdrum.cycle
         this.attack = resources.bassdrum.attack
@@ -41,17 +39,13 @@ export class BassdrumVoice extends Voice {
         this.attackRate = ResourceSampleRate / sampleRate
     }
 
-    stop(delay: number): void {
-        this.fadeOutDelay = delay
+    stop(): void {
+        this.gainInterpolator.set(0.0, true)
         this.terminate()
     }
 
-    process(output: Float32Array): isRunning {
-        for (let i = this.delay; i < output.length; i++) {
-            if (this.fadeOutDelay === i) {
-                this.gainInterpolator.set(0.0, true)
-                this.fadeOutDelay = -1
-            }
+    process(output: Float32Array, from: number, to: number): isRunning {
+        for (let i = from; i < to; i++) {
             if (this.time > BassdrumVoice.ReleaseStartTime) {
                 this.gainEnvelope *= this.gainCoefficient
             }
@@ -72,8 +66,6 @@ export class BassdrumVoice extends Voice {
             this.phase -= Math.floor(this.phase)
             this.freqEnvelope = BassdrumVoice.FreqEnd + this.freqCoefficient * (this.freqEnvelope - BassdrumVoice.FreqEnd)
         }
-        this.delay = 0
-        this.processed = true
         return this.gainEnvelope > SilentGain && !this.gainInterpolator.equals(0.0)
     }
 }

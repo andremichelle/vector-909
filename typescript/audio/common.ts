@@ -9,6 +9,7 @@ export const numFramesToBars = (numFrames: number, bpm: number, samplingRate: nu
 export const barsToNumFrames = (bars: number, bpm: number, samplingRate: number): number => (bars * samplingRate * 240.0) / bpm
 export const barsToSeconds = (bars: number, bpm: number): number => (bars * 240.0) / bpm
 export const SILENCE_GAIN = dbToGain(-192.0) // if gain is zero the waa will set streams to undefined
+export type decibel = number
 
 export class RMS {
     private readonly values: Float32Array
@@ -29,6 +30,51 @@ export class RMS {
         this.values[this.index] = squared
         if (++this.index === this.n) this.index = 0
         return 0.0 >= this.sum ? 0.0 : Math.sqrt(this.sum * this.inv)
+    }
+}
+
+export class Interpolator {
+    private static DefaultSeconds = 0.007
+
+    private readonly length: number
+
+    private value: number = NaN
+    private target: number = NaN
+    private delta: number = 0.0
+    private remaining: number = 0 | 0
+
+    constructor(sampleRate: number) {
+        this.length = (Interpolator.DefaultSeconds * sampleRate) | 0
+    }
+
+    set(target: number, smooth: boolean): void {
+        if (target === this.value) {
+            return
+        }
+        if (!smooth || isNaN(this.value)) {
+            this.value = this.target = target
+            this.delta = 0.0
+            this.remaining = 0 | 0
+        } else {
+            this.target = target
+            this.delta = (target - this.value) / this.length
+            this.remaining = this.length
+        }
+    }
+
+    moveAndGet(): number {
+        if (0 < this.remaining) {
+            this.value += this.delta
+            if (0 == --this.remaining) {
+                this.delta = 0.0
+                this.value = this.target
+            }
+        }
+        return this.value
+    }
+
+    equals(value: number): boolean {
+        return this.value === value
     }
 }
 

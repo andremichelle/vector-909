@@ -1,7 +1,7 @@
-import {dbToGain} from "../../common.js"
+import {dbToGain, decibel, Interpolator} from "../../common.js"
 import {SnaredrumPreset} from "../preset.js"
 import {Resources, ResourceSampleRate} from "../resources.js"
-import {Channel, Interpolator, isRunning, SilentGain, Voice} from "./common.js"
+import {isRunning, SilentGain, Voice} from "./voice.js"
 
 export class SnaredrumVoice extends Voice {
     private readonly gainInterpolator: Interpolator
@@ -13,12 +13,11 @@ export class SnaredrumVoice extends Voice {
 
     private tonePosition: number = 0.0
     private noisePosition: number = 0.0
-    private fadeOutDelay: number = -1
     private noiseGain: number
     private noiseGainCoefficient: number
 
-    constructor(resources: Resources, preset: SnaredrumPreset, sampleRate: number, delay: number, level: number) {
-        super(Channel.Snaredrum, sampleRate, delay)
+    constructor(resources: Resources, preset: SnaredrumPreset, sampleRate: number, level: decibel) {
+        super(sampleRate)
 
         this.tune = resources.snaredrum.tone
         this.noise = resources.snaredrum.noise
@@ -33,18 +32,14 @@ export class SnaredrumVoice extends Voice {
         this.initPhase = false
     }
 
-    stop(delay: number): void {
-        this.fadeOutDelay = delay
+    stop(): void {
+        this.gainInterpolator.set(0.0, true)
         this.terminate()
     }
 
-    process(output: Float32Array): isRunning {
+    process(output: Float32Array, from: number, to: number): isRunning {
         let pi: number
-        for (let i = this.delay; i < output.length; i++) {
-            if (this.fadeOutDelay === i) {
-                this.fadeOutDelay = -1
-                this.gainInterpolator.set(0.0, true)
-            }
+        for (let i = from; i < to; i++) {
             const gain = this.gainInterpolator.moveAndGet()
             pi = this.tonePosition | 0
             if (pi < this.tune.length - 1) {
@@ -62,7 +57,6 @@ export class SnaredrumVoice extends Voice {
                 return false
             }
         }
-        this.delay = 0
         return !(this.gainInterpolator.equals(0.0) || this.noiseGain < SilentGain)
     }
 }
