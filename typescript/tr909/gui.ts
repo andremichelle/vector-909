@@ -41,7 +41,7 @@ export class GUI {
         })
         window.addEventListener('keyup', (event: KeyboardEvent) => {
             if (lastCode === event.code) {
-                singleInstance.currentMode.set(Mode.Steps)
+                singleInstance.currentMode.set(singleInstance.runningMode.get())
                 lastCode = null
             }
         })
@@ -50,7 +50,8 @@ export class GUI {
     private readonly terminator = new Terminator()
     private readonly mainButtonsContext: MainButtonsContext
 
-    readonly currentMode = new ObservableValueImpl<Mode>(Mode.Steps)
+    readonly runningMode = new ObservableValueImpl<Mode>(Mode.Steps)
+    readonly currentMode = new ObservableValueImpl<Mode>(this.runningMode.get())
 
     constructor(private readonly parentNode: ParentNode, private readonly machine: TR909Machine) {
         this.mainButtonsContext = new MainButtonsContext(machine,
@@ -139,14 +140,16 @@ export class GUI {
             [Mode.ShiftMode, HTML.query('[data-button=shift]')],
             [Mode.ShuffleFlam, HTML.query('[data-button=shuffle-flam]')],
             [Mode.LastStep, HTML.query('[data-button=last-step]')],
-            [Mode.SelectInstrument, HTML.query('[data-button=instrument-select]')]
+            [Mode.SelectInstrument, HTML.query('[data-button=instrument-select]')],
+            [Mode.Tap, HTML.query('[data-button=tap-mode]')],
+            [Mode.Steps, HTML.query('[data-button=step-mode]')],
         ])
         const configButton = (mode: Mode, button: HTMLButtonElement): void => {
             button.addEventListener('pointerdown', (event: PointerEvent) => {
                 button.setPointerCapture(event.pointerId)
                 this.currentMode.set(mode)
             })
-            button.addEventListener('pointerup', () => this.currentMode.set(Mode.Steps))
+            button.addEventListener('pointerup', () => this.currentMode.set(this.runningMode.get()))
         }
         for (const entry of buttons) {
             configButton(entry[0], entry[1])
@@ -154,9 +157,12 @@ export class GUI {
         this.currentMode.addObserver(mode => {
             switch (mode) {
                 case Mode.Steps:
-                    this.mainButtonsContext.switchToStepMode()
+                    this.runningMode.set(Mode.Steps)
+                    this.mainButtonsContext.switchToStepModeState()
                     break
                 case Mode.Tap:
+                    this.runningMode.set(Mode.Tap)
+                    this.mainButtonsContext.switchToTapModeState()
                     break
                 case Mode.LastStep:
                     this.mainButtonsContext.switchToLastStepSelectState()
@@ -165,7 +171,7 @@ export class GUI {
                     this.mainButtonsContext.switchToShuffleFlamState()
                     break
                 case Mode.SelectInstrument:
-                    this.mainButtonsContext.switchToInstrumentSelectMode()
+                    this.mainButtonsContext.switchToInstrumentSelectModeState()
                     break
                 case Mode.ShiftMode:
                     break

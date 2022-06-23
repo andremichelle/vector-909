@@ -19,6 +19,8 @@
 </head>
 <body>
 <div class="debug">
+    <label>Zoom</label>
+    <output data-output="zoom"></output>
     <label>Mode</label>
     <output data-output="mode"></output>
     <label>Transporting</label>
@@ -184,8 +186,8 @@
             <h1>AVAILABLE MEAS</h1>
             <h1>CYCLE /GUIDE</h1>
             <h1>TAPE SYNC</h1>
-            <button class="translucent-button"></button>
-            <button class="translucent-button"></button>
+            <button class="translucent-button" data-button="step-mode"></button>
+            <button class="translucent-button" data-button="tap-mode"></button>
             <button class="translucent-button"></button>
             <button class="translucent-button"></button>
             <button class="translucent-button"></button>
@@ -489,9 +491,6 @@
     </div>
 </main>
 <a class="github" href="https://github.com/andremichelle/css-909">github project</a>
-<div class="zoom-control">
-    <span class="zoom">Zoom 100%</span>
-</div>
 <svg class="preloader" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
     <circle r="7" cx="10" cy="10" fill="none" stroke="#21242D" stroke-width="5"></circle>
     <circle r="7" cx="10" cy="10" fill="none" stroke="#666D91" stroke-width="5" class="progress"></circle>

@@ -49,6 +49,7 @@ const showProgress = (() => {
     machine.preset.tempo.addObserver(bpm => digits.show(bpm), true)
 
     // debugging
+    const debugZoom = HTML.query('[data-output=zoom]')
     const debugMode = HTML.query('[data-output=mode]')
     const debugTransporting = HTML.query('[data-output=transporting]')
     const run = () => {
@@ -62,18 +63,16 @@ const showProgress = (() => {
     document.addEventListener('touchmove', (event: TouchEvent) => event.preventDefault(), {passive: false})
     document.addEventListener('dblclick', (event: Event) => event.preventDefault(), {passive: false})
     const main: HTMLElement = HTML.query('main')
-    const tr909 = HTML.query('.tr-909')
-    const zoomLabel = HTML.query('span.zoom')
     const resize = () => {
         document.body.style.height = `${window.innerHeight}px`
-        const padding = 64
+        const padding = 16
         let scale = Math.min(
-            window.innerWidth / (tr909.clientWidth + padding),
-            window.innerHeight / (tr909.clientHeight + padding))
+            window.innerWidth / (parentNode.clientWidth + padding),
+            window.innerHeight / (parentNode.clientHeight + padding))
         if (scale > 1.0) {
             scale = 1.0
         }
-        zoomLabel.textContent = `Zoom: ${Math.round(scale * 100)}%`
+        debugZoom.textContent = `${Math.round(scale * 100)}%`
         main.style.setProperty("--scale", `${scale}`)
     }
     window.addEventListener("resize", resize)

@@ -7,7 +7,7 @@ import {PowInjective} from "../lib/injective.js"
 export class MainButtonsContext {
     readonly selectedInstruments: ObservableValueImpl<Instrument> = new ObservableValueImpl<Instrument>(Instrument.Bassdrum)
 
-    private state: MainButtonState = new StepMode(this)
+    private state: MainButtonState = new StepModeState(this)
 
     constructor(readonly machine: TR909Machine,
                 readonly buttons: HTMLButtonElement[]) {
@@ -21,9 +21,14 @@ export class MainButtonsContext {
         })
     }
 
-    switchToStepMode(): void {
+    switchToStepModeState(): void {
         this.state.terminate()
-        this.state = new StepMode(this)
+        this.state = new StepModeState(this)
+    }
+
+    switchToTapModeState(): void {
+        this.state.terminate()
+        this.state = new TapModeState(this)
     }
 
     switchToShuffleFlamState() {
@@ -31,7 +36,7 @@ export class MainButtonsContext {
         this.state = new ShuffleFlamState(this)
     }
 
-    switchToInstrumentSelectMode(): void {
+    switchToInstrumentSelectModeState(): void {
         this.state.terminate()
         this.state = new InstrumentSelectState(this)
     }
@@ -66,7 +71,7 @@ interface MainButtonState extends Terminable {
     onButtonUp(event: PointerEvent, index: number): void
 }
 
-class TapState implements MainButtonState {
+class TapModeState implements MainButtonState {
     private readonly multiTouches: Set<number> = new Set<number>()
 
     constructor(readonly context: MainButtonsContext) {
@@ -88,7 +93,7 @@ class TapState implements MainButtonState {
     }
 }
 
-class StepMode implements MainButtonState {
+class StepModeState implements MainButtonState {
     private patternStepsSubscription: Terminable = TerminableVoid
     private patternIndexSubscription: Terminable = TerminableVoid
 
