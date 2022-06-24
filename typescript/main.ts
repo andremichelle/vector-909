@@ -41,8 +41,8 @@ const showProgress = (() => {
     const gui = new GUI(parentNode, machine)
     GUI.installGlobalShortcuts(gui)
 
-    const digits: Digits = new Digits(HTML.query('svg[data-display=led-display]', parentNode))
-    machine.preset.tempo.addObserver(bpm => digits.show(bpm), true)
+    // const digits: Digits = new Digits(HTML.query('svg[data-display=led-display]', parentNode))
+    // machine.preset.tempo.addObserver(bpm => digits.show(bpm), true)
 
     // debugging
     const debugZoom = HTML.query('[data-output=zoom]')

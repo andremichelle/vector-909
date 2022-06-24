@@ -1,7 +1,8 @@
 import {Instrument, PatternFormat} from "./patterns.js"
 
-export type Message =
+export type ToWorkletMessage =
     | { type: "update-parameter", path: string, unipolar: number }
     | { type: "update-pattern", index: number, format: PatternFormat }
     | { type: "play-instrument", instrument: Instrument, accent: boolean }
-    | { type: "void" }
+
+export type ToMainMessage = {type: "update-step", index: number}

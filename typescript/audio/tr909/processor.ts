@@ -1,10 +1,10 @@
 import {ArrayUtils} from "../../lib/common.js"
-import {barsToNumFrames, decibel, numFramesToBars, RENDER_QUANTUM, TransportMessage} from "../common.js"
+import {barsToNumFrames, decibel, numFramesToBars, RENDER_QUANTUM, secondsToBars, TransportMessage} from "../common.js"
 import {BasicTuneDecayVoice} from "./dsp/basic-voice.js"
 import {BassdrumVoice} from "./dsp/bassdrum.js"
 import {SnaredrumVoice} from "./dsp/snaredrum.js"
 import {Channel, mapInstrumentChannel, Voice} from "./dsp/voice.js"
-import {Message} from "./messages.js"
+import {ToMainMessage, ToWorkletMessage} from "./messages.js"
 import {Instrument, Pattern, PatternMemory, Step} from "./patterns.js"
 import {Preset} from "./preset.js"
 import {Resources} from "./resources.js"
@@ -89,6 +89,8 @@ class Processing {
     }
 }
 
+const latency: number = 0.050 // For tap mode. TODO: Can we read or compute it somehow?
+
 registerProcessor('tr-909', class extends AudioWorkletProcessor implements VoiceFactory {
     private readonly resources: Resources
     private readonly preset: Preset
@@ -98,6 +100,7 @@ registerProcessor('tr-909', class extends AudioWorkletProcessor implements Voice
     private moving: boolean = false
     private bpm: number = 120.0
     private bar: number = 0.0
+    private barIncrement: number = 0.0
     private position: number = 0 | 0
 
     constructor(options: { processorOptions: Resources }) {
@@ -105,12 +108,15 @@ registerProcessor('tr-909', class extends AudioWorkletProcessor implements Voice
 
         this.resources = options.processorOptions
         this.preset = new Preset()
-        this.preset.tempo.addObserver((bpm: number) => this.bpm = bpm, true)
+        this.preset.tempo.addObserver((bpm: number) => {
+            this.bpm = bpm
+            this.barIncrement = numFramesToBars(RENDER_QUANTUM, this.bpm, sampleRate)
+        }, true)
         this.memory = new PatternMemory()
         this.processing = new Processing(this)
 
         this.port.onmessage = (event: MessageEvent) => {
-            const message: Message | TransportMessage = event.data
+            const message: ToWorkletMessage | TransportMessage = event.data
             if (message.type === 'update-parameter') {
                 this.preset.find(message.path).setUnipolar(message.unipolar)
             } else if (message.type === 'update-pattern') {
@@ -132,11 +138,28 @@ registerProcessor('tr-909', class extends AudioWorkletProcessor implements Voice
     // noinspection JSUnusedGlobalSymbols
     process(inputs: Float32Array[][], outputs: Float32Array[][]): boolean {
         if (this.moving) {
+            this.updateStepIndex()
             this.sequence()
+            this.advance()
         }
         this.processing.process(outputs[0][0], this.position, this.position + RENDER_QUANTUM)
         this.position += RENDER_QUANTUM
         return true
+    }
+
+    updateStepIndex(): void {
+        const pattern: Pattern = this.memory.current()
+        const scale = pattern.scale.get().value()
+        const b0 = this.bar + secondsToBars(latency, this.bpm)
+        const b1 = b0 + this.barIncrement
+        let index = (b0 / scale) | 0
+        let search = index * scale
+        while (search < b1) {
+            if (search >= b0) {
+                this.port.postMessage({type: "update-step", index: index % pattern.lastStep.get()} as ToMainMessage)
+            }
+            search = ++index * scale
+        }
     }
 
     sequence(): void {
@@ -144,15 +167,15 @@ registerProcessor('tr-909', class extends AudioWorkletProcessor implements Voice
         const groove = pattern.groove.get()
         const scale = pattern.scale.get().value()
         const b0 = this.bar
-        const b1 = this.bar += numFramesToBars(RENDER_QUANTUM, this.bpm, sampleRate)
+        const b1 = b0 + this.barIncrement
         const t0 = groove.inverse(b0)
         const t1 = groove.inverse(b1)
         let index = (t0 / scale) | 0
         let search = index * scale
         while (search < t1) {
             if (search >= t0) {
-                const barPosition = groove.transform(search)
                 const stepIndex = index % pattern.lastStep.get()
+                const barPosition = groove.transform(search)
                 const totalAccent: boolean = pattern.getStep(Instrument.TotalAccent, stepIndex) !== Step.None
                 for (let instrument = 0; instrument < Instrument.TotalAccent; instrument++) {
                     const step: Step = pattern.getStep(instrument, stepIndex)
@@ -162,9 +185,14 @@ registerProcessor('tr-909', class extends AudioWorkletProcessor implements Voice
                         this.processing.schedulePlay(position, instrument, level)
                     }
                 }
+                this.port.postMessage({type: "update-step", index: stepIndex} as ToMainMessage)
             }
             search = ++index * scale
         }
+    }
+
+    advance() {
+        this.bar += this.barIncrement
     }
 
     createVoice(instrument: Instrument, level: number): Voice {

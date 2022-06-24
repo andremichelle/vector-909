@@ -1,6 +1,6 @@
-import {ArrayUtils, Parameter, Terminable, TerminableVoid, Terminator} from "../../lib/common.js"
+import {ArrayUtils, ObservableValueImpl, Parameter, Terminable, TerminableVoid, Terminator} from "../../lib/common.js"
 import {dbToGain, Transport} from "../common.js"
-import {Message} from "./messages.js"
+import {ToMainMessage, ToWorkletMessage} from "./messages.js"
 import {Instrument, PatternMemory} from "./patterns.js"
 import {Preset} from "./preset.js"
 import {Resources} from "./resources.js"
@@ -17,6 +17,7 @@ export class TR909Machine implements Terminable {
     readonly memory: PatternMemory
     readonly transport: Transport
     readonly master: GainNode
+    readonly stepIndex = new ObservableValueImpl<number>(0)
 
     private patternSubscription: Terminable = TerminableVoid
 
@@ -35,14 +36,13 @@ export class TR909Machine implements Terminable {
         this.transport = new Transport()
         this.transport.addObserver(message => this.worklet.port.postMessage(message), false)
         this.master = context.createGain()
-        this.worklet.connect(this.master)
         this.terminator.with(this.preset.volume.addObserver(value => this.master.gain.value = dbToGain(value), true))
         this.terminator.with(this.preset.observeAll((parameter: Parameter<any>, path: string[]) => {
             this.worklet.port.postMessage({
                 type: 'update-parameter',
                 path: path.join('.'),
                 unipolar: parameter.getUnipolar()
-            } as Message)
+            } as ToWorkletMessage)
         }))
         this.terminator.with(this.memory.patternIndex.addObserver((index: number) => {
             const pattern = this.memory.current()
@@ -51,8 +51,10 @@ export class TR909Machine implements Terminable {
                 type: 'update-pattern',
                 index,
                 format: pattern.serialize()
-            } as Message), false)
+            } as ToWorkletMessage), false)
         }, true))
+        this.worklet.connect(this.master)
+        this.worklet.port.onmessage = event => this.stepIndex.set((event.data as ToMainMessage).index)
     }
 
     play(instrument: Instrument, accent: boolean) {
@@ -60,7 +62,7 @@ export class TR909Machine implements Terminable {
             type: 'play-instrument',
             instrument,
             accent
-        } as Message)
+        } as ToWorkletMessage)
     }
 
     connect(destinationNode: AudioNode): AudioNode {

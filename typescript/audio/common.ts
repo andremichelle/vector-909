@@ -6,6 +6,7 @@ export const dbToGain = (db: number): number => Math.exp(db * LOG_DB)
 export const gainToDb = (gain: number): number => Math.log(gain) / LOG_DB
 export const midiToHz = (note: number = 60.0, baseFrequency: number = 440.0): number => baseFrequency * Math.pow(2.0, (note + 3.0) / 12.0 - 6.0)
 export const numFramesToBars = (numFrames: number, bpm: number, samplingRate: number): number => (numFrames * bpm) / (samplingRate * 240.0)
+export const secondsToBars = (seconds: number, bpm: number): number => (seconds * bpm) / 240.0
 export const barsToNumFrames = (bars: number, bpm: number, samplingRate: number): number => (bars * samplingRate * 240.0) / bpm
 export const barsToSeconds = (bars: number, bpm: number): number => (bars * 240.0) / bpm
 export const SILENCE_GAIN = dbToGain(-192.0) // if gain is zero the waa will set streams to undefined

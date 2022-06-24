@@ -73,15 +73,21 @@ interface MainButtonState extends Terminable {
 
 class TapModeState implements MainButtonState {
     private readonly multiTouches: Set<number> = new Set<number>()
+    private readonly stepIndexSubscription: Terminable
 
     constructor(readonly context: MainButtonsContext) {
-        this.context.clear()
+        this.stepIndexSubscription = this.context.machine.stepIndex.addObserver(index => {
+            this.context.clear()
+            this.context.getByIndex(index).classList.add('half')
+        }, true)
     }
 
     onButtonPress(event: PointerEvent, index: number): void {
-        const playTrigger = Mappings.toPlayTrigger(index, this.multiTouches)
-        this.context.machine.play(playTrigger.instrument, playTrigger.accent)
+        const playTrigger = ButtonMapping.toPlayTrigger(index, this.multiTouches)
+        const machine = this.context.machine
+        machine.play(playTrigger.instrument, playTrigger.accent)
         this.multiTouches.add(index)
+        machine.memory.current().setStep(playTrigger.instrument, machine.stepIndex.get(), playTrigger.accent ? Step.Accent : Step.Active)
     }
 
     onButtonUp(event: PointerEvent, index: number): void {
@@ -90,6 +96,7 @@ class TapModeState implements MainButtonState {
 
     terminate(): void {
         this.multiTouches.clear()
+        this.stepIndexSubscription.terminate()
     }
 }
 
@@ -221,7 +228,7 @@ class InstrumentSelectState implements MainButtonState {
     private readonly update = () => {
         this.context.clear()
         this.context
-            .map(Mappings.instrumentToIndices(this.context.selectedInstruments.get()))
+            .map(ButtonMapping.instrumentToIndices(this.context.selectedInstruments.get()))
             .forEach(button => button.classList.add('active'))
     }
 
@@ -231,7 +238,7 @@ class InstrumentSelectState implements MainButtonState {
     }
 
     onButtonPress(event: PointerEvent, index: number): void {
-        this.context.selectedInstruments.set(Mappings.toPlayTrigger(index, this.multiTouches).instrument)
+        this.context.selectedInstruments.set(ButtonMapping.toPlayTrigger(index, this.multiTouches).instrument)
         this.multiTouches.add(index)
     }
 
@@ -247,7 +254,7 @@ class InstrumentSelectState implements MainButtonState {
 
 type PlayTrigger = { instrument: Instrument, accent: boolean }
 
-class Mappings {
+class ButtonMapping {
     static toPlayTrigger(index: number, multiTouches: Set<number>): PlayTrigger {
         switch (index) {
             case 0:
