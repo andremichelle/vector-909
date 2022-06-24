@@ -11,16 +11,16 @@ export class TR909Machine implements Terminable {
     }
 
     private readonly terminator: Terminator = new Terminator()
-    private readonly worklet: AudioWorkletNode
+
+    readonly worklet: AudioWorkletNode
+    readonly preset: Preset
+    readonly memory: PatternMemory
+    readonly transport: Transport
+    readonly master: GainNode
 
     private patternSubscription: Terminable = TerminableVoid
 
-    readonly preset: Preset = new Preset()
-    readonly memory: PatternMemory = new PatternMemory()
-    readonly master: GainNode
-
     constructor(context, resources: Resources) {
-        this.master = context.createGain()
         this.worklet = new AudioWorkletNode(context, "tr-909", {
             numberOfInputs: 1,
             numberOfOutputs: 9,
@@ -30,6 +30,11 @@ export class TR909Machine implements Terminable {
             channelInterpretation: "speakers",
             processorOptions: resources
         })
+        this.preset = new Preset()
+        this.memory = new PatternMemory()
+        this.transport = new Transport()
+        this.transport.addObserver(message => this.worklet.port.postMessage(message), false)
+        this.master = context.createGain()
         this.worklet.connect(this.master)
         this.terminator.with(this.preset.volume.addObserver(value => this.master.gain.value = dbToGain(value), true))
         this.terminator.with(this.preset.observeAll((parameter: Parameter<any>, path: string[]) => {
@@ -58,8 +63,8 @@ export class TR909Machine implements Terminable {
         } as Message)
     }
 
-    watchTransport(transport: Transport): Terminable {
-        return transport.addObserver(message => this.worklet.port.postMessage(message), false)
+    connect(destinationNode: AudioNode): AudioNode {
+        return this.master.connect(destinationNode)
     }
 
     terminate(): void {

@@ -132,14 +132,14 @@ export class Transport implements Observable<TransportMessage> {
 
     stop(): void {
         this.pause()
-        this.move(0.0)
+        this.moveTo(0.0)
     }
 
-    move(position: number): void {
+    moveTo(position: number): void {
         this.observable.notify({type: "transport-move", position: position})
     }
 
-    isMoving(): boolean {
+    isPlaying(): boolean {
         return this.moving
     }
 

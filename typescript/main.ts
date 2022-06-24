@@ -37,13 +37,9 @@ const showProgress = (() => {
     const machine = new TR909Machine(context, getResources())
     machine.master.connect(context.destination)
 
-    const transport = new Transport()
-    machine.watchTransport(transport)
-
     const parentNode = HTML.query('div.tr-909')
     const gui = new GUI(parentNode, machine)
     GUI.installGlobalShortcuts(gui)
-    GUI.installGlobalTransportButtons(parentNode, transport)
 
     const digits: Digits = new Digits(HTML.query('svg[data-display=led-display]', parentNode))
     machine.preset.tempo.addObserver(bpm => digits.show(bpm), true)
@@ -54,7 +50,7 @@ const showProgress = (() => {
     const debugTransporting = HTML.query('[data-output=transporting]')
     const run = () => {
         debugMode.textContent = Mode[gui.currentMode.get()]
-        debugTransporting.textContent = transport.isMoving() ? 'Playing' : 'Paused'
+        debugTransporting.textContent = machine.transport.isPlaying() ? 'Playing' : 'Paused'
         requestAnimationFrame(run)
     }
     requestAnimationFrame(run)
