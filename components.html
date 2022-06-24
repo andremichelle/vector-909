@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Components</title>
+    <link rel="preload" href="./fonts/Roboto-Bold.ttf" as="font" type="font/ttf"
+          crossorigin>
+    <link href="./bin/main.css" rel="stylesheet"/>
+</head>
+<body>
+<h1>Components</h1>
+<div class="components">
+    <button class="switch"></button>
+    <button class="switch half"></button>
+    <button class="switch active"></button>
+    <button class="trigger bright"></button>
+    <button class="translucent-button"></button>
+    <button class="translucent-button active"></button>
+    <button class="translucent-button blink"></button>
+    <div class="knob-control big minmax-units" data-label="LABEL" data-parameter="name">
+        <div class="knob"></div>
+        <span>MIN</span>
+        <span>MAX</span>
+    </div>
+    <div class="knob-control" data-label="LABEL" data-parameter="name">
+        <div class="knob small"></div>
+    </div>
+    <svg class="digits" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 142 70" width="97" height="48"
+         data-display="led-display">
+        <defs>
+            <filter id="blur-digits">
+                <feGaussianBlur stdDeviation="1"/>
+            </filter>
+            <!--suppress CssUnusedSymbol -->
+            <style>
+                path.digit, circle.digit {
+                    fill: black;
+                    fill-opacity: 0.25;
+                }
+
+                path.digit.active, circle.digit.active {
+                    fill: #CC4433;
+                    fill-opacity: 1;
+                }
+            </style>
+        </defs>
+        <rect x="0" y="0" width="100%" height="100%" fill="#601010"/>
+        <g filter="url(#blur-digits)">
+            <g transform="translate(6, 6)">
+                <path class="digit" d="M10.46 3.07 13.97 0h18.42l2.64 3.07-3.5 3.07H13.1l-2.64-3.07z"/>
+                <path class="digit"
+                      d="m35.58 3.72 2.64 3.07-2.59 18.42-3.5 3.07-2.64-3.07 2.59-18.42 3.5-3.07z"/>
+                <path class="digit"
+                      d="m31.95 29.58 2.64 3.07L32 51.07l-3.5 3.07-2.64-3.07 2.59-18.42 3.5-3.07z"/>
+                <path class="digit" d="m27.76 54.79-3.5 3.07H5.83l-2.64-3.07 3.51-3.07h18.42l2.64 3.07z"/>
+                <path class="digit" d="M2.64 54.14 0 51.07l2.59-18.42 3.5-3.07 2.64 3.07-2.59 18.42-3.5 3.07z"/>
+                <path class="digit"
+                      d="m6.27 28.28-2.64-3.07L6.22 6.79l3.51-3.07 2.63 3.07-2.58 18.42-3.51 3.07z"/>
+                <path class="digit" d="m6.83 28.93 3.5-3.07h18.43l2.63 3.07-3.5 3.07H9.47l-2.64-3.07z"/>
+                <circle class="digit" cx="35.11" cy="54.75" r="3.11"/>
+            </g>
+            <g transform="translate(52, 6)">
+                <path class="digit" d="M10.46 3.07 13.97 0h18.42l2.64 3.07-3.5 3.07H13.1l-2.64-3.07z"/>
+                <path class="digit"
+                      d="m35.58 3.72 2.64 3.07-2.59 18.42-3.5 3.07-2.64-3.07 2.59-18.42 3.5-3.07z"/>
+                <path class="digit"
+                      d="m31.95 29.58 2.64 3.07L32 51.07l-3.5 3.07-2.64-3.07 2.59-18.42 3.5-3.07z"/>
+                <path class="digit"
+                      d="m27.76 54.79-3.5 3.07H5.83l-2.64-3.07 3.51-3.07h18.42l2.64 3.07z"/>
+                <path class="digit"
+                      d="M2.64 54.14 0 51.07l2.59-18.42 3.5-3.07 2.64 3.07-2.59 18.42-3.5 3.07z"/>
+                <path class="digit"
+                      d="m6.27 28.28-2.64-3.07L6.22 6.79l3.51-3.07 2.63 3.07-2.58 18.42-3.51 3.07z"/>
+                <path class="digit" d="m6.83 28.93 3.5-3.07h18.43l2.63 3.07-3.5 3.07H9.47l-2.64-3.07z"/>
+                <circle class="digit" cx="35.11" cy="54.75" r="3.11"/>
+            </g>
+            <g transform="translate(98, 6)">
+                <path class="digit" d="M10.46 3.07 13.97 0h18.42l2.64 3.07-3.5 3.07H13.1l-2.64-3.07z"/>
+                <path class="digit"
+                      d="m35.58 3.72 2.64 3.07-2.59 18.42-3.5 3.07-2.64-3.07 2.59-18.42 3.5-3.07z"/>
+                <path class="digit"
+                      d="m31.95 29.58 2.64 3.07L32 51.07l-3.5 3.07-2.64-3.07 2.59-18.42 3.5-3.07z"/>
+                <path class="digit"
+                      d="m27.76 54.79-3.5 3.07H5.83l-2.64-3.07 3.51-3.07h18.42l2.64 3.07z"/>
+                <path class="digit"
+                      d="M2.64 54.14 0 51.07l2.59-18.42 3.5-3.07 2.64 3.07-2.59 18.42-3.5 3.07z"/>
+                <path class="digit"
+                      d="m6.27 28.28-2.64-3.07L6.22 6.79l3.51-3.07 2.63 3.07-2.58 18.42-3.51 3.07z"/>
+                <path class="digit" d="m6.83 28.93 3.5-3.07h18.43l2.63 3.07-3.5 3.07H9.47l-2.64-3.07z"/>
+                <circle class="digit" cx="35.11" cy="54.75" r="3.11"/>
+            </g>
+        </g>
+    </svg>
+</div>
+</body>
+</html>

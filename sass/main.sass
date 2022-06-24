@@ -33,6 +33,16 @@ div.debug
   > output
     font-weight: bold
 
+div.components
+  padding: 16vmin
+  border-radius: 8px
+  background: radial-gradient(at 50% 0, rgba(white, 0.25), transparent), linear-gradient(to bottom, darken($COLOR_CHASSIS, 4), darken($COLOR_CHASSIS, 8))
+  display: grid
+  gap: 16px
+  grid-auto-flow: column
+
+  > *
+    position: relative
 
 a.github
   color: $COLOR_DARK
