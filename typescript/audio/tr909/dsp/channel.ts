@@ -12,7 +12,7 @@ export interface VoiceFactory {
 }
 
 export enum ChannelIndex {
-    Bassdrum, Snaredrum, TomLow, TomMid, TomHi, Rim, Clap, Hihat, Crash, Ride
+    Bassdrum, Snaredrum, TomLow, TomMid, TomHi, Rim, Clap, Hihat, Crash, Ride, length
 }
 
 export class Channel {
