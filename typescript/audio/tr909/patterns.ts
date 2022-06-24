@@ -30,6 +30,9 @@ export enum Step {
     None = 0, Active = 1, Accent = 2
 }
 
+// http://www.e-licktronic.com/forum/viewtopic.php?f=25&t=1430
+export const FlamDelays = ArrayUtils.fill(8, index => 10 + index * 4)
+
 export class Scale {
     static N6D16 = new Scale(3, 16)
     static N3D8 = new Scale(3, 32)
@@ -62,19 +65,22 @@ export class Scale {
 export interface PatternFormat {
     steps: Step[][]
     scale: number
+    flamDelay: number
     lastStep: number
     groove: GrooveFormat
 }
 
 export class Pattern implements Observable<void> {
-    readonly scale: ObservableValue<Scale> = new ObservableValueImpl<Scale>(Scale.D16)
-    readonly lastStep: ObservableValue<number> = new ObservableValueImpl<number>(16)
-    readonly groove: ObservableValue<Groove> = new ObservableValueImpl<Groove>(GrooveIdentity)
+    readonly scale = new ObservableValueImpl<Scale>(Scale.D16)
+    readonly flamDelay = new ObservableValueImpl<number>(FlamDelays[0])
+    readonly lastStep = new ObservableValueImpl<number>(16)
+    readonly groove = new ObservableValueImpl<Groove>(GrooveIdentity)
 
     private readonly listener: () => void = () => this.observable.notify()
-    private readonly observable: ObservableImpl<void> = new ObservableImpl<void>()
+    private readonly observable = new ObservableImpl<void>()
     private readonly steps: Step[][] = ArrayUtils.fill(Instrument.count, () => ArrayUtils.fill(16, () => Step.None))
     private readonly scaleSubscription = this.scale.addObserver(this.listener, false)
+    private readonly flamDelaySubscription = this.flamDelay.addObserver(this.listener, false)
     private readonly lastStepSubscription = this.lastStep.addObserver(this.listener, false)
     private grooveSubscription = TerminableVoid
     private readonly grooveFieldSubscription = this.groove.addObserver((groove: Groove) => {
@@ -119,6 +125,7 @@ export class Pattern implements Observable<void> {
         return {
             steps: this.steps,
             scale: this.scale.get().index(),
+            flamDelay: this.flamDelay.get(),
             lastStep: this.lastStep.get(),
             groove: this.groove.get().serialize()
         }
@@ -131,6 +138,7 @@ export class Pattern implements Observable<void> {
                 this.steps[instruments][stepIndex] = step))
         this.lastStep.set(format.lastStep)
         this.scale.set(Scale.getByIndex(format.scale))
+        this.flamDelay.set(format.flamDelay)
         this.groove.set(Grooves.deserialize(format.groove))
         this.observable.unmute()
         this.observable.notify()
@@ -148,6 +156,7 @@ export class Pattern implements Observable<void> {
     terminate(): void {
         this.observable.terminate()
         this.scaleSubscription.terminate()
+        this.flamDelaySubscription.terminate()
         this.lastStepSubscription.terminate()
         this.grooveSubscription.terminate()
         this.grooveFieldSubscription.terminate()

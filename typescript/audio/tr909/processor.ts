@@ -183,6 +183,11 @@ registerProcessor('tr-909', class extends AudioWorkletProcessor implements Voice
                         const level = step === Step.Accent || totalAccent ? 0.0 : this.preset.accent.get()
                         const position = this.position + barsToNumFrames(barPosition - b0, this.bpm, sampleRate) | 0
                         this.processing.schedulePlay(position, instrument, level)
+
+                        const flam = false // TODO
+                        if (flam) {
+                            this.processing.schedulePlay(position + pattern.flamDelay.get() / 1000.0 * sampleRate, instrument, level)
+                        }
                     }
                 }
                 this.port.postMessage({type: "update-step", index: stepIndex} as ToMainMessage)

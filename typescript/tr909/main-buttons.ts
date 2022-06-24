@@ -1,7 +1,7 @@
 import {GrooveFunction, GrooveIdentity} from "../audio/grooves.js"
-import {Instrument, Step} from "../audio/tr909/patterns.js"
+import {FlamDelays, Instrument, Step} from "../audio/tr909/patterns.js"
 import {TR909Machine} from "../audio/tr909/worklet.js"
-import {ArrayUtils, ObservableValueImpl, Terminable, TerminableVoid} from "../lib/common.js"
+import {ArrayUtils, ObservableValueImpl, Terminable, TerminableVoid, Terminator} from "../lib/common.js"
 import {PowInjective} from "../lib/injective.js"
 
 export class MainButtonsContext {
@@ -87,7 +87,10 @@ class TapModeState implements MainButtonState {
         const machine = this.context.machine
         machine.play(playTrigger.instrument, playTrigger.accent)
         this.multiTouches.add(index)
-        machine.memory.current().setStep(playTrigger.instrument, machine.stepIndex.get(), playTrigger.accent ? Step.Accent : Step.Active)
+        if (machine.transport.isPlaying()) {
+            machine.memory.current()
+                .setStep(playTrigger.instrument, machine.stepIndex.get(), playTrigger.accent ? Step.Accent : Step.Active)
+        }
     }
 
     onButtonUp(event: PointerEvent, index: number): void {
@@ -141,27 +144,32 @@ class StepModeState implements MainButtonState {
 class ShuffleFlamState implements MainButtonState {
     private static GrooveExp: number[] = ArrayUtils.fill(7, index => 1.0 + index * 0.2)
 
-    private patternShuffleSubscription: Terminable = TerminableVoid
+    private subscriptions = new Terminator()
     private patternIndexSubscription: Terminable = TerminableVoid
 
     constructor(readonly context: MainButtonsContext) {
         const memory = this.context.machine.memory
         this.patternIndexSubscription = memory.patternIndex.addObserver(() => {
-            this.patternShuffleSubscription.terminate()
-            this.patternShuffleSubscription = memory.current().groove.addObserver(() => this.update(), true)
+            this.subscriptions.terminate()
+            const pattern = memory.current()
+            this.subscriptions.with(pattern.groove.addObserver(() => this.update(), true))
+            this.subscriptions.with(pattern.flamDelay.addObserver(() => this.update(), true))
         }, true)
     }
 
     onButtonPress(event: PointerEvent, index: number): void {
-        const groove = this.context.machine.memory.current().groove
+        const pattern = this.context.machine.memory.current()
         if (index === 0) {
-            groove.set(GrooveIdentity)
-        } else {
+            pattern.groove.set(GrooveIdentity)
+        } else if (index < 7) {
             const grooveFunction = new GrooveFunction()
             const powInjective = new PowInjective()
             powInjective.exponent.set(ShuffleFlamState.GrooveExp[index])
             grooveFunction.injective.set(powInjective)
-            groove.set(grooveFunction)
+            pattern.groove.set(grooveFunction)
+        } else if (index >= 8 && index < 16) {
+            const flamIndex = index - 8
+            pattern.flamDelay.set(FlamDelays[flamIndex])
         }
     }
 
@@ -169,13 +177,14 @@ class ShuffleFlamState implements MainButtonState {
     }
 
     terminate(): void {
-        this.patternShuffleSubscription.terminate()
+        this.subscriptions.terminate()
         this.patternIndexSubscription.terminate()
     }
 
     update(): void {
         this.context.clear()
-        const groove = this.context.machine.memory.current().groove.get()
+        const pattern = this.context.machine.memory.current()
+        const groove = pattern.groove.get()
         if (groove === GrooveIdentity) {
             this.context.getByIndex(0).classList.add('active')
         } else if (groove instanceof GrooveFunction) {
@@ -186,6 +195,10 @@ class ShuffleFlamState implements MainButtonState {
                     this.context.getByIndex(index).classList.add('active')
                 }
             }
+        }
+        const index = FlamDelays.indexOf(pattern.flamDelay.get())
+        if (index >= 0) {
+            this.context.getByIndex(index + 8).classList.add('active')
         }
     }
 }
