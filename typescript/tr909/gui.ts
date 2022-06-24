@@ -3,7 +3,7 @@ import {TR909Machine} from "../audio/tr909/worklet.js"
 import {Events, ObservableValueImpl, Terminable, TerminableVoid, Terminator} from "../lib/common.js"
 import {HTML} from "../lib/dom.js"
 import {Knob} from "./knobs.js"
-import {MainButtonsContext} from "./main-buttons.js"
+import {MainButtonsContext} from "./states.js"
 
 export enum Mode {
     Steps, Tap, LastStep, ShuffleFlam, SelectInstrument, ShiftMode

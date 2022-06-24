@@ -71,10 +71,11 @@ const showProgress = (() => {
         debugZoom.textContent = `${Math.round(scale * 100)}%`
         main.style.setProperty("--scale", `${scale}`)
     }
+
     window.addEventListener("resize", resize)
-    resize()
     await Waiting.forFrame()
     document.querySelectorAll("body svg.preloader").forEach(element => element.remove())
-    document.querySelectorAll("body main").forEach(element => element.classList.remove("invisible"))
+    document.querySelectorAll("body main").forEach(element => element.classList.remove("hidden"))
+    resize()
     console.debug("boot complete.")
 })()
