@@ -46,7 +46,7 @@ export class TrackPlayState implements MachineState {
     constructor(readonly context: MachineContext) {
         this.context.trackIndexButtons.forEach((button: HTMLButtonElement, index: number) => {
             const isActive = index === this.context.trackIndex.get()
-            button.classList.toggle('blink', isActive)
+            button.classList.toggle('active', isActive)
         })
     }
 }

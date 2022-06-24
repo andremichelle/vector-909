@@ -2,13 +2,13 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Components</title>
+    <title>909 Component Sheet</title>
     <link rel="preload" href="./fonts/Roboto-Bold.ttf" as="font" type="font/ttf"
           crossorigin>
     <link href="./bin/main.css" rel="stylesheet"/>
 </head>
 <body>
-<h1>Components</h1>
+<h1 style="color: #43484a;">909 Component Sheet</h1>
 <div class="components">
     <button class="switch"></button>
     <button class="switch half"></button>
@@ -16,7 +16,6 @@
     <button class="trigger bright"></button>
     <button class="translucent-button"></button>
     <button class="translucent-button active"></button>
-    <button class="translucent-button blink"></button>
     <div class="knob-control big minmax-units" data-label="LABEL" data-parameter="name">
         <div class="knob"></div>
         <span>MIN</span>
@@ -92,25 +91,5 @@
         </g>
     </svg>
 </div>
-<script>
-    let count = 0
-    const components = document.querySelector('.components');
-    const next = () => {
-        // <button class="translucent-button"></button>
-        const buttonElement = document.createElement('button');
-        buttonElement.classList.add('translucent-button');
-        buttonElement.classList.add('blink');
-        components.appendChild(buttonElement)
-        if (++count < 20) {
-            requestAnimationFrame(next)
-        }
-    }
-    let visible = true
-    setInterval(() => {
-        visible = !visible
-        document.documentElement.style.setProperty('--synchronous-visibility', visible ? 'visible' : 'hidden')
-    }, 1000)
-    requestAnimationFrame(next)
-</script>
 </body>
 </html>
