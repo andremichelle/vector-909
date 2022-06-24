@@ -102,7 +102,7 @@ export class GUI {
                 button.classList.remove('active')
             }
             buttons.get(mode)?.classList.add('active')
-        }, true)
+        }, false)
         return TerminableVoid
     }
 

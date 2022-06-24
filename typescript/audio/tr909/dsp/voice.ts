@@ -1,36 +1,33 @@
 import {Terminable, Terminator} from "../../../lib/common.js"
 import {dbToGain} from "../../common.js"
 import {Instrument} from "../patterns.js"
+import {ChannelIndex} from "./channel.js"
 
 export const SilentGain = dbToGain(-72.0)
 
-export enum Channel {
-    Bassdrum, Snaredrum, TomLow, TomMid, TomHi, Rim, Clap, Hihat, Crash, Ride
-}
-
-export const mapInstrumentChannel = (instrument: Instrument): Channel => {
+export const toChannel = (instrument: Instrument): ChannelIndex => {
     switch (instrument) {
         case Instrument.Bassdrum:
-            return Channel.Bassdrum
+            return ChannelIndex.Bassdrum
         case Instrument.Snaredrum:
-            return Channel.Snaredrum
+            return ChannelIndex.Snaredrum
         case Instrument.TomLow:
-            return Channel.TomLow
+            return ChannelIndex.TomLow
         case Instrument.TomMid:
-            return Channel.TomMid
+            return ChannelIndex.TomMid
         case Instrument.TomHi:
-            return Channel.TomHi
+            return ChannelIndex.TomHi
         case Instrument.Rim:
-            return Channel.Rim
+            return ChannelIndex.Rim
         case Instrument.Clap:
-            return Channel.Clap
+            return ChannelIndex.Clap
         case Instrument.HihatOpened:
         case Instrument.HihatClosed:
-            return Channel.Hihat
+            return ChannelIndex.Hihat
         case Instrument.Crash:
-            return Channel.Crash
+            return ChannelIndex.Crash
         case Instrument.Ride:
-            return Channel.Ride
+            return ChannelIndex.Ride
     }
     throw new Error(`No channel for ${Instrument[instrument]}`)
 }

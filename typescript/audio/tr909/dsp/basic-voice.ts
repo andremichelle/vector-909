@@ -1,7 +1,8 @@
 import {dbToGain, decibel, Interpolator} from "../../common.js"
 import {CrashOrRidePreset, HihatPreset, RimOrClapPreset, TomPreset} from "../preset.js"
 import {ResourceSampleRate} from "../resources.js"
-import {Channel, isRunning, Voice} from "./voice.js"
+import {ChannelIndex} from "./channel.js"
+import {isRunning, Voice} from "./voice.js"
 
 export class BasicTuneDecayVoice extends Voice {
     private readonly rate: number
@@ -13,7 +14,6 @@ export class BasicTuneDecayVoice extends Voice {
 
     constructor(private readonly array: Float32Array,
                 preset: TomPreset | RimOrClapPreset | HihatPreset | CrashOrRidePreset,
-                channel: Channel,
                 sampleRate: number,
                 level: decibel) {
         super(sampleRate)

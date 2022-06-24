@@ -33,6 +33,27 @@ export enum Step {
 // http://www.e-licktronic.com/forum/viewtopic.php?f=25&t=1430
 export const FlamDelays = ArrayUtils.fill(8, index => 10 + index * 4)
 
+export class Track {
+    readonly patternSequence: number[] = []
+
+    constructor() {
+    }
+}
+
+export class Memory {
+    readonly tracks: Track[] = ArrayUtils.fill(4, () => new Track())
+    readonly patterns: Pattern[] = ArrayUtils.fill(96, () => new Pattern())
+    readonly patternIndex: ObservableValue<number> = new ObservableValueImpl<number>(0)
+
+    constructor() {
+        this.patterns[0].test()
+    }
+
+    current(): Pattern {
+        return this.patterns[this.patternIndex.get()]
+    }
+}
+
 export class Scale {
     static N6D16 = new Scale(3, 16)
     static N3D8 = new Scale(3, 32)
@@ -160,18 +181,5 @@ export class Pattern implements Observable<void> {
         this.lastStepSubscription.terminate()
         this.grooveSubscription.terminate()
         this.grooveFieldSubscription.terminate()
-    }
-}
-
-export class PatternMemory {
-    readonly patterns: Pattern[] = ArrayUtils.fill(96, () => new Pattern())
-    readonly patternIndex: ObservableValue<number> = new ObservableValueImpl<number>(0)
-
-    constructor() {
-        this.patterns[0].test()
-    }
-
-    current(): Pattern {
-        return this.patterns[this.patternIndex.get()]
     }
 }

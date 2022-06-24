@@ -27,6 +27,7 @@ export class MachineContext {
     readonly patternGroupButtons: HTMLButtonElement[]
 
     readonly trackIndex: ObservableValueImpl<number> = new ObservableValueImpl<number>(0)
+    readonly patternGroupIndex: ObservableValueImpl<number> = new ObservableValueImpl<number>(0)
 
     private state: NonNullable<MachineState>
 
@@ -43,23 +44,28 @@ export interface MachineState {
 }
 
 export class TrackPlayState implements MachineState {
+    private readonly terminator: Terminator = new Terminator()
+
     constructor(readonly context: MachineContext) {
-        this.context.trackIndexButtons.forEach((button: HTMLButtonElement, index: number) => {
-            const isActive = index === this.context.trackIndex.get()
-            button.classList.toggle('active', isActive)
-        })
+        this.terminator.with(this.context.trackIndex.addObserver(trackIndex => {
+            this.context.trackIndexButtons.forEach((button: HTMLButtonElement, buttonIndex: number) =>
+                button.classList.toggle('active', buttonIndex === trackIndex))
+        }, true))
+        this.terminator.with(this.context.patternGroupIndex.addObserver(patternGroupIndex => {
+            this.context.patternGroupButtons.forEach((button: HTMLButtonElement, buttonIndex: number) =>
+                button.classList.toggle('active', buttonIndex === patternGroupIndex))
+        }, true))
     }
 }
 
 export class MainButtonsContext {
     readonly selectedInstruments: ObservableValueImpl<Instrument> = new ObservableValueImpl<Instrument>(Instrument.Bassdrum)
 
-    private state: NonNullable<MainButtonState> = new StepModeState(this)
+    private state: NonNullable<MainButtonState> = new TapModeState(this)
 
     constructor(readonly machine: TR909Machine,
                 readonly buttons: HTMLButtonElement[]) {
         this.buttons.forEach((button: HTMLButtonElement, index: number) => {
-            button.setAttribute('data-index', `${index}`)
             button.addEventListener('pointerdown', (event: PointerEvent) => {
                 button.setPointerCapture(event.pointerId)
                 this.state.onButtonPress(event, index)
@@ -116,6 +122,20 @@ interface MainButtonState extends Terminable {
     onButtonPress(event: PointerEvent, index: number): void
 
     onButtonUp(event: PointerEvent, index: number): void
+}
+
+class NothingState implements MainButtonState {
+    constructor(readonly context: MainButtonsContext) {
+    }
+
+    onButtonPress(event: PointerEvent, index: number): void {
+    }
+
+    onButtonUp(event: PointerEvent, index: number): void {
+    }
+
+    terminate(): void {
+    }
 }
 
 class TapModeState implements MainButtonState {

@@ -2,100 +2,21 @@ import {ArrayUtils} from "../../lib/common.js"
 import {barsToNumFrames, decibel, numFramesToBars, RENDER_QUANTUM, secondsToBars, TransportMessage} from "../common.js"
 import {BasicTuneDecayVoice} from "./dsp/basic-voice.js"
 import {BassdrumVoice} from "./dsp/bassdrum.js"
+import {Channel, VoiceFactory} from "./dsp/channel.js"
 import {SnaredrumVoice} from "./dsp/snaredrum.js"
-import {Channel, mapInstrumentChannel, Voice} from "./dsp/voice.js"
+import {toChannel, Voice} from "./dsp/voice.js"
 import {ToMainMessage, ToWorkletMessage} from "./messages.js"
-import {Instrument, Pattern, PatternMemory, Step} from "./patterns.js"
+import {Instrument, Memory, Pattern, Step} from "./patterns.js"
 import {Preset} from "./preset.js"
 import {Resources} from "./resources.js"
-
-interface VoiceFactory {
-    createVoice: (instrument: Instrument, level: decibel) => Voice
-}
-
-class PlayEvent {
-    constructor(readonly position: number, readonly instrument: number, readonly level: decibel) {
-    }
-}
-
-class ChannelProcessor {
-    private readonly events: PlayEvent[] = []
-    private readonly processing: Voice[] = []
-
-    constructor(private readonly factory: VoiceFactory) {
-    }
-
-    private active: Voice = null
-
-    schedulePlay(position: number, instrument: Instrument, level: decibel): void {
-        this.events.push(new PlayEvent(position | 0, instrument, level))
-        if (this.events.length > 1) {
-            this.events.sort((a: PlayEvent, b: PlayEvent) => a.position - b.position)
-        }
-    }
-
-    process(output: Float32Array, from: number, to: number): void {
-        let frameIndex = 0
-        for (const event of this.nextEvent(to)) {
-            const toFrame = event.position - from
-            console.assert(toFrame >= 0 && toFrame < RENDER_QUANTUM)
-            this.advance(output, frameIndex, toFrame)
-            this.active?.stop()
-            const voice = this.factory.createVoice(event.instrument, event.level)
-            this.processing.push(voice)
-            this.active = voice
-            frameIndex = toFrame
-        }
-        if (frameIndex < RENDER_QUANTUM) {
-            this.advance(output, frameIndex, RENDER_QUANTUM)
-        }
-    }
-
-    private* nextEvent(limit: number): Generator<PlayEvent> {
-        while (this.events.length > 0 && this.events[0].position < limit) {
-            yield this.events.shift()
-        }
-    }
-
-    private advance(output: Float32Array, from: number, to: number): void {
-        let voiceIndex = this.processing.length
-        while (--voiceIndex > -1) {
-            const voice = this.processing[voiceIndex]
-            if (!voice.process(output, from, to)) {
-                voice.terminate()
-                this.processing.splice(voiceIndex, 1)
-                if (this.active === voice) {
-                    this.active = null
-                }
-            }
-        }
-    }
-}
-
-class Processing {
-    private readonly channels: ChannelProcessor[]
-
-    constructor(voiceFactory: VoiceFactory) {
-        this.channels = ArrayUtils.fill(10, () => new ChannelProcessor(voiceFactory))
-    }
-
-    schedulePlay(position: number, instrument: Instrument, level: decibel): void {
-        const channel: number = mapInstrumentChannel(instrument)
-        this.channels[channel].schedulePlay(position, instrument, level)
-    }
-
-    process(output: Float32Array, from: number, to: number) {
-        this.channels.forEach(timeline => timeline.process(output, from, to))
-    }
-}
 
 const latency: number = 0.050 // For tap mode. TODO: Can we read or compute it somehow?
 
 registerProcessor('tr-909', class extends AudioWorkletProcessor implements VoiceFactory {
     private readonly resources: Resources
     private readonly preset: Preset
-    private readonly memory: PatternMemory
-    private readonly processing: Processing
+    private readonly memory: Memory
+    private readonly channels: Channel[]
 
     private moving: boolean = false
     private bpm: number = 120.0
@@ -112,8 +33,8 @@ registerProcessor('tr-909', class extends AudioWorkletProcessor implements Voice
             this.bpm = bpm
             this.barIncrement = numFramesToBars(RENDER_QUANTUM, this.bpm, sampleRate)
         }, true)
-        this.memory = new PatternMemory()
-        this.processing = new Processing(this)
+        this.memory = new Memory()
+        this.channels = ArrayUtils.fill(10, () => new Channel(this))
 
         this.port.onmessage = (event: MessageEvent) => {
             const message: ToWorkletMessage | TransportMessage = event.data
@@ -130,7 +51,7 @@ registerProcessor('tr-909', class extends AudioWorkletProcessor implements Voice
             } else if (message.type === "play-instrument") {
                 const instrument = message.instrument
                 const level = message.accent ? 0.0 : this.preset.accent.get()
-                this.processing.schedulePlay(this.position, instrument, level)
+                this.schedulePlay(this.position, instrument, level)
             }
         }
     }
@@ -142,7 +63,7 @@ registerProcessor('tr-909', class extends AudioWorkletProcessor implements Voice
             this.sequence()
             this.advance()
         }
-        this.processing.process(outputs[0][0], this.position, this.position + RENDER_QUANTUM)
+        this.channels.forEach((channel: Channel, index: number) => channel.process(outputs[index][0], this.position, this.position + RENDER_QUANTUM))
         this.position += RENDER_QUANTUM
         return true
     }
@@ -182,11 +103,11 @@ registerProcessor('tr-909', class extends AudioWorkletProcessor implements Voice
                     if (step !== Step.None) {
                         const level = step === Step.Accent || totalAccent ? 0.0 : this.preset.accent.get()
                         const position = this.position + barsToNumFrames(barPosition - b0, this.bpm, sampleRate) | 0
-                        this.processing.schedulePlay(position, instrument, level)
+                        this.schedulePlay(position, instrument, level)
 
                         const flam = false // TODO
                         if (flam) {
-                            this.processing.schedulePlay(position + pattern.flamDelay.get() / 1000.0 * sampleRate, instrument, level)
+                            this.schedulePlay(position + pattern.flamDelay.get() / 1000.0 * sampleRate, instrument, level)
                         }
                     }
                 }
@@ -194,6 +115,11 @@ registerProcessor('tr-909', class extends AudioWorkletProcessor implements Voice
             }
             search = ++index * scale
         }
+    }
+
+    schedulePlay(position: number, instrument: Instrument, level: decibel): void {
+        const channel: number = toChannel(instrument)
+        this.channels[channel].schedulePlay(position, instrument, level)
     }
 
     advance() {
@@ -207,23 +133,23 @@ registerProcessor('tr-909', class extends AudioWorkletProcessor implements Voice
             case Instrument.Snaredrum:
                 return new SnaredrumVoice(this.resources, this.preset.snaredrum, sampleRate, level)
             case Instrument.TomLow:
-                return new BasicTuneDecayVoice(this.resources.tomLow, this.preset.tomLow, Channel.TomLow, sampleRate, level)
+                return new BasicTuneDecayVoice(this.resources.tomLow, this.preset.tomLow, sampleRate, level)
             case Instrument.TomMid:
-                return new BasicTuneDecayVoice(this.resources.tomMid, this.preset.tomMid, Channel.TomMid, sampleRate, level)
+                return new BasicTuneDecayVoice(this.resources.tomMid, this.preset.tomMid, sampleRate, level)
             case Instrument.TomHi:
-                return new BasicTuneDecayVoice(this.resources.tomHi, this.preset.tomHi, Channel.TomHi, sampleRate, level)
+                return new BasicTuneDecayVoice(this.resources.tomHi, this.preset.tomHi, sampleRate, level)
             case Instrument.Rim:
-                return new BasicTuneDecayVoice(this.resources.rim, this.preset.rim, Channel.Rim, sampleRate, level)
+                return new BasicTuneDecayVoice(this.resources.rim, this.preset.rim, sampleRate, level)
             case Instrument.Clap:
-                return new BasicTuneDecayVoice(this.resources.clap, this.preset.clap, Channel.Clap, sampleRate, level)
+                return new BasicTuneDecayVoice(this.resources.clap, this.preset.clap, sampleRate, level)
             case Instrument.HihatClosed:
-                return new BasicTuneDecayVoice(this.resources.closedHihat, this.preset.closedHihat, Channel.Hihat, sampleRate, level)
+                return new BasicTuneDecayVoice(this.resources.closedHihat, this.preset.closedHihat, sampleRate, level)
             case Instrument.HihatOpened:
-                return new BasicTuneDecayVoice(this.resources.openedHihat, this.preset.openedHihat, Channel.Hihat, sampleRate, level)
+                return new BasicTuneDecayVoice(this.resources.openedHihat, this.preset.openedHihat, sampleRate, level)
             case Instrument.Crash:
-                return new BasicTuneDecayVoice(this.resources.crash, this.preset.crash, Channel.Crash, sampleRate, level)
+                return new BasicTuneDecayVoice(this.resources.crash, this.preset.crash, sampleRate, level)
             case Instrument.Ride:
-                return new BasicTuneDecayVoice(this.resources.ride, this.preset.ride, Channel.Ride, sampleRate, level)
+                return new BasicTuneDecayVoice(this.resources.ride, this.preset.ride, sampleRate, level)
         }
         throw new Error(`${instrument} not found.`)
     }
