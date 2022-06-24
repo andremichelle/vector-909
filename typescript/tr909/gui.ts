@@ -1,23 +1,19 @@
+import {secondsToBars} from "../audio/common.js"
 import {Scale} from "../audio/tr909/patterns.js"
 import {TR909Machine} from "../audio/tr909/worklet.js"
 import {Events, ObservableValueImpl, Terminable, TerminableVoid, Terminator} from "../lib/common.js"
 import {HTML} from "../lib/dom.js"
 import {Digits} from "./digits.js"
 import {Knob} from "./knobs.js"
-import {MainButtonsContext} from "./states.js"
-
-export enum MachineState {
-    TrackPlay, TrackWrite, PatternPlay, PatternWrite
-}
+import {MachineContext, MainButtonsContext} from "./states.js"
 
 export enum Mode {
-    Steps, Tap, LastStep, ShuffleFlam, SelectInstrument, ShiftMode
+    Steps, Tap, LastStep, ShuffleFlam, SelectInstrument
 }
 
 export class GUI {
     static installGlobalShortcuts(singleInstance: GUI): void {
         const codes: Readonly<Map<string, Mode>> = new Map<string, Mode>([
-            ['ShiftLeft', Mode.ShiftMode],
             ['KeyS', Mode.ShuffleFlam],
             ['KeyL', Mode.LastStep],
             ['KeyI', Mode.SelectInstrument]
@@ -46,10 +42,12 @@ export class GUI {
     readonly runningMode = new ObservableValueImpl<Mode>(Mode.Steps)
     readonly currentMode = new ObservableValueImpl<Mode>(this.runningMode.get())
 
-    constructor(private readonly parentNode: ParentNode, private readonly machine: TR909Machine) {
+    constructor(private readonly parentNode: ParentNode,
+                private readonly machine: TR909Machine) {
         this.terminator = new Terminator()
         this.digits = new Digits(HTML.query('svg[data-display=led-display]', parentNode))
         this.digits.show(0)
+        const machineContext = new MachineContext(machine, parentNode)
         this.mainButtonsContext = new MainButtonsContext(machine,
             [...(Array.from<HTMLButtonElement>(
                 HTML.queryAll('[data-control=main-buttons] [data-control=main-button]', parentNode))),
@@ -59,11 +57,11 @@ export class GUI {
         this.installScale()
         this.installFunctionButtons()
         this.installTransport()
+        this.installBlinkingSynchronizer()
     }
 
     private installFunctionButtons() {
         const buttons: Readonly<Map<Mode, HTMLButtonElement>> = new Map<Mode, HTMLButtonElement>([
-            [Mode.ShiftMode, HTML.query('[data-button=shift]')],
             [Mode.ShuffleFlam, HTML.query('[data-button=shuffle-flam]')],
             [Mode.LastStep, HTML.query('[data-button=last-step]')],
             [Mode.SelectInstrument, HTML.query('[data-button=instrument-select]')],
@@ -98,8 +96,6 @@ export class GUI {
                     break
                 case Mode.SelectInstrument:
                     this.mainButtonsContext.switchToInstrumentSelectModeState()
-                    break
-                case Mode.ShiftMode:
                     break
             }
             for (const button of buttons.values()) {
@@ -197,5 +193,28 @@ export class GUI {
                 transport.togglePlayback()
             }
         })
+    }
+
+    private installBlinkingSynchronizer(): void {
+        let running = true
+        let visible = true
+        let position = 0.0
+        let lastTime = Date.now()
+        const next = () => {
+            const now = Date.now()
+            const elapsedTime = (now - lastTime) / 1000.0
+            position += secondsToBars(elapsedTime, this.machine.preset.tempo.get()) * 8.0
+            lastTime = now
+            if (position >= 1.0) {
+                document.documentElement.style.setProperty('--synchronous-visibility', visible ? 'visible' : 'hidden')
+                visible = !visible
+                position -= 1.0
+            }
+            if (running) {
+                requestAnimationFrame(next)
+            }
+        }
+        requestAnimationFrame(next)
+        this.terminator.with({terminate: () => running = false})
     }
 }

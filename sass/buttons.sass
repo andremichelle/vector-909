@@ -65,12 +65,6 @@ button.switch, button.trigger
     background-color: #4c3b3b
     box-shadow: 0 0 0.5px 1px rgba(black, 0.2) inset, 0 1px 0.5px 0 rgba(white, 0.4)
 
-@keyframes blink
-  0%
-    visibility: hidden
-  50%
-    visibility: visible
-
 button.translucent-button
   margin: 0
   padding: 0
@@ -104,7 +98,7 @@ button.translucent-button
     filter: brightness(98%)
 
   &.blink:after
-    animation: blink 1s infinite steps(1, end)
+    visibility: var(--synchronous-visibility)
 
   &.active:after
     visibility: visible

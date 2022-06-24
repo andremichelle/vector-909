@@ -2,29 +2,59 @@ import {GrooveFunction, GrooveIdentity} from "../audio/grooves.js"
 import {FlamDelays, Instrument, Step} from "../audio/tr909/patterns.js"
 import {TR909Machine} from "../audio/tr909/worklet.js"
 import {ArrayUtils, ObservableValueImpl, Terminable, TerminableVoid, Terminator} from "../lib/common.js"
+import {HTML} from "../lib/dom.js"
 import {PowInjective} from "../lib/injective.js"
 
 /**
  * 909 States
-    [TRACK PLAY]
-        + not playing
-            + Track buttons 1-4 permanently lit
-            + Shows '1' in display if track sequence is available or zero if not
-            + First pattern index is blinking on main-button or first if empty
-            + All instruments can be tapped
-            + FWD will increase track sequence position (until end)
-            + BACK will decrease track sequence position (until start)
-            + TEMPO will show tempo
-        + playing
-            + If CYCLE/GUIDE is turned on, if track sequence will be repeated
-            + TEMPO will show tempo
-
+ [TRACK PLAY]
+ + not playing
+ ++ Track buttons 1-4 permanently lit
+ ++ Shows '1' in display if track sequence is available or zero if not
+ ++ First pattern index is blinking on main-button or first if empty
+ ++ All instruments can be tapped
+ ++ FWD will increase track sequence position (until end)
+ ++ BACK will decrease track sequence position (until start)
+ ++ TEMPO will show tempo
+ + playing
+ ++ If CYCLE/GUIDE is turned on, if track sequence will be repeated
+ ++ TEMPO will show tempo
  */
+
+export class MachineContext {
+    readonly shiftButton: HTMLButtonElement
+    readonly trackIndexButtons: HTMLButtonElement[]
+    readonly patternGroupButtons: HTMLButtonElement[]
+
+    readonly trackIndex: ObservableValueImpl<number> = new ObservableValueImpl<number>(0)
+
+    private state: NonNullable<MachineState>
+
+    constructor(readonly machine: TR909Machine, parentNode: ParentNode) {
+        this.shiftButton = HTML.query('[data-button=shift]', parentNode)
+        this.trackIndexButtons = HTML.queryAll('[data-button=track-index]', parentNode)
+        this.patternGroupButtons = HTML.queryAll('[data-button=pattern-group]', parentNode)
+        this.state = new TrackPlayState(this)
+    }
+}
+
+export interface MachineState {
+    readonly context: MachineContext
+}
+
+export class TrackPlayState implements MachineState {
+    constructor(readonly context: MachineContext) {
+        this.context.trackIndexButtons.forEach((button: HTMLButtonElement, index: number) => {
+            const isActive = index === this.context.trackIndex.get()
+            button.classList.toggle('blink', isActive)
+        })
+    }
+}
 
 export class MainButtonsContext {
     readonly selectedInstruments: ObservableValueImpl<Instrument> = new ObservableValueImpl<Instrument>(Instrument.Bassdrum)
 
-    private state: MainButtonState = new StepModeState(this)
+    private state: NonNullable<MainButtonState> = new StepModeState(this)
 
     constructor(readonly machine: TR909Machine,
                 readonly buttons: HTMLButtonElement[]) {

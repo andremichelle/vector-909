@@ -92,5 +92,25 @@
         </g>
     </svg>
 </div>
+<script>
+    let count = 0
+    const components = document.querySelector('.components');
+    const next = () => {
+        // <button class="translucent-button"></button>
+        const buttonElement = document.createElement('button');
+        buttonElement.classList.add('translucent-button');
+        buttonElement.classList.add('blink');
+        components.appendChild(buttonElement)
+        if (++count < 20) {
+            requestAnimationFrame(next)
+        }
+    }
+    let visible = true
+    setInterval(() => {
+        visible = !visible
+        document.documentElement.style.setProperty('--synchronous-visibility', visible ? 'visible' : 'hidden')
+    }, 1000)
+    requestAnimationFrame(next)
+</script>
 </body>
 </html>
