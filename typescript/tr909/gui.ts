@@ -2,8 +2,13 @@ import {Scale} from "../audio/tr909/patterns.js"
 import {TR909Machine} from "../audio/tr909/worklet.js"
 import {Events, ObservableValueImpl, Terminable, TerminableVoid, Terminator} from "../lib/common.js"
 import {HTML} from "../lib/dom.js"
+import {Digits} from "./digits.js"
 import {Knob} from "./knobs.js"
 import {MainButtonsContext} from "./states.js"
+
+export enum MachineState {
+    TrackPlay, TrackWrite, PatternPlay, PatternWrite
+}
 
 export enum Mode {
     Steps, Tap, LastStep, ShuffleFlam, SelectInstrument, ShiftMode
@@ -34,13 +39,17 @@ export class GUI {
         })
     }
 
-    private readonly terminator = new Terminator()
+    private readonly terminator
+    private readonly digits: Digits
     private readonly mainButtonsContext: MainButtonsContext
 
     readonly runningMode = new ObservableValueImpl<Mode>(Mode.Steps)
     readonly currentMode = new ObservableValueImpl<Mode>(this.runningMode.get())
 
     constructor(private readonly parentNode: ParentNode, private readonly machine: TR909Machine) {
+        this.terminator = new Terminator()
+        this.digits = new Digits(HTML.query('svg[data-display=led-display]', parentNode))
+        this.digits.show(0)
         this.mainButtonsContext = new MainButtonsContext(machine,
             [...(Array.from<HTMLButtonElement>(
                 HTML.queryAll('[data-control=main-buttons] [data-control=main-button]', parentNode))),

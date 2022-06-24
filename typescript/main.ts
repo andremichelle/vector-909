@@ -1,4 +1,3 @@
-import {Transport} from "./audio/common.js"
 import {LimiterWorklet} from "./audio/limiter/worklet.js"
 import {MeterWorklet} from "./audio/meter/worklet.js"
 import {MetronomeWorklet} from "./audio/metronome/worklet.js"
@@ -7,7 +6,6 @@ import {TR909Machine} from "./audio/tr909/worklet.js"
 import {Boot, newAudioContext, preloadImagesOfCssFile} from "./lib/boot.js"
 import {Waiting} from "./lib/common.js"
 import {HTML} from "./lib/dom.js"
-import {Digits} from "./tr909/digits.js"
 import {GUI, Mode} from "./tr909/gui.js"
 
 const showProgress = (() => {
@@ -41,9 +39,6 @@ const showProgress = (() => {
     const gui = new GUI(parentNode, machine)
     GUI.installGlobalShortcuts(gui)
 
-    // const digits: Digits = new Digits(HTML.query('svg[data-display=led-display]', parentNode))
-    // machine.preset.tempo.addObserver(bpm => digits.show(bpm), true)
-
     // debugging
     const debugZoom = HTML.query('[data-output=zoom]')
     const debugMode = HTML.query('[data-output=mode]')
@@ -58,6 +53,7 @@ const showProgress = (() => {
     // prevent dragging entire document on mobile
     document.addEventListener('touchmove', (event: TouchEvent) => event.preventDefault(), {passive: false})
     document.addEventListener('dblclick', (event: Event) => event.preventDefault(), {passive: false})
+    document.addEventListener('contextmenu', event => event.preventDefault())
     const main: HTMLElement = HTML.query('main')
     const resize = () => {
         document.body.style.height = `${window.innerHeight}px`

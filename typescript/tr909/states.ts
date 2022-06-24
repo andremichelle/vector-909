@@ -4,6 +4,23 @@ import {TR909Machine} from "../audio/tr909/worklet.js"
 import {ArrayUtils, ObservableValueImpl, Terminable, TerminableVoid, Terminator} from "../lib/common.js"
 import {PowInjective} from "../lib/injective.js"
 
+/**
+ * 909 States
+    [TRACK PLAY]
+        + not playing
+            + Track buttons 1-4 permanently lit
+            + Shows '1' in display if track sequence is available or zero if not
+            + First pattern index is blinking on main-button or first if empty
+            + All instruments can be tapped
+            + FWD will increase track sequence position (until end)
+            + BACK will decrease track sequence position (until start)
+            + TEMPO will show tempo
+        + playing
+            + If CYCLE/GUIDE is turned on, if track sequence will be repeated
+            + TEMPO will show tempo
+
+ */
+
 export class MainButtonsContext {
     readonly selectedInstruments: ObservableValueImpl<Instrument> = new ObservableValueImpl<Instrument>(Instrument.Bassdrum)
 
