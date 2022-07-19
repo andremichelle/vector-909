@@ -9,16 +9,16 @@ import {PowInjective} from "../lib/injective.js"
  * 909 States
  [TRACK PLAY]
  + not playing
- ++ Track buttons 1-4 permanently lit
- ++ Shows '1' in display if track sequence is available or zero if not
- ++ First pattern index is blinking on main-button or first if empty
- ++ All instruments can be tapped
- ++ FWD will increase track sequence position (until end)
- ++ BACK will decrease track sequence position (until start)
- ++ TEMPO will show tempo
+ + | Track buttons 1-4 permanently lit
+ + | Shows '1' in display if track sequence is available or zero if not
+ + | First pattern index is blinking on main-button or first if empty
+ + | All instruments can be tapped
+ + | FWD will increase track sequence position (until end)
+ + | BACK will decrease track sequence position (until start)
+ + | TEMPO will show tempo
  + playing
- ++ If CYCLE/GUIDE is turned on, if track sequence will be repeated
- ++ TEMPO will show tempo
+ + | If CYCLE/GUIDE is turned on, if track sequence will be repeated
+ + | TEMPO will show tempo
  */
 
 export class MachineContext {
@@ -55,6 +55,8 @@ export class TrackPlayState implements MachineState {
             this.context.patternGroupButtons.forEach((button: HTMLButtonElement, buttonIndex: number) =>
                 button.classList.toggle('active', buttonIndex === patternGroupIndex))
         }, true))
+
+        this.context.trackIndexButtons[0].classList.add('blink')
     }
 }
 

@@ -69,9 +69,9 @@ const showProgress = (() => {
     }
 
     window.addEventListener("resize", resize)
-    await Waiting.forFrame()
-    document.querySelectorAll("body svg.preloader").forEach(element => element.remove())
-    document.querySelectorAll("body main").forEach(element => element.classList.remove("hidden"))
     resize()
+    const body = HTML.query("body")
+    HTML.queryAll("svg.preloader", body).forEach(element => element.remove())
+    HTML.queryAll("main", body).forEach(element => element.classList.remove("hidden"))
     console.debug("boot complete.")
 })()

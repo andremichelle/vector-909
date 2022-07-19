@@ -107,7 +107,7 @@ export class Preset {
 
     observeAll(callback: (parameter: Parameter<any>, path: string[]) => void): Terminable {
         const terminator = new Terminator()
-        const search = (object: any, path: string[]): void => {
+        const search = <T>(object: T, path: string[]): void => {
             for (let key in object) {
                 const element = object[key]
                 const elementPath = path.concat(key)
