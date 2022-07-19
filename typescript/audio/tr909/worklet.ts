@@ -24,7 +24,6 @@ export class TR909Machine implements Terminable {
 
     private patternSubscription: Terminable = TerminableVoid
 
-
     constructor(context, resources: Resources) {
         this.worklet = new AudioWorkletNode(context, "tr-909", {
             numberOfInputs: 1,
