@@ -1,5 +1,5 @@
 import {GrooveFunction, GrooveIdentity} from "../audio/grooves.js"
-import {ChannelIndex, InstrumentIndex, Pattern, Step} from "../audio/tr909/memory.js"
+import {ChannelIndex, Pattern, Step} from "../audio/tr909/memory.js"
 import {TR909Machine} from "../audio/tr909/worklet.js"
 import {ArrayUtils, ObservableValueImpl, Terminable, TerminableVoid, Terminator} from "../lib/common.js"
 import {HTML} from "../lib/dom.js"
@@ -20,6 +20,11 @@ import {PowInjective} from "../lib/injective.js"
  + | If CYCLE/GUIDE is turned on, if track sequence will be repeated
  + | TEMPO will show tempo
  */
+
+class MainButton {
+    constructor(private readonly element: HTMLButtonElement) {
+    }
+}
 
 export class MachineContext {
     readonly shiftButton: HTMLButtonElement
@@ -61,7 +66,7 @@ export class TrackPlayState implements MachineState {
 export class MainButtonsContext {
     readonly selectedChannel: ObservableValueImpl<ChannelIndex> = new ObservableValueImpl<ChannelIndex>(ChannelIndex.Bassdrum)
 
-    private state: NonNullable<MainButtonState> = new TapModeState(this)
+    private state: NonNullable<MainButtonState> = new StepModeState(this)
 
     constructor(readonly machine: TR909Machine,
                 readonly buttons: HTMLButtonElement[]) {
@@ -112,7 +117,7 @@ export class MainButtonsContext {
     }
 
     clear(): void {
-        this.buttons.forEach(button => button.classList.remove('half', 'active'))
+        this.buttons.forEach(button => button.classList.remove('flash-active', 'active'))
     }
 }
 
@@ -145,7 +150,7 @@ class TapModeState implements MainButtonState {
     constructor(readonly context: MainButtonsContext) {
         this.stepIndexSubscription = this.context.machine.stepIndex.addObserver(index => {
             this.context.clear()
-            this.context.getByIndex(index).classList.add('half')
+            this.context.getByIndex(index).classList.add('flash-active')
         }, true)
     }
 
@@ -200,10 +205,15 @@ class StepModeState implements MainButtonState {
     update(): void {
         const pattern = this.context.machine.memory.current()
         const channelIndex = this.context.selectedChannel.get()
-        this.context.forEach((button: HTMLButtonElement, index: number) => {
-            const step: Step = pattern.getStep(channelIndex, index)
-            button.classList.toggle('half', step === Step.Active)
-            button.classList.toggle('active', step === Step.Accent)
+        this.context.forEach((button: HTMLButtonElement, buttonIndex: number) => {
+            if (buttonIndex < 16) {
+                const step: Step = pattern.getStep(channelIndex, buttonIndex)
+                button.classList.toggle('flash-active', step === Step.Active)
+                button.classList.toggle('active', step === Step.Accent)
+            } else {
+                // button.classList.remove('flash-active')
+                // button.classList.toggle('active', pattern.isTotalAccent(buttonIndex))
+            }
         })
     }
 }
@@ -379,37 +389,9 @@ class ButtonMapping {
             case 15:
                 return {channelIndex: ChannelIndex.Ride, step: Step.Active}
             case 16: {
+                throw new Error("Implement Total Accent")
             }
         }
-        throw new Error("Implement Total Accent")
-    }
-
-    static instrumentToIndices(instrument: InstrumentIndex): number[] {
-        switch (instrument) {
-            case InstrumentIndex.Bassdrum:
-                return [0]
-            case InstrumentIndex.Snaredrum:
-                return [2]
-            case InstrumentIndex.TomLow:
-                return [4]
-            case InstrumentIndex.TomMid:
-                return [6]
-            case InstrumentIndex.TomHi:
-                return [8]
-            case InstrumentIndex.Rim:
-                return [10]
-            case InstrumentIndex.Clap:
-                return [11]
-            case InstrumentIndex.HihatClosed:
-                return [12]
-            case InstrumentIndex.HihatOpened:
-                return [12, 13]
-            case InstrumentIndex.Crash:
-                return [14]
-            case InstrumentIndex.Ride:
-                return [15]
-            // case InstrumentIndex.TotalAccent: TODO
-            //     return [16]
-        }
+        throw new Error(`Unknown index(${index})`)
     }
 }

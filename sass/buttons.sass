@@ -35,9 +35,8 @@ button.switch, button.trigger
       transform: scale(0.97)
       transform-origin: 6px 12px
 
-  &.switch.half:after
-    background-color: darken($color-led, 16)
-    box-shadow: 0 0 0.5px 0.5px rgba(black, 0.1) inset, 0 1px 0.5px 0 rgba(white, 0.2), 0 -0.5px 2px 0 $color-led-glow
+  &.switch.flash-active:after
+    background-color: darken($color-led, 8%)
 
   &.switch.active:after
     background-color: $color-led
@@ -98,7 +97,7 @@ button.translucent-button
     filter: brightness(98%)
 
   &.blink:after
-    visibility: var(--synchronous-visibility)
+    visibility: var(--synchronous-beat-visibility)
 
   &.active:after
     visibility: visible

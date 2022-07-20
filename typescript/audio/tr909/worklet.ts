@@ -27,8 +27,8 @@ export class TR909Machine implements Terminable {
     constructor(context, resources: Resources) {
         this.worklet = new AudioWorkletNode(context, "tr-909", {
             numberOfInputs: 1,
-            numberOfOutputs: ChannelIndex.length,
-            outputChannelCount: ArrayUtils.fill(ChannelIndex.length, () => 1),
+            numberOfOutputs: ChannelIndex.Last,
+            outputChannelCount: ArrayUtils.fill(ChannelIndex.Last, () => 1),
             channelCount: 1,
             channelCountMode: "explicit",
             channelInterpretation: "speakers",
@@ -40,7 +40,7 @@ export class TR909Machine implements Terminable {
         this.transport.addObserver(message => this.worklet.port.postMessage(message), false)
         this.meterWorklet = new MeterWorklet(context, 10, 1)
         this.master = context.createGain()
-        for (let index = 0; index < ChannelIndex.length; index++) {
+        for (let index = 0; index < ChannelIndex.Last; index++) {
             this.worklet.connect(this.meterWorklet, index, index).connect(this.master, index, 0)
         }
         this.terminator.with(this.preset.volume.addObserver(value => this.master.gain.value = dbToGain(value), true))

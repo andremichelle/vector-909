@@ -23,7 +23,7 @@ export enum ChannelIndex {
     TomLow, TomMid, TomHi,
     Rim, Clap,
     Hihat, Crash, Ride,
-    length
+    Last
 }
 
 export enum InstrumentIndex {
@@ -74,7 +74,7 @@ export class Pattern implements Observable<void> {
 
     private readonly listener: () => void = () => this.observable.notify()
     private readonly observable = new ObservableImpl<void>()
-    private readonly steps: Step[][] = ArrayUtils.fill(ChannelIndex.length, () => ArrayUtils.fill(16, () => Step.None))
+    private readonly steps: Step[][] = ArrayUtils.fill(ChannelIndex.Last, () => ArrayUtils.fill(16, () => Step.None))
     private readonly totalAccents: boolean[] = ArrayUtils.fill(16, () => false)
     private readonly scaleSubscription = this.scale.addObserver(this.listener, false)
     private readonly flamDelaySubscription = this.flamDelay.addObserver(this.listener, false)
@@ -99,12 +99,13 @@ export class Pattern implements Observable<void> {
                 this.setStep(ChannelIndex.Bassdrum, i, Step.Accent)
             }
         }
+        this.setStep(ChannelIndex.Bassdrum, 15, Step.Active)
         this.setStep(ChannelIndex.Clap, 4, Step.None)
         this.setStep(ChannelIndex.Clap, 12, Step.None)
     }
 
     setStep(channelIndex: ChannelIndex, stepIndex: number, step: Step): void {
-        console.assert(0 <= channelIndex && channelIndex < ChannelIndex.length)
+        console.assert(0 <= channelIndex && channelIndex < ChannelIndex.Last)
         console.assert(0 <= stepIndex && stepIndex < 16)
         if (this.steps[channelIndex][stepIndex] === step) {
             return
@@ -114,7 +115,7 @@ export class Pattern implements Observable<void> {
     }
 
     getStep(channelIndex: ChannelIndex, stepIndex: number): Step {
-        console.assert(0 <= channelIndex && channelIndex < ChannelIndex.length)
+        console.assert(0 <= channelIndex && channelIndex < ChannelIndex.Last)
         console.assert(0 <= stepIndex && stepIndex < 16)
         return this.steps[channelIndex][stepIndex]
     }
