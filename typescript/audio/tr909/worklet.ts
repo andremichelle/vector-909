@@ -2,7 +2,7 @@ import {ArrayUtils, ObservableValueImpl, Parameter, Terminable, TerminableVoid, 
 import {dbToGain, Transport} from "../common.js"
 import {MeterWorklet} from "../meter/worklet.js"
 import {ChannelIndex, Memory, Step} from "./memory.js"
-import {ToMainMessage, ToWorkletMessage} from "./messages.js"
+import {ProcessorOptions, ToMainMessage, ToWorkletMessage} from "./messages.js"
 import {Preset} from "./preset.js"
 import {Resources} from "./resources.js"
 
@@ -22,6 +22,7 @@ export class TR909Machine implements Terminable {
     readonly stepIndex = new ObservableValueImpl<number>(0)
 
     private patternSubscription: Terminable = TerminableVoid
+    private processing: boolean = false
 
     constructor(context, resources: Resources) {
         this.worklet = new AudioWorkletNode(context, "tr-909", {
@@ -31,7 +32,7 @@ export class TR909Machine implements Terminable {
             channelCount: 1,
             channelCountMode: "explicit",
             channelInterpretation: "speakers",
-            processorOptions: resources
+            processorOptions: {resources} as ProcessorOptions
         })
         this.preset = new Preset()
         this.memory = new Memory()
@@ -59,10 +60,20 @@ export class TR909Machine implements Terminable {
                 format: pattern.serialize()
             } as ToWorkletMessage), false)
         }, true))
-        this.worklet.port.onmessage = event => this.stepIndex.set((event.data as ToMainMessage).index)
+        this.worklet.port.onmessage = event => {
+            if (!this.processing) {
+                this.worklet.port.postMessage({
+                    type: "update-outputLatency",
+                    outputLatency: context.outputLatency
+                } as ToWorkletMessage)
+                this.processing = true
+            }
+            this.stepIndex.set((event.data as ToMainMessage).index)
+        }
     }
 
     play(channelIndex: ChannelIndex, step: Step) {
+        console.log(`play(channelIndex: ${channelIndex}, step: ${step})`)
         this.worklet.port.postMessage({type: 'play-channel', channelIndex, step} as ToWorkletMessage)
     }
 

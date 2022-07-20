@@ -6,11 +6,9 @@ import {Channel, VoiceFactory} from "./dsp/channel.js"
 import {SnaredrumVoice} from "./dsp/snaredrum.js"
 import {Voice} from "./dsp/voice.js"
 import {ChannelIndex, Memory, Pattern, Step} from "./memory.js"
-import {ToMainMessage, ToWorkletMessage} from "./messages.js"
+import {ProcessorOptions, ToMainMessage, ToWorkletMessage} from "./messages.js"
 import {Preset} from "./preset.js"
 import {Resources} from "./resources.js"
-
-const latency: number = 0.050 // For tap mode. TODO: Can we read or compute it somehow?
 
 registerProcessor('tr-909', class extends AudioWorkletProcessor implements VoiceFactory {
     private readonly resources: Resources
@@ -18,16 +16,17 @@ registerProcessor('tr-909', class extends AudioWorkletProcessor implements Voice
     private readonly memory: Memory
     private readonly channels: Channel[]
 
+    private outputLatency: number = 0.0
     private moving: boolean = false
     private bpm: number = 120.0
     private bar: number = 0.0
     private barIncrement: number = 0.0
     private frameIndex: number = 0 | 0
 
-    constructor(options: { processorOptions: Resources }) {
+    constructor(options: { processorOptions: ProcessorOptions }) {
         super(options)
 
-        this.resources = options.processorOptions
+        this.resources = options.processorOptions.resources
         this.preset = new Preset()
         this.preset.tempo.addObserver((bpm: number) => {
             this.bpm = bpm
@@ -38,7 +37,10 @@ registerProcessor('tr-909', class extends AudioWorkletProcessor implements Voice
 
         this.port.onmessage = (event: MessageEvent) => {
             const message: ToWorkletMessage | TransportMessage = event.data
-            if (message.type === 'update-parameter') {
+            if (message.type === 'update-outputLatency') {
+                console.debug(`set outputLatency: ${message.outputLatency}`)
+                this.outputLatency = message.outputLatency
+            } else if (message.type === 'update-parameter') {
                 this.preset.find(message.path).setUnipolar(message.unipolar)
             } else if (message.type === 'update-pattern') {
                 this.memory.patterns[message.index].deserialize(message.format)
@@ -70,7 +72,7 @@ registerProcessor('tr-909', class extends AudioWorkletProcessor implements Voice
     updateStepIndex(): void {
         const pattern: Pattern = this.memory.current()
         const scale = pattern.scale.get().value()
-        const b0 = this.bar + secondsToBars(latency, this.bpm)
+        const b0 = this.bar + secondsToBars(this.outputLatency, this.bpm)
         const b1 = b0 + this.barIncrement
         let index = (b0 / scale) | 0
         let search = index * scale

@@ -20,7 +20,8 @@ const showProgress = (() => {
 
     // --- BOOT STARTS ---
     const context = newAudioContext()
-    console.debug(`sampleRate: ${context.sampleRate}`)
+    await Waiting.forFrame()
+    console.debug(`sampleRate: ${context.sampleRate}Hz`)
     const boot = new Boot()
     boot.addObserver(boot => showProgress(boot.normalizedPercentage()))
     boot.registerProcess(preloadImagesOfCssFile("./bin/main.css"))

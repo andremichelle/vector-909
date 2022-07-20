@@ -5,7 +5,6 @@ import {Observable, ObservableImpl, Observer, Terminable} from "./common.js"
 export const preloadImagesOfCssFile = async (pathToCss: string): Promise<void> => {
     const href = location.href
     const base = href.substring(0, href.lastIndexOf("/")) + "/bin/"
-    console.debug(`preloadImagesOfCssFile... base: ${base}`)
     const urls: URL[] = await fetch(pathToCss)
         .then(x => x.text()).then(x => {
             const matches = x.match(/url\(.+(?=\))/g)
@@ -22,6 +21,7 @@ export const preloadImagesOfCssFile = async (pathToCss: string): Promise<void> =
                 })
                 .map(path => new URL(path, base))
         })
+    console.debug(`preloadImagesOfCssFile... base: ${base} (${urls.length})`)
     return Promise.all(urls.map(url => fetch(url.href))).then(() => Promise.resolve())
 }
 
@@ -115,13 +115,11 @@ export const newAudioContext = (options: AudioContextOptions = {
                 } catch (e) {
                     return
                 }
-                window.removeEventListener("mousedown", resume, eventOptions)
-                window.removeEventListener("touchstart", resume, eventOptions)
+                window.removeEventListener("pointerdown", resume, eventOptions)
                 window.removeEventListener("keydown", resume, eventOptions)
             }
         }
-        window.addEventListener("mousedown", resume, eventOptions)
-        window.addEventListener("touchstart", resume, eventOptions)
+        window.addEventListener("pointerdown", resume, eventOptions)
         window.addEventListener("keydown", resume, eventOptions)
     }
     return context
