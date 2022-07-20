@@ -198,10 +198,10 @@ export class GUI {
     private installBlinkingSynchronizer(): void {
         let running = true
         let visible = true
-        let flash = 0
-        let position = 0.0
-        let lastTime = Date.now()
-        const style = document.documentElement.style
+        let frame: number = 0 | 0
+        let position: number = 0.0
+        let lastTime: number = Date.now()
+        const style: CSSStyleDeclaration = document.documentElement.style
         const next = () => {
             const now = Date.now()
             const elapsedTime = (now - lastTime) / 1000.0
@@ -212,8 +212,9 @@ export class GUI {
                 visible = !visible
                 position -= 1.0
             }
-            HTML.queryAll('.flash-active').forEach(element => element.classList.toggle('active', flash % 4 < 2))
-            flash++
+            const flash: boolean = frame % 4 < 2
+            HTML.queryAll('.flash-active', this.parentNode).forEach(element => element.classList.toggle('active', flash))
+            frame++
             if (running) {
                 requestAnimationFrame(next)
             }
