@@ -1,35 +1,34 @@
 import {Terminable, Terminator} from "../../../lib/common.js"
 import {dbToGain} from "../../common.js"
-import {Instrument} from "../patterns.js"
-import {ChannelIndex} from "./channel.js"
+import {ChannelIndex, InstrumentIndex} from "../memory.js"
 
 export const SilentGain = dbToGain(-72.0)
 
-export const toChannel = (instrument: Instrument): ChannelIndex => {
+export const toChannel = (instrument: InstrumentIndex): ChannelIndex => {
     switch (instrument) {
-        case Instrument.Bassdrum:
+        case InstrumentIndex.Bassdrum:
             return ChannelIndex.Bassdrum
-        case Instrument.Snaredrum:
+        case InstrumentIndex.Snaredrum:
             return ChannelIndex.Snaredrum
-        case Instrument.TomLow:
+        case InstrumentIndex.TomLow:
             return ChannelIndex.TomLow
-        case Instrument.TomMid:
+        case InstrumentIndex.TomMid:
             return ChannelIndex.TomMid
-        case Instrument.TomHi:
+        case InstrumentIndex.TomHi:
             return ChannelIndex.TomHi
-        case Instrument.Rim:
+        case InstrumentIndex.Rim:
             return ChannelIndex.Rim
-        case Instrument.Clap:
+        case InstrumentIndex.Clap:
             return ChannelIndex.Clap
-        case Instrument.HihatOpened:
-        case Instrument.HihatClosed:
+        case InstrumentIndex.HihatOpened:
+        case InstrumentIndex.HihatClosed:
             return ChannelIndex.Hihat
-        case Instrument.Crash:
+        case InstrumentIndex.Crash:
             return ChannelIndex.Crash
-        case Instrument.Ride:
+        case InstrumentIndex.Ride:
             return ChannelIndex.Ride
     }
-    throw new Error(`No channel for ${Instrument[instrument]}`)
+    throw new Error(`No channel for ${InstrumentIndex[instrument]}`)
 }
 
 export type isRunning = boolean

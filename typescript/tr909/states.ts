@@ -1,5 +1,5 @@
 import {GrooveFunction, GrooveIdentity} from "../audio/grooves.js"
-import {FlamDelays, Instrument, Step} from "../audio/tr909/patterns.js"
+import {ChannelIndex, InstrumentIndex, Pattern, Step} from "../audio/tr909/memory.js"
 import {TR909Machine} from "../audio/tr909/worklet.js"
 import {ArrayUtils, ObservableValueImpl, Terminable, TerminableVoid, Terminator} from "../lib/common.js"
 import {HTML} from "../lib/dom.js"
@@ -49,19 +49,17 @@ export class TrackPlayState implements MachineState {
     constructor(readonly context: MachineContext) {
         this.terminator.with(this.context.trackIndex.addObserver(trackIndex => {
             this.context.trackIndexButtons.forEach((button: HTMLButtonElement, buttonIndex: number) =>
-                button.classList.toggle('active', buttonIndex === trackIndex))
+                button.classList.toggle('blink', buttonIndex === trackIndex))
         }, true))
         this.terminator.with(this.context.patternGroupIndex.addObserver(patternGroupIndex => {
             this.context.patternGroupButtons.forEach((button: HTMLButtonElement, buttonIndex: number) =>
-                button.classList.toggle('active', buttonIndex === patternGroupIndex))
+                button.classList.toggle('blink', buttonIndex === patternGroupIndex))
         }, true))
-
-        this.context.trackIndexButtons[0].classList.add('blink')
     }
 }
 
 export class MainButtonsContext {
-    readonly selectedInstruments: ObservableValueImpl<Instrument> = new ObservableValueImpl<Instrument>(Instrument.Bassdrum)
+    readonly selectedChannel: ObservableValueImpl<ChannelIndex> = new ObservableValueImpl<ChannelIndex>(ChannelIndex.Bassdrum)
 
     private state: NonNullable<MainButtonState> = new TapModeState(this)
 
@@ -154,11 +152,11 @@ class TapModeState implements MainButtonState {
     onButtonPress(event: PointerEvent, index: number): void {
         const playTrigger = ButtonMapping.toPlayTrigger(index, this.multiTouches)
         const machine = this.context.machine
-        machine.play(playTrigger.instrument, playTrigger.accent)
+        machine.play(playTrigger.channelIndex, playTrigger.step)
         this.multiTouches.add(index)
         if (machine.transport.isPlaying()) {
             machine.memory.current()
-                .setStep(playTrigger.instrument, machine.stepIndex.get(), playTrigger.accent ? Step.Accent : Step.Active)
+                .setStep(playTrigger.channelIndex, machine.stepIndex.get(), playTrigger.step ? Step.Accent : Step.Active)
         }
     }
 
@@ -186,7 +184,7 @@ class StepModeState implements MainButtonState {
 
     onButtonPress(event: PointerEvent, index: number): void {
         const pattern = this.context.machine.memory.current()
-        const instrument = this.context.selectedInstruments.get()
+        const instrument = this.context.selectedChannel.get()
         const step: Step = pattern.getStep(instrument, index)
         pattern.setStep(instrument, index, (step + 1) % 3) // cycle through states
     }
@@ -201,9 +199,9 @@ class StepModeState implements MainButtonState {
 
     update(): void {
         const pattern = this.context.machine.memory.current()
-        const instrument = this.context.selectedInstruments.get()
+        const channelIndex = this.context.selectedChannel.get()
         this.context.forEach((button: HTMLButtonElement, index: number) => {
-            const step: Step = pattern.getStep(instrument, index)
+            const step: Step = pattern.getStep(channelIndex, index)
             button.classList.toggle('half', step === Step.Active)
             button.classList.toggle('active', step === Step.Accent)
         })
@@ -238,7 +236,7 @@ class ShuffleFlamState implements MainButtonState {
             pattern.groove.set(grooveFunction)
         } else if (index >= 8 && index < 16) {
             const flamIndex = index - 8
-            pattern.flamDelay.set(FlamDelays[flamIndex])
+            pattern.flamDelay.set(Pattern.FlamDelays[flamIndex])
         }
     }
 
@@ -265,9 +263,9 @@ class ShuffleFlamState implements MainButtonState {
                 }
             }
         }
-        const index = FlamDelays.indexOf(pattern.flamDelay.get())
-        if (index >= 0) {
-            this.context.getByIndex(index + 8).classList.add('active')
+        const flamIndex = Pattern.FlamDelays.indexOf(pattern.flamDelay.get())
+        if (flamIndex >= 0) {
+            this.context.getByIndex(flamIndex + 8).classList.add('active')
         }
     }
 }
@@ -309,18 +307,19 @@ class InstrumentSelectState implements MainButtonState {
 
     private readonly update = () => {
         this.context.clear()
-        this.context
-            .map(ButtonMapping.instrumentToIndices(this.context.selectedInstruments.get()))
-            .forEach(button => button.classList.add('active'))
+        // TODO Show channel
+        // this.context
+        //     .map(ButtonMapping.instrumentToIndices(this.context.selectedChannel.get()))
+        //     .forEach(button => button.classList.add('active'))
     }
 
-    private readonly subscription = this.context.selectedInstruments.addObserver(this.update, true)
+    private readonly subscription = this.context.selectedChannel.addObserver(this.update, true)
 
     constructor(readonly context: MainButtonsContext) {
     }
 
     onButtonPress(event: PointerEvent, index: number): void {
-        this.context.selectedInstruments.set(ButtonMapping.toPlayTrigger(index, this.multiTouches).instrument)
+        this.context.selectedChannel.set(ButtonMapping.toPlayTrigger(index, this.multiTouches).channelIndex)
         this.multiTouches.add(index)
     }
 
@@ -334,82 +333,83 @@ class InstrumentSelectState implements MainButtonState {
     }
 }
 
-type PlayTrigger = { instrument: Instrument, accent: boolean }
+type PlayTrigger = { channelIndex: ChannelIndex, step: Step }
 
 class ButtonMapping {
     static toPlayTrigger(index: number, multiTouches: Set<number>): PlayTrigger {
         switch (index) {
             case 0:
-                return {instrument: Instrument.Bassdrum, accent: true}
+                return {channelIndex: ChannelIndex.Bassdrum, step: Step.Accent}
             case 1:
-                return {instrument: Instrument.Bassdrum, accent: false}
+                return {channelIndex: ChannelIndex.Bassdrum, step: Step.Active}
             case 2:
-                return {instrument: Instrument.Snaredrum, accent: true}
+                return {channelIndex: ChannelIndex.Snaredrum, step: Step.Accent}
             case 3:
-                return {instrument: Instrument.Snaredrum, accent: false}
+                return {channelIndex: ChannelIndex.Snaredrum, step: Step.Active}
             case 4:
-                return {instrument: Instrument.TomLow, accent: true}
+                return {channelIndex: ChannelIndex.TomLow, step: Step.Accent}
             case 5:
-                return {instrument: Instrument.TomLow, accent: false}
+                return {channelIndex: ChannelIndex.TomLow, step: Step.Active}
             case 6:
-                return {instrument: Instrument.TomMid, accent: true}
+                return {channelIndex: ChannelIndex.TomMid, step: Step.Accent}
             case 7:
-                return {instrument: Instrument.TomMid, accent: false}
+                return {channelIndex: ChannelIndex.TomMid, step: Step.Active}
             case 8:
-                return {instrument: Instrument.TomHi, accent: true}
+                return {channelIndex: ChannelIndex.TomHi, step: Step.Accent}
             case 9:
-                return {instrument: Instrument.TomHi, accent: false}
+                return {channelIndex: ChannelIndex.TomHi, step: Step.Active}
             case 10:
-                return {instrument: Instrument.Rim, accent: false}
+                return {channelIndex: ChannelIndex.Rim, step: Step.Active}
             case 11:
-                return {instrument: Instrument.Clap, accent: false}
+                return {channelIndex: ChannelIndex.Clap, step: Step.Active}
             case 12:
                 if (multiTouches.has(13)) {
-                    return {instrument: Instrument.HihatOpened, accent: false}
+                    return {channelIndex: ChannelIndex.Hihat, step: Step.Extra}
                 } else {
-                    return {instrument: Instrument.HihatClosed, accent: true}
+                    return {channelIndex: ChannelIndex.Hihat, step: Step.Accent}
                 }
             case 13:
                 if (multiTouches.has(12)) {
-                    return {instrument: Instrument.HihatOpened, accent: false}
+                    return {channelIndex: ChannelIndex.Hihat, step: Step.Extra}
                 } else {
-                    return {instrument: Instrument.HihatClosed, accent: false}
+                    return {channelIndex: ChannelIndex.Hihat, step: Step.Active}
                 }
             case 14:
-                return {instrument: Instrument.Crash, accent: true}
+                return {channelIndex: ChannelIndex.Crash, step: Step.Active}
             case 15:
-                return {instrument: Instrument.Ride, accent: true}
-            case 16:
-                return {instrument: Instrument.TotalAccent, accent: true}
+                return {channelIndex: ChannelIndex.Ride, step: Step.Active}
+            case 16: {
+            }
         }
+        throw new Error("Implement Total Accent")
     }
 
-    static instrumentToIndices(instrument: Instrument): number[] {
+    static instrumentToIndices(instrument: InstrumentIndex): number[] {
         switch (instrument) {
-            case Instrument.Bassdrum:
+            case InstrumentIndex.Bassdrum:
                 return [0]
-            case Instrument.Snaredrum:
+            case InstrumentIndex.Snaredrum:
                 return [2]
-            case Instrument.TomLow:
+            case InstrumentIndex.TomLow:
                 return [4]
-            case Instrument.TomMid:
+            case InstrumentIndex.TomMid:
                 return [6]
-            case Instrument.TomHi:
+            case InstrumentIndex.TomHi:
                 return [8]
-            case Instrument.Rim:
+            case InstrumentIndex.Rim:
                 return [10]
-            case Instrument.Clap:
+            case InstrumentIndex.Clap:
                 return [11]
-            case Instrument.HihatClosed:
+            case InstrumentIndex.HihatClosed:
                 return [12]
-            case Instrument.HihatOpened:
+            case InstrumentIndex.HihatOpened:
                 return [12, 13]
-            case Instrument.Crash:
+            case InstrumentIndex.Crash:
                 return [14]
-            case Instrument.Ride:
+            case InstrumentIndex.Ride:
                 return [15]
-            case Instrument.TotalAccent:
-                return [16]
+            // case InstrumentIndex.TotalAccent: TODO
+            //     return [16]
         }
     }
 }

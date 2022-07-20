@@ -1,12 +1,12 @@
 import {ArrayUtils} from "../../lib/common.js"
-import {barsToNumFrames, decibel, numFramesToBars, RENDER_QUANTUM, secondsToBars, TransportMessage} from "../common.js"
+import {barsToNumFrames, numFramesToBars, RENDER_QUANTUM, secondsToBars, TransportMessage} from "../common.js"
 import {BasicTuneDecayVoice} from "./dsp/basic-voice.js"
 import {BassdrumVoice} from "./dsp/bassdrum.js"
 import {Channel, VoiceFactory} from "./dsp/channel.js"
 import {SnaredrumVoice} from "./dsp/snaredrum.js"
-import {toChannel, Voice} from "./dsp/voice.js"
+import {Voice} from "./dsp/voice.js"
+import {ChannelIndex, Memory, Pattern, Step} from "./memory.js"
 import {ToMainMessage, ToWorkletMessage} from "./messages.js"
-import {Instrument, Memory, Pattern, Step} from "./patterns.js"
 import {Preset} from "./preset.js"
 import {Resources} from "./resources.js"
 
@@ -22,7 +22,7 @@ registerProcessor('tr-909', class extends AudioWorkletProcessor implements Voice
     private bpm: number = 120.0
     private bar: number = 0.0
     private barIncrement: number = 0.0
-    private position: number = 0 | 0
+    private frameIndex: number = 0 | 0
 
     constructor(options: { processorOptions: Resources }) {
         super(options)
@@ -34,7 +34,7 @@ registerProcessor('tr-909', class extends AudioWorkletProcessor implements Voice
             this.barIncrement = numFramesToBars(RENDER_QUANTUM, this.bpm, sampleRate)
         }, true)
         this.memory = new Memory()
-        this.channels = ArrayUtils.fill(10, () => new Channel(this))
+        this.channels = ArrayUtils.fill(10, index => new Channel(this, index))
 
         this.port.onmessage = (event: MessageEvent) => {
             const message: ToWorkletMessage | TransportMessage = event.data
@@ -48,10 +48,8 @@ registerProcessor('tr-909', class extends AudioWorkletProcessor implements Voice
                 this.moving = false
             } else if (message.type === "transport-move") {
                 this.bar = message.position
-            } else if (message.type === "play-instrument") {
-                const instrument = message.instrument
-                const level = message.accent ? 0.0 : this.preset.accent.get()
-                this.schedulePlay(this.position, instrument, level)
+            } else if (message.type === "play-channel") {
+                this.schedulePlay(message.channelIndex, this.frameIndex, message.step, false)
             }
         }
     }
@@ -63,8 +61,9 @@ registerProcessor('tr-909', class extends AudioWorkletProcessor implements Voice
             this.sequence()
             this.advance()
         }
-        this.channels.forEach((channel: Channel, index: number) => channel.process(outputs[index][0], this.position, this.position + RENDER_QUANTUM))
-        this.position += RENDER_QUANTUM
+        this.channels.forEach((channel: Channel, index: number) =>
+            channel.process(outputs[index][0], this.frameIndex, this.frameIndex + RENDER_QUANTUM))
+        this.frameIndex += RENDER_QUANTUM
         return true
     }
 
@@ -96,19 +95,18 @@ registerProcessor('tr-909', class extends AudioWorkletProcessor implements Voice
         while (search < t1) {
             if (search >= t0) {
                 const stepIndex = index % pattern.lastStep.get()
-                const barPosition = groove.transform(search)
-                const totalAccent: boolean = pattern.getStep(Instrument.TotalAccent, stepIndex) !== Step.None
-                for (let instrument = 0; instrument < Instrument.TotalAccent; instrument++) {
-                    const step: Step = pattern.getStep(instrument, stepIndex)
-                    if (step !== Step.None) {
-                        const level = step === Step.Accent || totalAccent ? 0.0 : this.preset.accent.get()
-                        const position = this.position + barsToNumFrames(barPosition - b0, this.bpm, sampleRate) | 0
-                        this.schedulePlay(position, instrument, level)
-
-                        const flam = false // TODO
-                        if (flam) {
-                            this.schedulePlay(position + pattern.flamDelay.get() / 1000.0 * sampleRate, instrument, level)
-                        }
+                const bar = groove.transform(search)
+                const frameIndex = this.frameIndex + Math.floor(barsToNumFrames(bar - b0, this.bpm, sampleRate))
+                const frameIndexDelayed = frameIndex + pattern.flamDelay.get() / 1000.0 * sampleRate
+                const totalAccent: boolean = pattern.isTotalAccent(stepIndex)
+                for (let channelIndex = 0; channelIndex < ChannelIndex.length; channelIndex++) {
+                    const step: Step = pattern.getStep(channelIndex, stepIndex)
+                    if (step === Step.None) {
+                        continue
+                    }
+                    this.schedulePlay(channelIndex, frameIndex, step, totalAccent)
+                    if (channelIndex !== ChannelIndex.Hihat && step === Step.Extra) {
+                        this.schedulePlay(channelIndex, frameIndexDelayed, step, totalAccent)
                     }
                 }
                 this.port.postMessage({type: "update-step", index: stepIndex} as ToMainMessage)
@@ -117,40 +115,42 @@ registerProcessor('tr-909', class extends AudioWorkletProcessor implements Voice
         }
     }
 
-    schedulePlay(position: number, instrument: Instrument, level: decibel): void {
-        const channel: number = toChannel(instrument)
-        this.channels[channel].schedulePlay(position, instrument, level)
+    schedulePlay(channelIndex: ChannelIndex, time: number, step: Step, totalAccent: boolean): void {
+        this.channels[channelIndex].schedulePlay(time, step, totalAccent)
     }
 
     advance() {
         this.bar += this.barIncrement
     }
 
-    createVoice(instrument: Instrument, level: number): Voice {
-        switch (instrument) {
-            case Instrument.Bassdrum:
-                return new BassdrumVoice(this.resources, this.preset.bassdrum, sampleRate, level)
-            case Instrument.Snaredrum:
-                return new SnaredrumVoice(this.resources, this.preset.snaredrum, sampleRate, level)
-            case Instrument.TomLow:
-                return new BasicTuneDecayVoice(this.resources.tomLow, this.preset.tomLow, sampleRate, level)
-            case Instrument.TomMid:
-                return new BasicTuneDecayVoice(this.resources.tomMid, this.preset.tomMid, sampleRate, level)
-            case Instrument.TomHi:
-                return new BasicTuneDecayVoice(this.resources.tomHi, this.preset.tomHi, sampleRate, level)
-            case Instrument.Rim:
-                return new BasicTuneDecayVoice(this.resources.rim, this.preset.rim, sampleRate, level)
-            case Instrument.Clap:
-                return new BasicTuneDecayVoice(this.resources.clap, this.preset.clap, sampleRate, level)
-            case Instrument.HihatClosed:
-                return new BasicTuneDecayVoice(this.resources.closedHihat, this.preset.closedHihat, sampleRate, level)
-            case Instrument.HihatOpened:
-                return new BasicTuneDecayVoice(this.resources.openedHihat, this.preset.openedHihat, sampleRate, level)
-            case Instrument.Crash:
-                return new BasicTuneDecayVoice(this.resources.crash, this.preset.crash, sampleRate, level)
-            case Instrument.Ride:
-                return new BasicTuneDecayVoice(this.resources.ride, this.preset.ride, sampleRate, level)
+    createVoice(channelIndex: ChannelIndex, step: Step, totalAccent: boolean): Voice {
+        console.assert(step !== Step.None)
+        // TODO Resolve level
+        switch (channelIndex) {
+            case ChannelIndex.Bassdrum:
+                return new BassdrumVoice(this.resources, this.preset.bassdrum, sampleRate, 0.0)
+            case ChannelIndex.Snaredrum:
+                return new SnaredrumVoice(this.resources, this.preset.snaredrum, sampleRate, 0.0)
+            case ChannelIndex.TomLow:
+                return new BasicTuneDecayVoice(this.resources.tomLow, this.preset.tomLow, sampleRate, 0.0)
+            case ChannelIndex.TomMid:
+                return new BasicTuneDecayVoice(this.resources.tomMid, this.preset.tomMid, sampleRate, 0.0)
+            case ChannelIndex.TomHi:
+                return new BasicTuneDecayVoice(this.resources.tomHi, this.preset.tomHi, sampleRate, 0.0)
+            case ChannelIndex.Rim:
+                return new BasicTuneDecayVoice(this.resources.rim, this.preset.rim, sampleRate, 0.0)
+            case ChannelIndex.Clap:
+                return new BasicTuneDecayVoice(this.resources.clap, this.preset.clap, sampleRate, 0.0)
+            case ChannelIndex.Hihat:
+                if (step === Step.Extra) {
+                    return new BasicTuneDecayVoice(this.resources.openedHihat, this.preset.openedHihat, sampleRate, 0.0)
+                }
+                return new BasicTuneDecayVoice(this.resources.closedHihat, this.preset.closedHihat, sampleRate, 0.0)
+            case ChannelIndex.Crash:
+                return new BasicTuneDecayVoice(this.resources.crash, this.preset.crash, sampleRate, 0.0)
+            case ChannelIndex.Ride:
+                return new BasicTuneDecayVoice(this.resources.ride, this.preset.ride, sampleRate, 0.0)
         }
-        throw new Error(`${instrument} not found.`)
+        throw new Error(`${channelIndex} not found.`)
     }
 })

@@ -1,5 +1,5 @@
 import {secondsToBars} from "../audio/common.js"
-import {Scale} from "../audio/tr909/patterns.js"
+import {Scale} from "../audio/tr909/memory.js"
 import {TR909Machine} from "../audio/tr909/worklet.js"
 import {Events, ObservableValueImpl, Terminable, TerminableVoid, Terminator} from "../lib/common.js"
 import {HTML} from "../lib/dom.js"

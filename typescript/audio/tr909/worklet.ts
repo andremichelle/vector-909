@@ -1,9 +1,8 @@
 import {ArrayUtils, ObservableValueImpl, Parameter, Terminable, TerminableVoid, Terminator} from "../../lib/common.js"
 import {dbToGain, Transport} from "../common.js"
 import {MeterWorklet} from "../meter/worklet.js"
-import {ChannelIndex} from "./dsp/channel.js"
+import {ChannelIndex, Memory, Step} from "./memory.js"
 import {ToMainMessage, ToWorkletMessage} from "./messages.js"
-import {Instrument, Memory} from "./patterns.js"
 import {Preset} from "./preset.js"
 import {Resources} from "./resources.js"
 
@@ -63,12 +62,8 @@ export class TR909Machine implements Terminable {
         this.worklet.port.onmessage = event => this.stepIndex.set((event.data as ToMainMessage).index)
     }
 
-    play(instrument: Instrument, accent: boolean) {
-        this.worklet.port.postMessage({
-            type: 'play-instrument',
-            instrument,
-            accent
-        } as ToWorkletMessage)
+    play(channelIndex: ChannelIndex, step: Step) {
+        this.worklet.port.postMessage({type: 'play-channel', channelIndex, step} as ToWorkletMessage)
     }
 
     connect(destinationNode: AudioNode): AudioNode {

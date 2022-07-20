@@ -1,31 +1,27 @@
-import {decibel, RENDER_QUANTUM} from "../../common.js"
-import {Instrument} from "../patterns.js"
+import {RENDER_QUANTUM} from "../../common.js"
+import {ChannelIndex, Step} from "../memory.js"
 import {Voice} from "./voice.js"
 
 class PlayEvent {
-    constructor(readonly position: number, readonly instrument: number, readonly level: decibel) {
+    constructor(readonly position: number, readonly step: Step, readonly totalAccent: boolean) {
     }
 }
 
 export interface VoiceFactory {
-    createVoice: (instrument: Instrument, level: decibel) => Voice
-}
-
-export enum ChannelIndex {
-    Bassdrum, Snaredrum, TomLow, TomMid, TomHi, Rim, Clap, Hihat, Crash, Ride, length
+    createVoice: (channelIndex: ChannelIndex, step: Step, totalAccent: boolean) => Voice
 }
 
 export class Channel {
     private readonly events: PlayEvent[] = []
     private readonly processing: Voice[] = []
 
-    constructor(private readonly factory: VoiceFactory) {
+    constructor(private readonly factory: VoiceFactory, private readonly index: number) {
     }
 
     private active: Voice = null
 
-    schedulePlay(position: number, instrument: Instrument, level: decibel): void {
-        this.events.push(new PlayEvent(position | 0, instrument, level))
+    schedulePlay(position: number, step: Step, totalAccent: boolean): void {
+        this.events.push(new PlayEvent(Math.floor(position), step, totalAccent))
         if (this.events.length > 1) {
             this.events.sort((a: PlayEvent, b: PlayEvent) => a.position - b.position)
         }
@@ -38,7 +34,7 @@ export class Channel {
             console.assert(toFrame >= 0 && toFrame < RENDER_QUANTUM)
             this.advance(output, frameIndex, toFrame)
             this.active?.stop()
-            const voice = this.factory.createVoice(event.instrument, event.level)
+            const voice = this.factory.createVoice(this.index, event.step, event.totalAccent)
             this.processing.push(voice)
             this.active = voice
             frameIndex = toFrame
