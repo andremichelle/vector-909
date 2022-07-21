@@ -11,11 +11,11 @@ import {
 import {Groove, GrooveFormat, GrooveIdentity, Grooves} from "../grooves.js"
 
 /**
- * Extra is either 'Flam' for Bassdrum, Snaredrum and Toms or Open Hihat.
- * Rim shot, hand clap and cymbals are supposed only to be active in the original machine.
+ * 'Extra' is either 'Flam' for Bassdrum, Snaredrum and Toms or 'Open' for Hihat.
+ * Rim shot, hand clap and cymbals are supposed only to be 'Full' in the original machine.
  */
 export enum Step {
-    None = 0, Active = 1, Accent = 2, Extra
+    None = 0, Weak = 1, Full = 2, Extra
 }
 
 export enum ChannelIndex {
@@ -91,17 +91,17 @@ export class Pattern implements Observable<void> {
     test() {
         for (let i = 0; i < 16; i++) {
             if ((i + 2) % 4 !== 0) {
-                this.setStep(ChannelIndex.Hihat, i, Step.Accent)
+                this.setStep(ChannelIndex.Hihat, i, Step.Full)
             } else {
                 this.setStep(ChannelIndex.Hihat, i, Step.Extra)
             }
             if (i % 4 === 0) {
-                this.setStep(ChannelIndex.Bassdrum, i, Step.Accent)
+                this.setStep(ChannelIndex.Bassdrum, i, Step.Full)
             }
         }
-        this.setStep(ChannelIndex.Bassdrum, 15, Step.Active)
-        this.setStep(ChannelIndex.Clap, 4, Step.Accent)
-        this.setStep(ChannelIndex.Clap, 12, Step.Accent)
+        this.setStep(ChannelIndex.Bassdrum, 15, Step.Extra)
+        this.setStep(ChannelIndex.Clap, 4, Step.Full)
+        this.setStep(ChannelIndex.Clap, 12, Step.Full)
     }
 
     setStep(channelIndex: ChannelIndex, stepIndex: number, step: Step): void {

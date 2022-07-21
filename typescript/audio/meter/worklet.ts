@@ -58,7 +58,7 @@ export class StereoMeterWorklet extends MeterWorklet {
     private readonly meterHPadding: number = 5
     private readonly meterSegmentWidth: number = 12
     private readonly meterSegmentHeight: number = 3
-    private readonly meterSegmentHGap: number = 2
+    private readonly meterSegmentHGap: number = 1
     private readonly meterSegmentVGap: number = 10
     private readonly meterSegmentCount: number = 16
     private readonly meterWidth: number = this.meterSegmentCount * (this.meterSegmentWidth + this.meterSegmentHGap) - this.meterSegmentHGap

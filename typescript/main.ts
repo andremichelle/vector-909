@@ -1,12 +1,12 @@
 import {LimiterWorklet} from "./audio/limiter/worklet.js"
-import {MeterWorklet} from "./audio/meter/worklet.js"
+import {MeterWorklet, StereoMeterWorklet} from "./audio/meter/worklet.js"
 import {MetronomeWorklet} from "./audio/metronome/worklet.js"
 import {loadResources} from "./audio/tr909/resources.js"
 import {TR909Machine} from "./audio/tr909/worklet.js"
 import {Boot, newAudioContext, preloadImagesOfCssFile} from "./lib/boot.js"
 import {Waiting} from "./lib/common.js"
 import {HTML} from "./lib/dom.js"
-import {GUI, Mode} from "./tr909/gui.js"
+import {GUI, InstrumentMode, Mode} from "./tr909/gui.js"
 
 const showProgress = (() => {
         const progress: SVGSVGElement = document.querySelector("svg.preloader")
@@ -33,8 +33,14 @@ const showProgress = (() => {
     await boot.waitForCompletion()
     // --- BOOT ENDS ---
 
+    const main: HTMLElement = HTML.query('main')
     const machine = new TR909Machine(context, getResources())
-    machine.master.connect(context.destination)
+
+    const meter = new StereoMeterWorklet(context)
+    machine.master.connect(meter).connect(context.destination)
+
+    meter.domElement.classList.add('meter')
+    HTML.query('body').appendChild(meter.domElement)
 
     const parentNode = HTML.query('div.tr-909')
     const gui = new GUI(parentNode, machine)
@@ -44,9 +50,11 @@ const showProgress = (() => {
     const debugZoom = HTML.query('[data-output=zoom]')
     const debugMode = HTML.query('[data-output=mode]')
     const debugTransporting = HTML.query('[data-output=transporting]')
+    const debugInstrument = HTML.query('[data-output=instrument]')
     const run = () => {
         debugMode.textContent = Mode[gui.currentMode.get()]
         debugTransporting.textContent = machine.transport.isPlaying() ? 'Playing' : 'Paused'
+        debugInstrument.textContent = InstrumentMode[gui.mainButtonsContext.instrumentMode.get()]
         requestAnimationFrame(run)
     }
     requestAnimationFrame(run)
@@ -55,7 +63,6 @@ const showProgress = (() => {
     document.addEventListener('touchmove', (event: TouchEvent) => event.preventDefault(), {passive: false})
     document.addEventListener('dblclick', (event: Event) => event.preventDefault(), {passive: false})
     document.addEventListener('contextmenu', event => event.preventDefault())
-    const main: HTMLElement = HTML.query('main')
     const resize = () => {
         document.body.style.height = `${window.innerHeight}px`
         const padding = 16

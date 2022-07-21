@@ -1,5 +1,5 @@
 import {secondsToBars} from "../audio/common.js"
-import {Scale} from "../audio/tr909/memory.js"
+import {ChannelIndex, Scale, Step} from "../audio/tr909/memory.js"
 import {TR909Machine} from "../audio/tr909/worklet.js"
 import {Events, ObservableValueImpl, Terminable, TerminableVoid, Terminator} from "../lib/common.js"
 import {HTML} from "../lib/dom.js"
@@ -67,22 +67,19 @@ export class GUI {
 
     private readonly terminator
     private readonly digits: Digits
-    private readonly mainButtonsContext: MainButtonsContext
 
+    readonly machineContext: MachineContext
     readonly runningMode = new ObservableValueImpl<Mode>(Mode.Steps)
     readonly currentMode = new ObservableValueImpl<Mode>(this.runningMode.get())
+    readonly mainButtonsContext: MainButtonsContext
 
     constructor(private readonly parentNode: ParentNode,
                 private readonly machine: TR909Machine) {
         this.terminator = new Terminator()
         this.digits = new Digits(HTML.query('svg[data-display=led-display]', parentNode))
         this.digits.show(0)
-        const machineContext = new MachineContext(machine, parentNode)
-        this.mainButtonsContext = new MainButtonsContext(machine,
-            [...(Array.from<HTMLButtonElement>(
-                HTML.queryAll('[data-control=main-buttons] [data-control=main-button]', parentNode))),
-                HTML.query('[data-control=main-button][data-parameter=total-accent]')]
-                .map((element: HTMLButtonElement) => new MainButton(element)))
+        this.machineContext = new MachineContext(machine, parentNode)
+        this.mainButtonsContext = MainButtonsContext.create(machine, parentNode)
 
         this.installKnobs()
         this.installScale()
@@ -255,7 +252,8 @@ export class GUI {
     }
 }
 
-export enum InstrumentSelectIndex {
+export enum InstrumentMode {
+    None,
     Bassdrum, BassdrumFlame,
     Snaredrum, SnaredrumFlame,
     TomLow, TomLowFlame,
@@ -267,21 +265,21 @@ export enum InstrumentSelectIndex {
     TotalAccent
 }
 
-export const InstrumentSelectIndexStates: Map<InstrumentSelectIndex, [ButtonIndex, MainButtonState][]> = new Map([
-    [InstrumentSelectIndex.Bassdrum, [[0, MainButtonState.On], [1, MainButtonState.Flash]]],
-    [InstrumentSelectIndex.BassdrumFlame, [[0, MainButtonState.On], [1, MainButtonState.On]]],
-    [InstrumentSelectIndex.Snaredrum, [[2, MainButtonState.On], [3, MainButtonState.Flash]]],
-    [InstrumentSelectIndex.SnaredrumFlame, [[2, MainButtonState.On], [3, MainButtonState.On]]],
-    [InstrumentSelectIndex.TomLow, [[4, MainButtonState.On], [5, MainButtonState.Flash]]],
-    [InstrumentSelectIndex.TomLowFlame, [[4, MainButtonState.On], [5, MainButtonState.On]]],
-    [InstrumentSelectIndex.TomMid, [[6, MainButtonState.On], [7, MainButtonState.Flash]]],
-    [InstrumentSelectIndex.TomMidFlame, [[6, MainButtonState.On], [7, MainButtonState.On]]],
-    [InstrumentSelectIndex.TomHi, [[8, MainButtonState.On], [9, MainButtonState.Flash]]],
-    [InstrumentSelectIndex.TomHiFlame, [[8, MainButtonState.On], [9, MainButtonState.On]]],
-    [InstrumentSelectIndex.Rim, [[10, MainButtonState.On]]],
-    [InstrumentSelectIndex.Clap, [[11, MainButtonState.On]]],
-    [InstrumentSelectIndex.HihatClosed, [[12, MainButtonState.On], [13, MainButtonState.Flash]]],
-    [InstrumentSelectIndex.HihatOpened, [[12, MainButtonState.On], [13, MainButtonState.On]]],
-    [InstrumentSelectIndex.Crash, [[14, MainButtonState.On]]],
-    [InstrumentSelectIndex.Ride, [[15, MainButtonState.On]]]
+export const InstrumentSelectIndexStates: Map<InstrumentMode, [ButtonIndex, MainButtonState][]> = new Map([
+    [InstrumentMode.Bassdrum, [[0, MainButtonState.On], [1, MainButtonState.Flash]]],
+    [InstrumentMode.BassdrumFlame, [[0, MainButtonState.On], [1, MainButtonState.On]]],
+    [InstrumentMode.Snaredrum, [[2, MainButtonState.On], [3, MainButtonState.Flash]]],
+    [InstrumentMode.SnaredrumFlame, [[2, MainButtonState.On], [3, MainButtonState.On]]],
+    [InstrumentMode.TomLow, [[4, MainButtonState.On], [5, MainButtonState.Flash]]],
+    [InstrumentMode.TomLowFlame, [[4, MainButtonState.On], [5, MainButtonState.On]]],
+    [InstrumentMode.TomMid, [[6, MainButtonState.On], [7, MainButtonState.Flash]]],
+    [InstrumentMode.TomMidFlame, [[6, MainButtonState.On], [7, MainButtonState.On]]],
+    [InstrumentMode.TomHi, [[8, MainButtonState.On], [9, MainButtonState.Flash]]],
+    [InstrumentMode.TomHiFlame, [[8, MainButtonState.On], [9, MainButtonState.On]]],
+    [InstrumentMode.Rim, [[10, MainButtonState.On]]],
+    [InstrumentMode.Clap, [[11, MainButtonState.On]]],
+    [InstrumentMode.HihatClosed, [[12, MainButtonState.On], [13, MainButtonState.Flash]]],
+    [InstrumentMode.HihatOpened, [[12, MainButtonState.On], [13, MainButtonState.On]]],
+    [InstrumentMode.Crash, [[14, MainButtonState.On]]],
+    [InstrumentMode.Ride, [[15, MainButtonState.On]]]
 ])

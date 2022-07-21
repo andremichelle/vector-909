@@ -4,7 +4,8 @@ import {TR909Machine} from "../audio/tr909/worklet.js"
 import {ArrayUtils, ObservableValueImpl, Terminable, TerminableVoid, Terminator} from "../lib/common.js"
 import {HTML} from "../lib/dom.js"
 import {PowInjective} from "../lib/injective.js"
-import {ButtonIndex, InstrumentSelectIndex, InstrumentSelectIndexStates, MainButton, MainButtonState} from "./gui.js"
+import {ButtonIndex, InstrumentMode, InstrumentSelectIndexStates, MainButton, MainButtonState} from "./gui.js"
+import {Utils} from "./utils.js"
 
 /**
  * 909 States
@@ -60,13 +61,20 @@ export class TrackPlayState implements MachineState {
 }
 
 export class MainButtonsContext {
-    readonly selectedChannel: ObservableValueImpl<ChannelIndex> = new ObservableValueImpl<ChannelIndex>(ChannelIndex.Bassdrum)
-    readonly selectedInstrument: ObservableValueImpl<InstrumentSelectIndex> = new ObservableValueImpl<InstrumentSelectIndex>(InstrumentSelectIndex.Bassdrum)
+    static create(machine: TR909Machine, parentNode: ParentNode) {
+        return new MainButtonsContext(machine,
+            Array.from<HTMLButtonElement>(HTML.queryAll('[data-control=main-buttons] [data-control=main-button]', parentNode))
+                .map((element: HTMLButtonElement) => new MainButton(element)),
+            new MainButton(HTML.query('[data-control=main-button][data-parameter=total-accent]')))
+    }
+
+    readonly instrumentMode: ObservableValueImpl<InstrumentMode> = new ObservableValueImpl<InstrumentMode>(InstrumentMode.Bassdrum)
 
     private state: NonNullable<MainButtonsState> = new StepModeState(this)
 
     constructor(readonly machine: TR909Machine,
-                readonly buttons: MainButton[]) {
+                readonly buttons: MainButton[],
+                readonly totalAccentButton: MainButton) {
         const terminator = new Terminator()
         this.buttons.forEach((button: MainButton, index: number) => {
             terminator.with(button.bind('pointerdown', (event: PointerEvent) => {
@@ -107,7 +115,7 @@ export class MainButtonsContext {
         return indices.map(index => this.buttons[index])
     }
 
-    forEach(fn: (value: MainButton, index: number, array: MainButton[]) => void): void {
+    forEach(fn: (button: MainButton, buttonIndex: ButtonIndex, array: MainButton[]) => void): void {
         this.buttons.forEach(fn)
     }
 
@@ -128,20 +136,6 @@ interface MainButtonsState extends Terminable {
     onButtonUp(event: PointerEvent, index: ButtonIndex): void
 }
 
-class NothingState implements MainButtonsState {
-    constructor(readonly context: MainButtonsContext) {
-    }
-
-    onButtonPress(event: PointerEvent, index: ButtonIndex): void {
-    }
-
-    onButtonUp(event: PointerEvent, index: ButtonIndex): void {
-    }
-
-    terminate(): void {
-    }
-}
-
 class TapModeState implements MainButtonsState {
     private readonly multiTouches: Set<number> = new Set<number>()
     private readonly stepIndexSubscription: Terminable
@@ -160,7 +154,7 @@ class TapModeState implements MainButtonsState {
         this.multiTouches.add(index)
         if (machine.transport.isPlaying()) {
             machine.memory.current()
-                .setStep(playTrigger.channelIndex, machine.stepIndex.get(), playTrigger.step ? Step.Accent : Step.Active)
+                .setStep(playTrigger.channelIndex, machine.stepIndex.get(), playTrigger.step ? Step.Full : Step.Weak)
         }
     }
 
@@ -186,11 +180,10 @@ class StepModeState implements MainButtonsState {
         }, true)
     }
 
-    onButtonPress(event: PointerEvent, index: ButtonIndex): void {
+    onButtonPress(event: PointerEvent, stepIndex: ButtonIndex): void {
         const pattern = this.context.machine.memory.current()
-        const instrument = this.context.selectedChannel.get()
-        const step: Step = pattern.getStep(instrument, index)
-        pattern.setStep(instrument, index, (step + 1) % 3) // cycle through states
+        const instrumentMode = this.context.instrumentMode.get()
+        Utils.setNextPatternStep(pattern, instrumentMode, stepIndex)
     }
 
     onButtonUp(event: PointerEvent, index: ButtonIndex): void {
@@ -202,17 +195,10 @@ class StepModeState implements MainButtonsState {
     }
 
     update(): void {
+        const instrumentMode = this.context.instrumentMode.get()
         const pattern = this.context.machine.memory.current()
-        const channelIndex = this.context.selectedChannel.get()
-        this.context.forEach((button: MainButton, buttonIndex: number) => {
-            if (buttonIndex < 16) {
-                const step: Step = pattern.getStep(channelIndex, buttonIndex)
-                button.setState(step === Step.Active ? MainButtonState.Flash : step === Step.Accent ? MainButtonState.On : MainButtonState.Off)
-            } else {
-                // button.classList.remove('flash-active')
-                // button.classList.toggle('active', pattern.isTotalAccent(buttonIndex))
-            }
-        })
+        const mapping = Utils.createStepToStateMapping(instrumentMode)
+        this.context.forEach((button: MainButton, buttonIndex: number) => button.setState(mapping(pattern, buttonIndex)))
     }
 }
 
@@ -311,48 +297,35 @@ class LastStepSelectState implements MainButtonsState {
 }
 
 class InstrumentSelectState implements MainButtonsState {
-    private readonly multiTouches: Set<ButtonIndex> = new Set<ButtonIndex>()
+    private readonly buttons: Set<ButtonIndex> = new Set<ButtonIndex>()
+    private readonly evaluator = Utils.buttonIndicesToInstrumentMode(this.buttons)
 
-    private readonly update = (index: InstrumentSelectIndex) => {
+    private readonly update = (index: InstrumentMode) => {
         this.context.clear()
+        // TODO Make a function call
         InstrumentSelectIndexStates.get(index)
             .forEach(states => this.context.getByIndex(states[0]).setState(states[1]))
     }
 
-    private readonly subscription = this.context.selectedInstrument.addObserver(this.update, true)
+    private readonly subscription = this.context.instrumentMode.addObserver(this.update, true)
 
     constructor(readonly context: MainButtonsContext) {
     }
 
     onButtonPress(event: PointerEvent, index: ButtonIndex): void {
-        this.multiTouches.add(index)
-        this.evalTouches()
+        this.buttons.add(index)
+        this.context.instrumentMode.set(this.evaluator())
     }
 
     onButtonUp(event: PointerEvent, index: ButtonIndex): void {
-        if (!event.shiftKey) {
-            this.multiTouches.delete(index)
+        if (!event.shiftKey) { // TODO Find better solution to emulate multi-touch
+            this.buttons.delete(index)
         }
     }
 
     terminate(): void {
         this.subscription.terminate()
-        this.multiTouches.clear()
-    }
-
-    private evalTouches(): void {
-        type Match = [number, InstrumentSelectIndex]
-
-        this.context.selectedInstrument.set((Array.from(InstrumentSelectIndexStates.entries())
-            .reduce((match: Match, entry: [InstrumentSelectIndex, [ButtonIndex, MainButtonState][]]) => {
-                const count = entry[1].filter((state: [number, MainButtonState]) => state[1] === MainButtonState.On)
-                    .reduce((count: number, state: [number, MainButtonState]) => this.multiTouches.has(state[0]) ? count + 1 : count, 0)
-                if (match[0] < count) {
-                    match[0] = count
-                    match[1] = entry[0]
-                }
-                return match
-            }, [0, InstrumentSelectIndex.Bassdrum]))[1])
+        this.buttons.clear()
     }
 }
 
@@ -362,45 +335,45 @@ class ButtonMapping {
     static toPlayTrigger(index: number, multiTouches: Set<number>): PlayTrigger {
         switch (index) {
             case 0:
-                return {channelIndex: ChannelIndex.Bassdrum, step: Step.Accent}
+                return {channelIndex: ChannelIndex.Bassdrum, step: Step.Full}
             case 1:
-                return {channelIndex: ChannelIndex.Bassdrum, step: Step.Active}
+                return {channelIndex: ChannelIndex.Bassdrum, step: Step.Weak}
             case 2:
-                return {channelIndex: ChannelIndex.Snaredrum, step: Step.Accent}
+                return {channelIndex: ChannelIndex.Snaredrum, step: Step.Full}
             case 3:
-                return {channelIndex: ChannelIndex.Snaredrum, step: Step.Active}
+                return {channelIndex: ChannelIndex.Snaredrum, step: Step.Weak}
             case 4:
-                return {channelIndex: ChannelIndex.TomLow, step: Step.Accent}
+                return {channelIndex: ChannelIndex.TomLow, step: Step.Full}
             case 5:
-                return {channelIndex: ChannelIndex.TomLow, step: Step.Active}
+                return {channelIndex: ChannelIndex.TomLow, step: Step.Weak}
             case 6:
-                return {channelIndex: ChannelIndex.TomMid, step: Step.Accent}
+                return {channelIndex: ChannelIndex.TomMid, step: Step.Full}
             case 7:
-                return {channelIndex: ChannelIndex.TomMid, step: Step.Active}
+                return {channelIndex: ChannelIndex.TomMid, step: Step.Weak}
             case 8:
-                return {channelIndex: ChannelIndex.TomHi, step: Step.Accent}
+                return {channelIndex: ChannelIndex.TomHi, step: Step.Full}
             case 9:
-                return {channelIndex: ChannelIndex.TomHi, step: Step.Active}
+                return {channelIndex: ChannelIndex.TomHi, step: Step.Weak}
             case 10:
-                return {channelIndex: ChannelIndex.Rim, step: Step.Active}
+                return {channelIndex: ChannelIndex.Rim, step: Step.Weak}
             case 11:
-                return {channelIndex: ChannelIndex.Clap, step: Step.Active}
+                return {channelIndex: ChannelIndex.Clap, step: Step.Weak}
             case 12:
                 if (multiTouches.has(13)) {
                     return {channelIndex: ChannelIndex.Hihat, step: Step.Extra}
                 } else {
-                    return {channelIndex: ChannelIndex.Hihat, step: Step.Accent}
+                    return {channelIndex: ChannelIndex.Hihat, step: Step.Full}
                 }
             case 13:
                 if (multiTouches.has(12)) {
                     return {channelIndex: ChannelIndex.Hihat, step: Step.Extra}
                 } else {
-                    return {channelIndex: ChannelIndex.Hihat, step: Step.Active}
+                    return {channelIndex: ChannelIndex.Hihat, step: Step.Weak}
                 }
             case 14:
-                return {channelIndex: ChannelIndex.Crash, step: Step.Active}
+                return {channelIndex: ChannelIndex.Crash, step: Step.Weak}
             case 15:
-                return {channelIndex: ChannelIndex.Ride, step: Step.Active}
+                return {channelIndex: ChannelIndex.Ride, step: Step.Weak}
             case 16: {
                 throw new Error("Implement Total Accent")
             }

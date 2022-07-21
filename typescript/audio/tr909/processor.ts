@@ -129,11 +129,10 @@ registerProcessor('tr-909', class extends AudioWorkletProcessor implements Voice
     }
 
     resolveLevel(step: Step, totalAccent: boolean): number {
-        let level = step === Step.Accent ? 0.5 : 0.0
+        let level = step === Step.Full ? 0.5 : 0.0
         if (totalAccent) {
             level += this.preset.accent.get() * 0.5
         }
-        console.log(`resolveLevel(step: ${step}, totalAccent: ${totalAccent}) > ${LevelMapping.y(level)}`)
         return LevelMapping.y(level)
     }
 
