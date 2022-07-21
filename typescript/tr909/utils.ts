@@ -21,9 +21,49 @@ export class Utils {
             simple(11, InstrumentMode.Clap),
             complex(12, 13, InstrumentMode.HihatClosed, InstrumentMode.HihatOpened),
             simple(14, InstrumentMode.Crash),
-            simple(15, InstrumentMode.Ride)
+            simple(15, InstrumentMode.Ride),
+            simple(16, InstrumentMode.TotalAccent)
         ]
         return () => checks.map(check => check()).find(mode => mode != InstrumentMode.None)
+    }
+
+    static buttonIndexToPlayInstrument(index: number, buttons: Set<number>): { channelIndex: ChannelIndex, step: Step } {
+        if (index === 0) {
+            return {channelIndex: ChannelIndex.Bassdrum, step: Step.Full}
+        } else if (index === 1) {
+            return {channelIndex: ChannelIndex.Bassdrum, step: Step.Weak}
+        } else if (index === 2) {
+            return {channelIndex: ChannelIndex.Snaredrum, step: Step.Full}
+        } else if (index === 3) {
+            return {channelIndex: ChannelIndex.Snaredrum, step: Step.Weak}
+        } else if (index === 4) {
+            return {channelIndex: ChannelIndex.TomLow, step: Step.Full}
+        } else if (index === 5) {
+            return {channelIndex: ChannelIndex.TomLow, step: Step.Weak}
+        } else if (index === 6) {
+            return {channelIndex: ChannelIndex.TomMid, step: Step.Full}
+        } else if (index === 7) {
+            return {channelIndex: ChannelIndex.TomMid, step: Step.Weak}
+        } else if (index === 8) {
+            return {channelIndex: ChannelIndex.TomHi, step: Step.Full}
+        } else if (index === 9) {
+            return {channelIndex: ChannelIndex.TomHi, step: Step.Weak}
+        } else if (index === 10) {
+            return {channelIndex: ChannelIndex.Rim, step: Step.Full}
+        } else if (index === 11) {
+            return {channelIndex: ChannelIndex.Clap, step: Step.Full}
+        } else if (index === 12) {
+            return {channelIndex: ChannelIndex.Hihat, step: buttons.has(13) ? Step.Extra : Step.Full}
+        } else if (index === 13) {
+            return {channelIndex: ChannelIndex.Hihat, step: buttons.has(12) ? Step.Extra : Step.Weak}
+        } else if (index === 14) {
+            return {channelIndex: ChannelIndex.Crash, step: Step.Full}
+        } else if (index === 15) {
+            return {channelIndex: ChannelIndex.Ride, step: Step.Full}
+        } else if (index === 16) {
+            throw new Error(`Total Accent cannot be played`)
+        }
+        throw new Error(`Unknown index(${index})`)
     }
 
     static setNextPatternStep(pattern: Pattern, instrumentMode: InstrumentMode, stepIndex: number): void {
@@ -63,18 +103,20 @@ export class Utils {
             setStep(ChannelIndex.Crash, normal)
         } else if (instrumentMode === InstrumentMode.Ride) {
             setStep(ChannelIndex.Ride, normal)
+        } else if (instrumentMode === InstrumentMode.TotalAccent) {
+            pattern.setTotalAccent(stepIndex, !pattern.isTotalAccent(stepIndex))
         } else {
             throw new Error('Could not set step.')
         }
     }
 
-    static createStepToStateMapping(instrumentSelectIndex: InstrumentMode): (pattern: Pattern, stepIndex: ButtonIndex) => MainButtonState {
+    static createStepToStateMapping(instrumentSelectIndex: InstrumentMode): (pattern: Pattern, buttonIndex: ButtonIndex) => MainButtonState {
         const normal = (step: Step): MainButtonState =>
             step === Step.Weak ? MainButtonState.Flash : step === Step.Full ? MainButtonState.On : MainButtonState.Off
         const extra = (step: Step): MainButtonState =>
             step === Step.Extra ? MainButtonState.On : MainButtonState.Off
         const create = (channelIndex: ChannelIndex, mapping: (step: Step) => MainButtonState) =>
-            (pattern: Pattern, stepIndex: ButtonIndex) => mapping(pattern.getStep(channelIndex, stepIndex))
+            (pattern: Pattern, buttonIndex: ButtonIndex) => buttonIndex < 16 ? mapping(pattern.getStep(channelIndex, buttonIndex)) : MainButtonState.Off
         switch (instrumentSelectIndex) {
             case InstrumentMode.Bassdrum:
                 return create(ChannelIndex.Bassdrum, normal)
@@ -108,8 +150,9 @@ export class Utils {
                 return create(ChannelIndex.Crash, normal)
             case InstrumentMode.Ride:
                 return create(ChannelIndex.Ride, normal)
-            case InstrumentMode.TotalAccent: {
-            }
+            case InstrumentMode.TotalAccent:
+                return (pattern: Pattern, buttonIndex: number) =>
+                    pattern.isTotalAccent(buttonIndex) ? MainButtonState.On : MainButtonState.Off
         }
         throw new Error()
     }

@@ -1,5 +1,5 @@
 import {GrooveFunction, GrooveIdentity} from "../audio/grooves.js"
-import {ChannelIndex, Pattern, Step} from "../audio/tr909/memory.js"
+import {Pattern, Step} from "../audio/tr909/memory.js"
 import {TR909Machine} from "../audio/tr909/worklet.js"
 import {ArrayUtils, ObservableValueImpl, Terminable, TerminableVoid, Terminator} from "../lib/common.js"
 import {HTML} from "../lib/dom.js"
@@ -62,10 +62,10 @@ export class TrackPlayState implements MachineState {
 
 export class MainButtonsContext {
     static create(machine: TR909Machine, parentNode: ParentNode) {
-        return new MainButtonsContext(machine,
-            Array.from<HTMLButtonElement>(HTML.queryAll('[data-control=main-buttons] [data-control=main-button]', parentNode))
-                .map((element: HTMLButtonElement) => new MainButton(element)),
-            new MainButton(HTML.query('[data-control=main-button][data-parameter=total-accent]')))
+        const buttons = [...Array.from<HTMLButtonElement>(HTML.queryAll('[data-control=main-buttons] [data-control=main-button]', parentNode)),
+            HTML.query('[data-control=main-button][data-parameter=total-accent]')]
+            .map((element: HTMLButtonElement) => new MainButton(element))
+        return new MainButtonsContext(machine, buttons)
     }
 
     readonly instrumentMode: ObservableValueImpl<InstrumentMode> = new ObservableValueImpl<InstrumentMode>(InstrumentMode.Bassdrum)
@@ -73,8 +73,7 @@ export class MainButtonsContext {
     private state: NonNullable<MainButtonsState> = new StepModeState(this)
 
     constructor(readonly machine: TR909Machine,
-                readonly buttons: MainButton[],
-                readonly totalAccentButton: MainButton) {
+                readonly buttons: MainButton[]) {
         const terminator = new Terminator()
         this.buttons.forEach((button: MainButton, index: number) => {
             terminator.with(button.bind('pointerdown', (event: PointerEvent) => {
@@ -148,14 +147,15 @@ class TapModeState implements MainButtonsState {
     }
 
     onButtonPress(event: PointerEvent, index: ButtonIndex): void {
-        const playTrigger = ButtonMapping.toPlayTrigger(index, this.buttons)
-        const machine = this.context.machine
+        if (index >= 16) return
         this.buttons.add(index)
+        const machine = this.context.machine
+        const playInstrument = Utils.buttonIndexToPlayInstrument(index, this.buttons)
         if (machine.transport.isPlaying()) {
             machine.memory.current()
-                .setStep(playTrigger.channelIndex, machine.stepIndex.get(), playTrigger.step ? Step.Full : Step.Weak)
+                .setStep(playInstrument.channelIndex, machine.stepIndex.get(), playInstrument.step ? Step.Full : Step.Weak)
         }
-        machine.play(playTrigger.channelIndex, playTrigger.step)
+        machine.play(playInstrument.channelIndex, playInstrument.step)
     }
 
     onButtonUp(event: PointerEvent, index: ButtonIndex): void {
@@ -181,6 +181,7 @@ class StepModeState implements MainButtonsState {
     }
 
     onButtonPress(event: PointerEvent, stepIndex: ButtonIndex): void {
+        if (stepIndex >= 16) return
         const pattern = this.context.machine.memory.current()
         const instrumentMode = this.context.instrumentMode.get()
         Utils.setNextPatternStep(pattern, instrumentMode, stepIndex)
@@ -198,7 +199,8 @@ class StepModeState implements MainButtonsState {
         const pattern = this.context.machine.memory.current()
         const instrumentMode = this.context.instrumentMode.get()
         const mapping = Utils.createStepToStateMapping(instrumentMode)
-        this.context.forEach((button: MainButton, buttonIndex: number) => button.setState(mapping(pattern, buttonIndex)))
+        this.context.forEach((button: MainButton, buttonIndex: number) =>
+            button.setState(buttonIndex < 16 ? mapping(pattern, buttonIndex) : MainButtonState.Off))
     }
 }
 
@@ -308,6 +310,7 @@ class LastStepSelectState implements MainButtonsState {
     }
 
     onButtonPress(event: PointerEvent, index: ButtonIndex): void {
+        if (index >= 16) return
         const pattern = this.context.machine.memory.current()
         pattern.lastStep.set(index + 1)
     }
@@ -324,58 +327,5 @@ class LastStepSelectState implements MainButtonsState {
         const pattern = this.context.machine.memory.current()
         this.context.clear()
         this.context.getByIndex(pattern.lastStep.get() - 1).setState(MainButtonState.On)
-    }
-}
-
-type PlayTrigger = { channelIndex: ChannelIndex, step: Step }
-
-class ButtonMapping {
-    static toPlayTrigger(index: number, multiTouches: Set<number>): PlayTrigger {
-        switch (index) {
-            case 0:
-                return {channelIndex: ChannelIndex.Bassdrum, step: Step.Full}
-            case 1:
-                return {channelIndex: ChannelIndex.Bassdrum, step: Step.Weak}
-            case 2:
-                return {channelIndex: ChannelIndex.Snaredrum, step: Step.Full}
-            case 3:
-                return {channelIndex: ChannelIndex.Snaredrum, step: Step.Weak}
-            case 4:
-                return {channelIndex: ChannelIndex.TomLow, step: Step.Full}
-            case 5:
-                return {channelIndex: ChannelIndex.TomLow, step: Step.Weak}
-            case 6:
-                return {channelIndex: ChannelIndex.TomMid, step: Step.Full}
-            case 7:
-                return {channelIndex: ChannelIndex.TomMid, step: Step.Weak}
-            case 8:
-                return {channelIndex: ChannelIndex.TomHi, step: Step.Full}
-            case 9:
-                return {channelIndex: ChannelIndex.TomHi, step: Step.Weak}
-            case 10:
-                return {channelIndex: ChannelIndex.Rim, step: Step.Weak}
-            case 11:
-                return {channelIndex: ChannelIndex.Clap, step: Step.Weak}
-            case 12:
-                if (multiTouches.has(13)) {
-                    return {channelIndex: ChannelIndex.Hihat, step: Step.Extra}
-                } else {
-                    return {channelIndex: ChannelIndex.Hihat, step: Step.Full}
-                }
-            case 13:
-                if (multiTouches.has(12)) {
-                    return {channelIndex: ChannelIndex.Hihat, step: Step.Extra}
-                } else {
-                    return {channelIndex: ChannelIndex.Hihat, step: Step.Weak}
-                }
-            case 14:
-                return {channelIndex: ChannelIndex.Crash, step: Step.Weak}
-            case 15:
-                return {channelIndex: ChannelIndex.Ride, step: Step.Weak}
-            case 16: {
-                throw new Error("Implement Total Accent")
-            }
-        }
-        throw new Error(`Unknown index(${index})`)
     }
 }

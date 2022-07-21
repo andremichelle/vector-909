@@ -73,7 +73,6 @@ export class TR909Machine implements Terminable {
     }
 
     play(channelIndex: ChannelIndex, step: Step) {
-        console.log(`play(channelIndex: ${channelIndex}, step: ${step})`)
         this.worklet.port.postMessage({type: 'play-channel', channelIndex, step} as ToWorkletMessage)
     }
 

@@ -57,6 +57,7 @@ export class Memory {
 
 export interface PatternFormat {
     steps: Step[][]
+    totalAccents: boolean[]
     scale: number
     flamDelay: number
     lastStep: number
@@ -120,6 +121,12 @@ export class Pattern implements Observable<void> {
         return this.steps[channelIndex][stepIndex]
     }
 
+    setTotalAccent(stepIndex: number, active: boolean): void {
+        console.assert(0 <= stepIndex && stepIndex < 16)
+        this.totalAccents[stepIndex] = active
+        this.observable.notify()
+    }
+
     isTotalAccent(stepIndex: number): boolean {
         console.assert(0 <= stepIndex && stepIndex < 16)
         return this.totalAccents[stepIndex]
@@ -128,6 +135,7 @@ export class Pattern implements Observable<void> {
     serialize(): PatternFormat {
         return {
             steps: this.steps,
+            totalAccents: this.totalAccents,
             scale: this.scale.get().index(),
             flamDelay: this.flamDelay.get(),
             lastStep: this.lastStep.get(),
@@ -140,6 +148,7 @@ export class Pattern implements Observable<void> {
         format.steps.forEach((steps: Step[], channel: number) =>
             steps.forEach((step: Step, stepIndex: number) =>
                 this.steps[channel][stepIndex] = step))
+        this.totalAccents.splice(0, 16, ...format.totalAccents)
         this.lastStep.set(format.lastStep)
         this.scale.set(Scale.getByIndex(format.scale))
         this.flamDelay.set(format.flamDelay)
