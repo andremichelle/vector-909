@@ -4,7 +4,7 @@ import {TR909Machine} from "../audio/tr909/worklet.js"
 import {ArrayUtils, ObservableValueImpl, Terminable, TerminableVoid, Terminator} from "../lib/common.js"
 import {HTML} from "../lib/dom.js"
 import {PowInjective} from "../lib/injective.js"
-import {ButtonIndex, InstrumentMode, InstrumentSelectIndexStates, MainButton, MainButtonState} from "./gui.js"
+import {ButtonIndex, InstrumentMode, MainButton, MainButtonState} from "./gui.js"
 import {Utils} from "./utils.js"
 
 /**
@@ -137,7 +137,7 @@ interface MainButtonsState extends Terminable {
 }
 
 class TapModeState implements MainButtonsState {
-    private readonly multiTouches: Set<number> = new Set<number>()
+    private readonly buttons: Set<number> = new Set<number>()
     private readonly stepIndexSubscription: Terminable
 
     constructor(readonly context: MainButtonsContext) {
@@ -148,22 +148,22 @@ class TapModeState implements MainButtonsState {
     }
 
     onButtonPress(event: PointerEvent, index: ButtonIndex): void {
-        const playTrigger = ButtonMapping.toPlayTrigger(index, this.multiTouches)
+        const playTrigger = ButtonMapping.toPlayTrigger(index, this.buttons)
         const machine = this.context.machine
-        machine.play(playTrigger.channelIndex, playTrigger.step)
-        this.multiTouches.add(index)
+        this.buttons.add(index)
         if (machine.transport.isPlaying()) {
             machine.memory.current()
                 .setStep(playTrigger.channelIndex, machine.stepIndex.get(), playTrigger.step ? Step.Full : Step.Weak)
         }
+        machine.play(playTrigger.channelIndex, playTrigger.step)
     }
 
     onButtonUp(event: PointerEvent, index: ButtonIndex): void {
-        this.multiTouches.delete(index)
+        this.buttons.delete(index)
     }
 
     terminate(): void {
-        this.multiTouches.clear()
+        this.buttons.clear()
         this.stepIndexSubscription.terminate()
     }
 }
@@ -195,10 +195,41 @@ class StepModeState implements MainButtonsState {
     }
 
     update(): void {
-        const instrumentMode = this.context.instrumentMode.get()
         const pattern = this.context.machine.memory.current()
+        const instrumentMode = this.context.instrumentMode.get()
         const mapping = Utils.createStepToStateMapping(instrumentMode)
         this.context.forEach((button: MainButton, buttonIndex: number) => button.setState(mapping(pattern, buttonIndex)))
+    }
+}
+
+class InstrumentSelectState implements MainButtonsState {
+    private readonly buttons: Set<ButtonIndex> = new Set<ButtonIndex>()
+    private readonly evaluator = Utils.buttonIndicesToInstrumentMode(this.buttons)
+
+    private readonly update = (instrumentMode: InstrumentMode) => {
+        const mapping = Utils.instrumentModeToButtonStates(instrumentMode)
+        this.context.forEach((button, buttonIndex) => button.setState(mapping(buttonIndex)))
+    }
+
+    private readonly subscription = this.context.instrumentMode.addObserver(this.update, true)
+
+    constructor(readonly context: MainButtonsContext) {
+    }
+
+    onButtonPress(event: PointerEvent, index: ButtonIndex): void {
+        this.buttons.add(index)
+        this.context.instrumentMode.set(this.evaluator())
+    }
+
+    onButtonUp(event: PointerEvent, index: ButtonIndex): void {
+        if (!event.shiftKey) { // TODO Find better solution to emulate multi-touch
+            this.buttons.delete(index)
+        }
+    }
+
+    terminate(): void {
+        this.subscription.terminate()
+        this.buttons.clear()
     }
 }
 
@@ -293,39 +324,6 @@ class LastStepSelectState implements MainButtonsState {
         const pattern = this.context.machine.memory.current()
         this.context.clear()
         this.context.getByIndex(pattern.lastStep.get() - 1).setState(MainButtonState.On)
-    }
-}
-
-class InstrumentSelectState implements MainButtonsState {
-    private readonly buttons: Set<ButtonIndex> = new Set<ButtonIndex>()
-    private readonly evaluator = Utils.buttonIndicesToInstrumentMode(this.buttons)
-
-    private readonly update = (index: InstrumentMode) => {
-        this.context.clear()
-        // TODO Make a function call
-        InstrumentSelectIndexStates.get(index)
-            .forEach(states => this.context.getByIndex(states[0]).setState(states[1]))
-    }
-
-    private readonly subscription = this.context.instrumentMode.addObserver(this.update, true)
-
-    constructor(readonly context: MainButtonsContext) {
-    }
-
-    onButtonPress(event: PointerEvent, index: ButtonIndex): void {
-        this.buttons.add(index)
-        this.context.instrumentMode.set(this.evaluator())
-    }
-
-    onButtonUp(event: PointerEvent, index: ButtonIndex): void {
-        if (!event.shiftKey) { // TODO Find better solution to emulate multi-touch
-            this.buttons.delete(index)
-        }
-    }
-
-    terminate(): void {
-        this.subscription.terminate()
-        this.buttons.clear()
     }
 }
 

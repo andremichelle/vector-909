@@ -264,22 +264,3 @@ export enum InstrumentMode {
     Crash, Ride,
     TotalAccent
 }
-
-export const InstrumentSelectIndexStates: Map<InstrumentMode, [ButtonIndex, MainButtonState][]> = new Map([
-    [InstrumentMode.Bassdrum, [[0, MainButtonState.On], [1, MainButtonState.Flash]]],
-    [InstrumentMode.BassdrumFlame, [[0, MainButtonState.On], [1, MainButtonState.On]]],
-    [InstrumentMode.Snaredrum, [[2, MainButtonState.On], [3, MainButtonState.Flash]]],
-    [InstrumentMode.SnaredrumFlame, [[2, MainButtonState.On], [3, MainButtonState.On]]],
-    [InstrumentMode.TomLow, [[4, MainButtonState.On], [5, MainButtonState.Flash]]],
-    [InstrumentMode.TomLowFlame, [[4, MainButtonState.On], [5, MainButtonState.On]]],
-    [InstrumentMode.TomMid, [[6, MainButtonState.On], [7, MainButtonState.Flash]]],
-    [InstrumentMode.TomMidFlame, [[6, MainButtonState.On], [7, MainButtonState.On]]],
-    [InstrumentMode.TomHi, [[8, MainButtonState.On], [9, MainButtonState.Flash]]],
-    [InstrumentMode.TomHiFlame, [[8, MainButtonState.On], [9, MainButtonState.On]]],
-    [InstrumentMode.Rim, [[10, MainButtonState.On]]],
-    [InstrumentMode.Clap, [[11, MainButtonState.On]]],
-    [InstrumentMode.HihatClosed, [[12, MainButtonState.On], [13, MainButtonState.Flash]]],
-    [InstrumentMode.HihatOpened, [[12, MainButtonState.On], [13, MainButtonState.On]]],
-    [InstrumentMode.Crash, [[14, MainButtonState.On]]],
-    [InstrumentMode.Ride, [[15, MainButtonState.On]]]
-])

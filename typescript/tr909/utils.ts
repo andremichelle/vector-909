@@ -69,49 +69,94 @@ export class Utils {
     }
 
     static createStepToStateMapping(instrumentSelectIndex: InstrumentMode): (pattern: Pattern, stepIndex: ButtonIndex) => MainButtonState {
-        const defaultMapping = (step: Step): MainButtonState =>
+        const normal = (step: Step): MainButtonState =>
             step === Step.Weak ? MainButtonState.Flash : step === Step.Full ? MainButtonState.On : MainButtonState.Off
-        const extraMapping = (step: Step): MainButtonState =>
+        const extra = (step: Step): MainButtonState =>
             step === Step.Extra ? MainButtonState.On : MainButtonState.Off
-        const applyState = (channelIndex: ChannelIndex, mapping: (step: Step) => MainButtonState) =>
+        const create = (channelIndex: ChannelIndex, mapping: (step: Step) => MainButtonState) =>
             (pattern: Pattern, stepIndex: ButtonIndex) => mapping(pattern.getStep(channelIndex, stepIndex))
         switch (instrumentSelectIndex) {
             case InstrumentMode.Bassdrum:
-                return applyState(ChannelIndex.Bassdrum, defaultMapping)
+                return create(ChannelIndex.Bassdrum, normal)
             case InstrumentMode.BassdrumFlame:
-                return applyState(ChannelIndex.Bassdrum, extraMapping)
+                return create(ChannelIndex.Bassdrum, extra)
             case InstrumentMode.Snaredrum:
-                return applyState(ChannelIndex.Snaredrum, defaultMapping)
+                return create(ChannelIndex.Snaredrum, normal)
             case InstrumentMode.SnaredrumFlame:
-                return applyState(ChannelIndex.Snaredrum, extraMapping)
+                return create(ChannelIndex.Snaredrum, extra)
             case InstrumentMode.TomLow:
-                return applyState(ChannelIndex.TomLow, defaultMapping)
+                return create(ChannelIndex.TomLow, normal)
             case InstrumentMode.TomLowFlame:
-                return applyState(ChannelIndex.TomLow, extraMapping)
+                return create(ChannelIndex.TomLow, extra)
             case InstrumentMode.TomMid:
-                return applyState(ChannelIndex.TomMid, defaultMapping)
+                return create(ChannelIndex.TomMid, normal)
             case InstrumentMode.TomMidFlame:
-                return applyState(ChannelIndex.TomMid, extraMapping)
+                return create(ChannelIndex.TomMid, extra)
             case InstrumentMode.TomHi:
-                return applyState(ChannelIndex.TomHi, defaultMapping)
+                return create(ChannelIndex.TomHi, normal)
             case InstrumentMode.TomHiFlame:
-                return applyState(ChannelIndex.TomHi, extraMapping)
+                return create(ChannelIndex.TomHi, extra)
             case InstrumentMode.Rim:
-                return applyState(ChannelIndex.Rim, defaultMapping)
+                return create(ChannelIndex.Rim, normal)
             case InstrumentMode.Clap:
-                return applyState(ChannelIndex.Clap, defaultMapping)
+                return create(ChannelIndex.Clap, normal)
             case InstrumentMode.HihatClosed:
-                return applyState(ChannelIndex.Hihat, defaultMapping)
+                return create(ChannelIndex.Hihat, normal)
             case InstrumentMode.HihatOpened:
-                return applyState(ChannelIndex.Hihat, extraMapping)
+                return create(ChannelIndex.Hihat, extra)
             case InstrumentMode.Crash:
-                return applyState(ChannelIndex.Crash, defaultMapping)
+                return create(ChannelIndex.Crash, normal)
             case InstrumentMode.Ride:
-                return applyState(ChannelIndex.Ride, defaultMapping)
+                return create(ChannelIndex.Ride, normal)
             case InstrumentMode.TotalAccent: {
             }
         }
         throw new Error()
+    }
+
+    static instrumentModeToButtonStates(instrumentMode: InstrumentMode): (buttonIndex: ButtonIndex) => MainButtonState {
+        const simple = (buttonIndex: ButtonIndex, index: number) =>
+            buttonIndex === index ? MainButtonState.On : MainButtonState.Off
+        const complex = (buttonIndex: ButtonIndex, i0: number, i1: number, second: MainButtonState) =>
+            buttonIndex === i0 ? MainButtonState.On : buttonIndex === i1 ? second : MainButtonState.Off
+        return (buttonIndex: ButtonIndex): MainButtonState => {
+            if (instrumentMode === InstrumentMode.Bassdrum) {
+                return complex(buttonIndex, 0, 1, MainButtonState.Flash)
+            } else if (instrumentMode === InstrumentMode.BassdrumFlame) {
+                return complex(buttonIndex, 0, 1, MainButtonState.On)
+            } else if (instrumentMode === InstrumentMode.Snaredrum) {
+                return complex(buttonIndex, 2, 3, MainButtonState.Flash)
+            } else if (instrumentMode === InstrumentMode.SnaredrumFlame) {
+                return complex(buttonIndex, 2, 3, MainButtonState.On)
+            } else if (instrumentMode === InstrumentMode.TomLow) {
+                return complex(buttonIndex, 4, 5, MainButtonState.Flash)
+            } else if (instrumentMode === InstrumentMode.TomLowFlame) {
+                return complex(buttonIndex, 4, 5, MainButtonState.On)
+            } else if (instrumentMode === InstrumentMode.TomMid) {
+                return complex(buttonIndex, 6, 7, MainButtonState.Flash)
+            } else if (instrumentMode === InstrumentMode.TomMidFlame) {
+                return complex(buttonIndex, 6, 7, MainButtonState.On)
+            } else if (instrumentMode === InstrumentMode.TomHi) {
+                return complex(buttonIndex, 8, 9, MainButtonState.Flash)
+            } else if (instrumentMode === InstrumentMode.TomHiFlame) {
+                return complex(buttonIndex, 8, 9, MainButtonState.On)
+            } else if (instrumentMode === InstrumentMode.Rim) {
+                return simple(buttonIndex, 10)
+            } else if (instrumentMode === InstrumentMode.Clap) {
+                return simple(buttonIndex, 11)
+            } else if (instrumentMode === InstrumentMode.HihatClosed) {
+                return complex(buttonIndex, 12, 13, MainButtonState.Flash)
+            } else if (instrumentMode === InstrumentMode.HihatOpened) {
+                return complex(buttonIndex, 12, 13, MainButtonState.On)
+            } else if (instrumentMode === InstrumentMode.Crash) {
+                return simple(buttonIndex, 14)
+            } else if (instrumentMode === InstrumentMode.Ride) {
+                return simple(buttonIndex, 15)
+            } else if (instrumentMode === InstrumentMode.TotalAccent) {
+                return simple(buttonIndex, 16)
+            }
+            return MainButtonState.Off
+        }
     }
 }
 
