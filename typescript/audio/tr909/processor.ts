@@ -104,7 +104,7 @@ registerProcessor('tr-909', class extends AudioWorkletProcessor implements Voice
                 const frameIndex = this.frameIndex + Math.floor(barsToNumFrames(bar - b0, this.bpm, sampleRate))
                 const frameIndexDelayed = frameIndex + pattern.flamDelay.get() / 1000.0 * sampleRate
                 const totalAccent: boolean = pattern.isTotalAccent(stepIndex)
-                for (let channelIndex = 0; channelIndex < ChannelIndex.Last; channelIndex++) {
+                for (let channelIndex = 0; channelIndex < ChannelIndex.End; channelIndex++) {
                     const step: Step = pattern.getStep(channelIndex, stepIndex)
                     if (step === Step.None) {
                         continue

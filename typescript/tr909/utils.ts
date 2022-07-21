@@ -12,11 +12,11 @@ export class Utils {
                 return b0 && b1 ? and : b0 || b1 ? or : InstrumentMode.None
             }
         const checks: (() => InstrumentMode)[] = [
-            complex(0, 1, InstrumentMode.Bassdrum, InstrumentMode.BassdrumFlame),
-            complex(2, 3, InstrumentMode.Snaredrum, InstrumentMode.SnaredrumFlame),
-            complex(4, 5, InstrumentMode.TomLow, InstrumentMode.TomLowFlame),
-            complex(6, 7, InstrumentMode.TomMid, InstrumentMode.TomMidFlame),
-            complex(8, 9, InstrumentMode.TomHi, InstrumentMode.TomHiFlame),
+            complex(0, 1, InstrumentMode.Bassdrum, InstrumentMode.BassdrumFlam),
+            complex(2, 3, InstrumentMode.Snaredrum, InstrumentMode.SnaredrumFlam),
+            complex(4, 5, InstrumentMode.TomLow, InstrumentMode.TomLowFlam),
+            complex(6, 7, InstrumentMode.TomMid, InstrumentMode.TomMidFlam),
+            complex(8, 9, InstrumentMode.TomHi, InstrumentMode.TomHiFlam),
             simple(10, InstrumentMode.Rim),
             simple(11, InstrumentMode.Clap),
             complex(12, 13, InstrumentMode.HihatClosed, InstrumentMode.HihatOpened),
@@ -67,42 +67,43 @@ export class Utils {
     }
 
     static setNextPatternStep(pattern: Pattern, instrumentMode: InstrumentMode, stepIndex: number): void {
-        const normal = (step: Step): Step => step === Step.None || step === Step.Extra ? Step.Weak : step === Step.Weak ? Step.Full : Step.None
-        const extra = (step: Step): Step => step !== Step.Extra ? Step.Extra : Step.None
-        const setStep = (channelIndex: ChannelIndex, next: (step: Step) => Step) =>
+        const cycleWeakFull = (step: Step): Step => step === Step.None || step === Step.Extra ? Step.Weak : step === Step.Weak ? Step.Full : Step.None
+        const toggleFull = (step: Step): Step => step !== Step.Full ? Step.Full : Step.None
+        const toggleExtra = (step: Step): Step => step !== Step.Extra ? Step.Extra : Step.None
+        const apply = (channelIndex: ChannelIndex, next: (step: Step) => Step) =>
             pattern.setStep(channelIndex, stepIndex, next(pattern.getStep(channelIndex, stepIndex)))
         if (instrumentMode === InstrumentMode.Bassdrum) {
-            setStep(ChannelIndex.Bassdrum, normal)
-        } else if (instrumentMode === InstrumentMode.BassdrumFlame) {
-            setStep(ChannelIndex.Bassdrum, extra)
+            apply(ChannelIndex.Bassdrum, cycleWeakFull)
+        } else if (instrumentMode === InstrumentMode.BassdrumFlam) {
+            apply(ChannelIndex.Bassdrum, toggleExtra)
         } else if (instrumentMode === InstrumentMode.Snaredrum) {
-            setStep(ChannelIndex.Snaredrum, normal)
-        } else if (instrumentMode === InstrumentMode.SnaredrumFlame) {
-            setStep(ChannelIndex.Snaredrum, extra)
+            apply(ChannelIndex.Snaredrum, cycleWeakFull)
+        } else if (instrumentMode === InstrumentMode.SnaredrumFlam) {
+            apply(ChannelIndex.Snaredrum, toggleExtra)
         } else if (instrumentMode === InstrumentMode.TomLow) {
-            setStep(ChannelIndex.TomLow, normal)
-        } else if (instrumentMode === InstrumentMode.TomLowFlame) {
-            setStep(ChannelIndex.TomLow, extra)
+            apply(ChannelIndex.TomLow, cycleWeakFull)
+        } else if (instrumentMode === InstrumentMode.TomLowFlam) {
+            apply(ChannelIndex.TomLow, toggleExtra)
         } else if (instrumentMode === InstrumentMode.TomMid) {
-            setStep(ChannelIndex.TomMid, normal)
-        } else if (instrumentMode === InstrumentMode.TomMidFlame) {
-            setStep(ChannelIndex.TomMid, extra)
+            apply(ChannelIndex.TomMid, cycleWeakFull)
+        } else if (instrumentMode === InstrumentMode.TomMidFlam) {
+            apply(ChannelIndex.TomMid, toggleExtra)
         } else if (instrumentMode === InstrumentMode.TomHi) {
-            setStep(ChannelIndex.TomHi, normal)
-        } else if (instrumentMode === InstrumentMode.TomHiFlame) {
-            setStep(ChannelIndex.TomHi, extra)
+            apply(ChannelIndex.TomHi, cycleWeakFull)
+        } else if (instrumentMode === InstrumentMode.TomHiFlam) {
+            apply(ChannelIndex.TomHi, toggleExtra)
         } else if (instrumentMode === InstrumentMode.Rim) {
-            setStep(ChannelIndex.Rim, normal)
+            apply(ChannelIndex.Rim, toggleFull)
         } else if (instrumentMode === InstrumentMode.Clap) {
-            setStep(ChannelIndex.Clap, normal)
+            apply(ChannelIndex.Clap, toggleFull)
         } else if (instrumentMode === InstrumentMode.HihatClosed) {
-            setStep(ChannelIndex.Hihat, normal)
+            apply(ChannelIndex.Hihat, cycleWeakFull)
         } else if (instrumentMode === InstrumentMode.HihatOpened) {
-            setStep(ChannelIndex.Hihat, extra)
+            apply(ChannelIndex.Hihat, toggleExtra)
         } else if (instrumentMode === InstrumentMode.Crash) {
-            setStep(ChannelIndex.Crash, normal)
+            apply(ChannelIndex.Crash, toggleFull)
         } else if (instrumentMode === InstrumentMode.Ride) {
-            setStep(ChannelIndex.Ride, normal)
+            apply(ChannelIndex.Ride, toggleFull)
         } else if (instrumentMode === InstrumentMode.TotalAccent) {
             pattern.setTotalAccent(stepIndex, !pattern.isTotalAccent(stepIndex))
         } else {
@@ -120,23 +121,23 @@ export class Utils {
         switch (instrumentSelectIndex) {
             case InstrumentMode.Bassdrum:
                 return create(ChannelIndex.Bassdrum, normal)
-            case InstrumentMode.BassdrumFlame:
+            case InstrumentMode.BassdrumFlam:
                 return create(ChannelIndex.Bassdrum, extra)
             case InstrumentMode.Snaredrum:
                 return create(ChannelIndex.Snaredrum, normal)
-            case InstrumentMode.SnaredrumFlame:
+            case InstrumentMode.SnaredrumFlam:
                 return create(ChannelIndex.Snaredrum, extra)
             case InstrumentMode.TomLow:
                 return create(ChannelIndex.TomLow, normal)
-            case InstrumentMode.TomLowFlame:
+            case InstrumentMode.TomLowFlam:
                 return create(ChannelIndex.TomLow, extra)
             case InstrumentMode.TomMid:
                 return create(ChannelIndex.TomMid, normal)
-            case InstrumentMode.TomMidFlame:
+            case InstrumentMode.TomMidFlam:
                 return create(ChannelIndex.TomMid, extra)
             case InstrumentMode.TomHi:
                 return create(ChannelIndex.TomHi, normal)
-            case InstrumentMode.TomHiFlame:
+            case InstrumentMode.TomHiFlam:
                 return create(ChannelIndex.TomHi, extra)
             case InstrumentMode.Rim:
                 return create(ChannelIndex.Rim, normal)
@@ -165,23 +166,23 @@ export class Utils {
         return (buttonIndex: ButtonIndex): MainButtonState => {
             if (instrumentMode === InstrumentMode.Bassdrum) {
                 return complex(buttonIndex, 0, 1, MainButtonState.Flash)
-            } else if (instrumentMode === InstrumentMode.BassdrumFlame) {
+            } else if (instrumentMode === InstrumentMode.BassdrumFlam) {
                 return complex(buttonIndex, 0, 1, MainButtonState.On)
             } else if (instrumentMode === InstrumentMode.Snaredrum) {
                 return complex(buttonIndex, 2, 3, MainButtonState.Flash)
-            } else if (instrumentMode === InstrumentMode.SnaredrumFlame) {
+            } else if (instrumentMode === InstrumentMode.SnaredrumFlam) {
                 return complex(buttonIndex, 2, 3, MainButtonState.On)
             } else if (instrumentMode === InstrumentMode.TomLow) {
                 return complex(buttonIndex, 4, 5, MainButtonState.Flash)
-            } else if (instrumentMode === InstrumentMode.TomLowFlame) {
+            } else if (instrumentMode === InstrumentMode.TomLowFlam) {
                 return complex(buttonIndex, 4, 5, MainButtonState.On)
             } else if (instrumentMode === InstrumentMode.TomMid) {
                 return complex(buttonIndex, 6, 7, MainButtonState.Flash)
-            } else if (instrumentMode === InstrumentMode.TomMidFlame) {
+            } else if (instrumentMode === InstrumentMode.TomMidFlam) {
                 return complex(buttonIndex, 6, 7, MainButtonState.On)
             } else if (instrumentMode === InstrumentMode.TomHi) {
                 return complex(buttonIndex, 8, 9, MainButtonState.Flash)
-            } else if (instrumentMode === InstrumentMode.TomHiFlame) {
+            } else if (instrumentMode === InstrumentMode.TomHiFlam) {
                 return complex(buttonIndex, 8, 9, MainButtonState.On)
             } else if (instrumentMode === InstrumentMode.Rim) {
                 return simple(buttonIndex, 10)

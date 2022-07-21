@@ -6,7 +6,7 @@ import {TR909Machine} from "./audio/tr909/worklet.js"
 import {Boot, newAudioContext, preloadImagesOfCssFile} from "./lib/boot.js"
 import {Waiting} from "./lib/common.js"
 import {HTML} from "./lib/dom.js"
-import {GUI, InstrumentMode, Mode} from "./tr909/gui.js"
+import {GUI, Mode} from "./tr909/gui.js"
 
 const showProgress = (() => {
         const progress: SVGSVGElement = document.querySelector("svg.preloader")
@@ -54,7 +54,7 @@ const showProgress = (() => {
     const run = () => {
         debugMode.textContent = Mode[gui.currentMode.get()]
         debugTransporting.textContent = machine.transport.isPlaying() ? 'Playing' : 'Paused'
-        debugInstrument.textContent = InstrumentMode[gui.mainButtonsContext.instrumentMode.get()]
+        debugInstrument.textContent = gui.mainButtonsContext.instrumentMode.get().name
         requestAnimationFrame(run)
     }
     requestAnimationFrame(run)
