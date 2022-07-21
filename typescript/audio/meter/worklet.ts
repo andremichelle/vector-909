@@ -116,7 +116,6 @@ export class StereoMeterWorklet extends MeterWorklet {
         if (densityChanged) {
             this.renderScale()
         }
-
         graphics.clearRect(0, 0, this.width, this.meterSegmentHeight)
         graphics.clearRect(0, this.meterSegmentHeight + this.meterSegmentVGap, this.width, this.meterSegmentHeight)
         graphics.fillStyle = "rgba(0, 0, 0, 0.2)"

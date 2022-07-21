@@ -7,8 +7,38 @@ import {Digits} from "./digits.js"
 import {Knob} from "./knobs.js"
 import {MachineContext, MainButtonsContext} from "./states.js"
 
+export type ButtonIndex = number
+
 export enum Mode {
     Steps, Tap, LastStep, ShuffleFlam, SelectInstrument
+}
+
+export enum MainButtonState {
+    Off, Flash, On
+}
+
+export class MainButton {
+    private state: MainButtonState = MainButtonState.Off
+
+    constructor(private readonly element: HTMLButtonElement) {
+    }
+
+    bind(type: string, listener: EventListenerOrEventListenerObject, options?: AddEventListenerOptions): Terminable {
+        return Events.bindEventListener(this.element, type, listener, options)
+    }
+
+    setPointerCapture(pointerId: number): void {
+        this.element.setPointerCapture(pointerId)
+    }
+
+    setState(state: MainButtonState): void {
+        if (this.state === state) {
+            return
+        }
+        this.element.classList.toggle('flash-active', state === MainButtonState.Flash)
+        this.element.classList.toggle('active', state === MainButtonState.On)
+        this.state = state
+    }
 }
 
 export class GUI {
@@ -51,7 +81,8 @@ export class GUI {
         this.mainButtonsContext = new MainButtonsContext(machine,
             [...(Array.from<HTMLButtonElement>(
                 HTML.queryAll('[data-control=main-buttons] [data-control=main-button]', parentNode))),
-                HTML.query('[data-control=main-button][data-parameter=total-accent]')])
+                HTML.query('[data-control=main-button][data-parameter=total-accent]')]
+                .map((element: HTMLButtonElement) => new MainButton(element)))
 
         this.installKnobs()
         this.installScale()
@@ -223,3 +254,34 @@ export class GUI {
         this.terminator.with({terminate: () => running = false})
     }
 }
+
+export enum InstrumentSelectIndex {
+    Bassdrum, BassdrumFlame,
+    Snaredrum, SnaredrumFlame,
+    TomLow, TomLowFlame,
+    TomMid, TomMidFlame,
+    TomHi, TomHiFlame,
+    Rim, Clap,
+    HihatClosed, HihatOpened,
+    Crash, Ride,
+    TotalAccent
+}
+
+export const InstrumentSelectIndexStates: Map<InstrumentSelectIndex, [ButtonIndex, MainButtonState][]> = new Map([
+    [InstrumentSelectIndex.Bassdrum, [[0, MainButtonState.On], [1, MainButtonState.Flash]]],
+    [InstrumentSelectIndex.BassdrumFlame, [[0, MainButtonState.On], [1, MainButtonState.On]]],
+    [InstrumentSelectIndex.Snaredrum, [[2, MainButtonState.On], [3, MainButtonState.Flash]]],
+    [InstrumentSelectIndex.SnaredrumFlame, [[2, MainButtonState.On], [3, MainButtonState.On]]],
+    [InstrumentSelectIndex.TomLow, [[4, MainButtonState.On], [5, MainButtonState.Flash]]],
+    [InstrumentSelectIndex.TomLowFlame, [[4, MainButtonState.On], [5, MainButtonState.On]]],
+    [InstrumentSelectIndex.TomMid, [[6, MainButtonState.On], [7, MainButtonState.Flash]]],
+    [InstrumentSelectIndex.TomMidFlame, [[6, MainButtonState.On], [7, MainButtonState.On]]],
+    [InstrumentSelectIndex.TomHi, [[8, MainButtonState.On], [9, MainButtonState.Flash]]],
+    [InstrumentSelectIndex.TomHiFlame, [[8, MainButtonState.On], [9, MainButtonState.On]]],
+    [InstrumentSelectIndex.Rim, [[10, MainButtonState.On]]],
+    [InstrumentSelectIndex.Clap, [[11, MainButtonState.On]]],
+    [InstrumentSelectIndex.HihatClosed, [[12, MainButtonState.On], [13, MainButtonState.Flash]]],
+    [InstrumentSelectIndex.HihatOpened, [[12, MainButtonState.On], [13, MainButtonState.On]]],
+    [InstrumentSelectIndex.Crash, [[14, MainButtonState.On]]],
+    [InstrumentSelectIndex.Ride, [[15, MainButtonState.On]]]
+])

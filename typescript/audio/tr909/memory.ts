@@ -100,8 +100,8 @@ export class Pattern implements Observable<void> {
             }
         }
         this.setStep(ChannelIndex.Bassdrum, 15, Step.Active)
-        this.setStep(ChannelIndex.Clap, 4, Step.None)
-        this.setStep(ChannelIndex.Clap, 12, Step.None)
+        this.setStep(ChannelIndex.Clap, 4, Step.Accent)
+        this.setStep(ChannelIndex.Clap, 12, Step.Accent)
     }
 
     setStep(channelIndex: ChannelIndex, stepIndex: number, step: Step): void {
