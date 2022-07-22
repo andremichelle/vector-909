@@ -7,7 +7,14 @@ import {Digits} from "./digits.js"
 import {Knob} from "./knobs.js"
 import {MachineContext, MainButtonsContext} from "./states.js"
 
-export type ButtonIndex = number
+// noinspection JSUnusedGlobalSymbols
+export enum ButtonIndex {
+    Step1, Step2, Step3, Step4,
+    Step5, Step6, Step7, Step8,
+    Step9, Step10, Step11, Step12,
+    Step13, Step14, Step15, Step16,
+    TotalAccent
+}
 
 export enum Mode {
     Steps, Tap, LastStep, ShuffleFlam, SelectInstrument

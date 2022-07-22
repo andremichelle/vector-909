@@ -75,7 +75,7 @@ export class MainButtonsContext {
     constructor(readonly machine: TR909Machine,
                 readonly buttons: MainButton[]) {
         const terminator = new Terminator()
-        this.buttons.forEach((button: MainButton, index: number) => {
+        this.buttons.forEach((button: MainButton, index: ButtonIndex) => {
             terminator.with(button.bind('pointerdown', (event: PointerEvent) => {
                 button.setPointerCapture(event.pointerId)
                 this.state.onButtonPress(event, index)
@@ -118,7 +118,7 @@ export class MainButtonsContext {
         this.buttons.forEach(fn)
     }
 
-    getByIndex(index: number): MainButton {
+    getByIndex(index: ButtonIndex): MainButton {
         return this.buttons[index]
     }
 
@@ -130,9 +130,9 @@ export class MainButtonsContext {
 interface MainButtonsState extends Terminable {
     readonly context: MainButtonsContext
 
-    onButtonPress(event: PointerEvent, index: ButtonIndex): void
+    onButtonPress(event: PointerEvent, buttonIndex: ButtonIndex): void
 
-    onButtonUp(event: PointerEvent, index: ButtonIndex): void
+    onButtonUp(event: PointerEvent, buttonIndex: ButtonIndex): void
 }
 
 class TapModeState implements MainButtonsState {
@@ -146,11 +146,11 @@ class TapModeState implements MainButtonsState {
         }, true)
     }
 
-    onButtonPress(event: PointerEvent, index: ButtonIndex): void {
-        if (index >= 16) return
-        this.buttons.add(index)
+    onButtonPress(event: PointerEvent, buttonIndex: ButtonIndex): void {
+        if (buttonIndex === ButtonIndex.TotalAccent) return
+        this.buttons.add(buttonIndex)
         const machine = this.context.machine
-        const playInstrument = Utils.buttonIndexToPlayInstrument(index, this.buttons)
+        const playInstrument = Utils.buttonIndexToPlayInstrument(buttonIndex, this.buttons)
         if (machine.transport.isPlaying()) {
             machine.memory.current()
                 .setStep(playInstrument.channelIndex, machine.stepIndex.get(), playInstrument.step ? Step.Full : Step.Weak)
@@ -158,8 +158,8 @@ class TapModeState implements MainButtonsState {
         machine.play(playInstrument.channelIndex, playInstrument.step)
     }
 
-    onButtonUp(event: PointerEvent, index: ButtonIndex): void {
-        this.buttons.delete(index)
+    onButtonUp(event: PointerEvent, buttonIndex: ButtonIndex): void {
+        this.buttons.delete(buttonIndex)
     }
 
     terminate(): void {
@@ -180,14 +180,14 @@ class StepModeState implements MainButtonsState {
         }, true)
     }
 
-    onButtonPress(event: PointerEvent, stepIndex: ButtonIndex): void {
-        if (stepIndex >= 16) return
+    onButtonPress(event: PointerEvent, buttonIndex: ButtonIndex): void {
+        if (buttonIndex === ButtonIndex.TotalAccent) return
         const pattern = this.context.machine.memory.current()
         const instrumentMode = this.context.instrumentMode.get()
-        Utils.setNextPatternStep(pattern, instrumentMode, stepIndex)
+        Utils.setNextPatternStep(pattern, instrumentMode, buttonIndex)
     }
 
-    onButtonUp(event: PointerEvent, index: ButtonIndex): void {
+    onButtonUp(event: PointerEvent, buttonIndex: ButtonIndex): void {
     }
 
     terminate(): void {
@@ -200,7 +200,7 @@ class StepModeState implements MainButtonsState {
         const instrumentMode = this.context.instrumentMode.get()
         const mapping = Utils.createStepToStateMapping(instrumentMode)
         this.context.forEach((button: MainButton, buttonIndex: number) =>
-            button.setState(buttonIndex < 16 ? mapping(pattern, buttonIndex) : MainButtonState.Off))
+            button.setState(buttonIndex === ButtonIndex.TotalAccent ? MainButtonState.Off : mapping(pattern, buttonIndex)))
     }
 }
 
@@ -218,14 +218,14 @@ class InstrumentSelectState implements MainButtonsState {
     constructor(readonly context: MainButtonsContext) {
     }
 
-    onButtonPress(event: PointerEvent, index: ButtonIndex): void {
-        this.buttons.add(index)
+    onButtonPress(event: PointerEvent, buttonIndex: ButtonIndex): void {
+        this.buttons.add(buttonIndex)
         this.context.instrumentMode.set(this.evaluator())
     }
 
-    onButtonUp(event: PointerEvent, index: ButtonIndex): void {
+    onButtonUp(event: PointerEvent, buttonIndex: ButtonIndex): void {
         if (!event.shiftKey) { // TODO Find better solution to emulate multi-touch
-            this.buttons.delete(index)
+            this.buttons.delete(buttonIndex)
         }
     }
 
@@ -251,23 +251,23 @@ class ShuffleFlamState implements MainButtonsState {
         }, true)
     }
 
-    onButtonPress(event: PointerEvent, index: ButtonIndex): void {
+    onButtonPress(event: PointerEvent, buttonIndex: ButtonIndex): void {
         const pattern = this.context.machine.memory.current()
-        if (index === 0) {
+        if (buttonIndex === 0) {
             pattern.groove.set(GrooveIdentity)
-        } else if (index < 7) {
+        } else if (buttonIndex <= ButtonIndex.Step7) {
             const grooveFunction = new GrooveFunction()
             const powInjective = new PowInjective()
-            powInjective.exponent.set(ShuffleFlamState.GrooveExp[index])
+            powInjective.exponent.set(ShuffleFlamState.GrooveExp[buttonIndex])
             grooveFunction.injective.set(powInjective)
             pattern.groove.set(grooveFunction)
-        } else if (index >= 8 && index < 16) {
-            const flamIndex = index - 8
+        } else if (buttonIndex >= ButtonIndex.Step9 && buttonIndex <= ButtonIndex.Step16) {
+            const flamIndex = buttonIndex - ButtonIndex.Step9
             pattern.flamDelay.set(Pattern.FlamDelays[flamIndex])
         }
     }
 
-    onButtonUp(event: PointerEvent, index: ButtonIndex): void {
+    onButtonUp(event: PointerEvent, buttonIndex: ButtonIndex): void {
     }
 
     terminate(): void {
@@ -291,8 +291,8 @@ class ShuffleFlamState implements MainButtonsState {
             }
         }
         const flamIndex = Pattern.FlamDelays.indexOf(pattern.flamDelay.get())
-        if (flamIndex >= 0) {
-            this.context.getByIndex(flamIndex + 8).setState(MainButtonState.On)
+        if (flamIndex >= 0 && flamIndex <= 7) {
+            this.context.getByIndex(ButtonIndex.Step9 + flamIndex).setState(MainButtonState.On)
         }
     }
 }
@@ -309,13 +309,12 @@ class LastStepSelectState implements MainButtonsState {
         }, true)
     }
 
-    onButtonPress(event: PointerEvent, index: ButtonIndex): void {
-        if (index >= 16) return
-        const pattern = this.context.machine.memory.current()
-        pattern.lastStep.set(index + 1)
+    onButtonPress(event: PointerEvent, buttonIndex: ButtonIndex): void {
+        if (buttonIndex === ButtonIndex.TotalAccent) return
+        this.context.machine.memory.current().lastStep.set(buttonIndex + 1)
     }
 
-    onButtonUp(event: PointerEvent, index: ButtonIndex): void {
+    onButtonUp(event: PointerEvent, buttonIndex: ButtonIndex): void {
     }
 
     terminate(): void {
