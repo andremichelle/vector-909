@@ -14,15 +14,15 @@ interface StepModifier {
 }
 
 export class Utils {
-    static buttonIndicesToInstrumentMode(buttons: Set<MainKeyIndex>): () => InstrumentMode {
-        const simple = (keyIndex: MainKeyIndex, mode: InstrumentMode) => () => buttons.has(keyIndex) ? mode : InstrumentMode.None
+    static buttonIndicesToInstrumentMode(): (keyIndices: Set<MainKeyIndex>) => InstrumentMode {
+        const simple = (keyIndex: MainKeyIndex, mode: InstrumentMode) => (keyIndices: Set<MainKeyIndex>) => keyIndices.has(keyIndex) ? mode : InstrumentMode.None
         const complex = (keyIndexA: MainKeyIndex, keyIndexB: MainKeyIndex, or: InstrumentMode, and: InstrumentMode) =>
-            () => {
-                const a = buttons.has(keyIndexA)
-                const b = buttons.has(keyIndexB)
+            (keyIndices: Set<MainKeyIndex>) => {
+                const a = keyIndices.has(keyIndexA)
+                const b = keyIndices.has(keyIndexB)
                 return a && b ? and : a || b ? or : InstrumentMode.None
             }
-        const checks: (() => InstrumentMode)[] = [
+        const checks: ((keyIndices: Set<MainKeyIndex>) => InstrumentMode)[] = [
             complex(MainKeyIndex.Step1, MainKeyIndex.Step2, InstrumentMode.Bassdrum, InstrumentMode.BassdrumFlam),
             complex(MainKeyIndex.Step3, MainKeyIndex.Step4, InstrumentMode.Snaredrum, InstrumentMode.SnaredrumFlam),
             complex(MainKeyIndex.Step5, MainKeyIndex.Step6, InstrumentMode.TomLow, InstrumentMode.TomLowFlam),
@@ -35,7 +35,8 @@ export class Utils {
             simple(MainKeyIndex.Step16, InstrumentMode.Ride),
             simple(MainKeyIndex.TotalAccent, InstrumentMode.TotalAccent)
         ]
-        return () => elseIfUndefined(checks.map(check => check()).find(mode => mode != InstrumentMode.None), InstrumentMode.None)
+        return (keyIndices: Set<MainKeyIndex>) => elseIfUndefined(checks.map(check => check(keyIndices))
+            .find(mode => mode != InstrumentMode.None), InstrumentMode.None)
     }
 
     static keyIndexToPlayInstrument(keyIndex: MainKeyIndex, other: Set<MainKeyIndex>): { channelIndex: ChannelIndex, step: Step } {
@@ -77,7 +78,7 @@ export class Utils {
         throw new Error(`Unknown index(${keyIndex})`)
     }
 
-    static setNextPatternStep(pattern: Pattern, instrumentMode: InstrumentMode, stepIndex: number): void {
+    static setNextStepValue(pattern: Pattern, instrumentMode: InstrumentMode, stepIndex: number): void {
         Utils.modifyPatternStep(pattern, instrumentMode, {
             weakFull: (step: Step): Step => step === Step.None || step === Step.Extra ? Step.Weak : step === Step.Weak ? Step.Full : Step.None,
             full: (step: Step): Step => step !== Step.Full ? Step.Full : Step.None,

@@ -1,5 +1,18 @@
 import {Events, Terminable} from "../lib/common.js"
 
+abstract class Key {
+    protected constructor(protected readonly element: HTMLButtonElement) {
+    }
+
+    bind(type: string, listener: EventListenerOrEventListenerObject, options?: AddEventListenerOptions): Terminable {
+        return Events.bindEventListener(this.element, type, listener, options)
+    }
+
+    setPointerCapture(pointerId: number): void {
+        this.element.setPointerCapture(pointerId)
+    }
+}
+
 export enum MainKeyIndex {
     Step1, Step2, Step3, Step4,
     Step5, Step6, Step7, Step8,
@@ -12,18 +25,11 @@ export enum MainKeyState {
     Off, Flash, On
 }
 
-export class MainKey {
+export class MainKey extends Key {
     private state: MainKeyState = MainKeyState.Off
 
-    constructor(private readonly element: HTMLButtonElement, readonly keyIndex: MainKeyIndex) {
-    }
-
-    bind(type: string, listener: EventListenerOrEventListenerObject, options?: AddEventListenerOptions): Terminable {
-        return Events.bindEventListener(this.element, type, listener, options)
-    }
-
-    setPointerCapture(pointerId: number): void {
-        this.element.setPointerCapture(pointerId)
+    constructor(element: HTMLButtonElement) {
+        super(element)
     }
 
     setState(state: MainKeyState): void {
@@ -45,19 +51,31 @@ export class MainKey {
     }
 }
 
-export enum FunctionKeyId {
-    TrackPlay1, TrackPlay2, TrackPlay3, TrackPlay4,
-    PatternPlay1, PatternPlay2, PatternPlay3, Empty,
-    Tempo, Back, Forward, AvailableMeasures, CycleGuide, TapeSync
+export enum FunctionKeyIndex {
+    Track1, Track2, Track3, Track4,
+    Pattern1, Pattern2, Pattern3, EmptyExtInst,
+    TempoStep, BackTap, ForwardBankI, AvailableMeasuresBankII,
+    CycleGuideLastMeasure, TapeSyncTempoMode, LastStep, Scale,
+    ShuffleFlam, Clear, InstrumentSelect
 }
 
-export enum FunctionKeyShiftId {
-    TrackWrite1, TrackWrite2, TrackWrite3, TrackWrite4,
-    PatternWrite1, PatternWrite2, PatternWrite3, ExtInst,
-    Step, Tap, BankI, BankII, LastMeasure, TempoMode
+export enum FunctionKeyState {
+    Off, Blink, On
 }
 
-export class FunctionKey {
-    constructor(private readonly element: HTMLButtonElement, readonly keyId: FunctionKeyId, readonly keyShiftId: FunctionKeyShiftId) {
+export class FunctionKey extends Key {
+    private state: FunctionKeyState = FunctionKeyState.Off
+
+    constructor(element: HTMLButtonElement) {
+        super(element)
+    }
+
+    setState(state: FunctionKeyState): void {
+        if(this.state === state) {
+            return
+        }
+        this.element.classList.toggle('active', this.state === FunctionKeyState.On)
+        this.element.classList.toggle('blink', this.state === FunctionKeyState.Blink)
+        this.state = state
     }
 }

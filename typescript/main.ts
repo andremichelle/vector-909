@@ -54,7 +54,7 @@ const showProgress = (() => {
     const run = () => {
         debugMode.textContent = Mode[gui.currentMode.get()]
         debugTransporting.textContent = machine.transport.isPlaying() ? 'Playing' : 'Paused'
-        debugInstrument.textContent = gui.mainButtonsContext.instrumentMode.get().name
+        debugInstrument.textContent = gui.machineContext.instrumentMode.get().name
         requestAnimationFrame(run)
     }
     requestAnimationFrame(run)

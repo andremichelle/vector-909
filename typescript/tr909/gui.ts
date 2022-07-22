@@ -3,9 +3,9 @@ import {ChannelIndex, Scale} from "../audio/tr909/memory.js"
 import {TR909Machine} from "../audio/tr909/worklet.js"
 import {Events, ObservableValueImpl, Terminable, TerminableVoid, Terminator} from "../lib/common.js"
 import {HTML} from "../lib/dom.js"
+import {MachineContext} from "./context.js"
 import {Digits} from "./digits.js"
 import {Knob} from "./knobs.js"
-import {MachineContext, MainButtonsContext} from "./states.js"
 
 export enum Mode {
     Steps, Tap, LastStep, ShuffleFlam, Clear, SelectInstrument
@@ -39,72 +39,72 @@ export class GUI {
     private readonly terminator
     private readonly digits: Digits
 
-    readonly machineContext: MachineContext
     readonly runningMode = new ObservableValueImpl<Mode>(Mode.Tap)
     readonly currentMode = new ObservableValueImpl<Mode>(this.runningMode.get())
-    readonly mainButtonsContext: MainButtonsContext
+    readonly machineContext: MachineContext
 
     constructor(private readonly parentNode: ParentNode,
                 private readonly machine: TR909Machine) {
         this.terminator = new Terminator()
         this.digits = new Digits(HTML.query('svg[data-display=led-display]', parentNode))
         this.digits.show(0)
-        this.machineContext = new MachineContext(machine, parentNode)
-        this.mainButtonsContext = MainButtonsContext.create(machine, parentNode)
+        this.machineContext = MachineContext.create(machine, parentNode)
 
         this.installKnobs()
-        this.installScale()
+        // this.installScale()
         this.installFunctionButtons()
         this.installTransport()
         this.installBlinkingSynchronizer()
     }
 
     private installFunctionButtons() {
-        const buttons: Readonly<Map<Mode, HTMLButtonElement>> = new Map<Mode, HTMLButtonElement>([
-            [Mode.ShuffleFlam, HTML.query('[data-button=shuffle-flam]')],
-            [Mode.Clear, HTML.query('[data-button=clear]')],
-            [Mode.LastStep, HTML.query('[data-button=last-step]')],
-            [Mode.SelectInstrument, HTML.query('[data-button=instrument-select]')],
-            [Mode.Tap, HTML.query('[data-button=tap-mode]')],
-            [Mode.Steps, HTML.query('[data-button=step-mode]')],
-        ])
-        const configButton = (mode: Mode, button: HTMLButtonElement): void => {
-            button.addEventListener('pointerdown', (event: PointerEvent) => {
-                button.setPointerCapture(event.pointerId)
-                this.currentMode.set(mode)
-            })
-            button.addEventListener('pointerup', () => this.currentMode.set(this.runningMode.get()))
-        }
 
-        Array.from(buttons.entries()).forEach(([mode, button]) => configButton(mode, button))
+
+        // const buttons: Readonly<Map<Mode, HTMLButtonElement>> = new Map<Mode, HTMLButtonElement>([
+        //     [Mode.ShuffleFlam, HTML.query('[data-button=shuffle-flam]')],
+        //     [Mode.Clear, HTML.query('[data-button=clear]')],
+        //     [Mode.LastStep, HTML.query('[data-button=last-step]')],
+        //     [Mode.SelectInstrument, HTML.query('[data-button=instrument-select]')],
+        //     [Mode.Tap, HTML.query('[data-button=tap-mode]')],
+        //     [Mode.Steps, HTML.query('[data-button=step-mode]')],
+        // ])
+        // const configButton = (mode: Mode, button: HTMLButtonElement): void => {
+        //     button.addEventListener('pointerdown', (event: PointerEvent) => {
+        //         button.setPointerCapture(event.pointerId)
+        //         this.currentMode.set(mode)
+        //     })
+        //     button.addEventListener('pointerup', () => this.currentMode.set(this.runningMode.get()))
+        // }
+        //
+        // Array.from(buttons.entries()).forEach(([mode, button]) => configButton(mode, button))
 
         this.currentMode.addObserver(mode => {
             switch (mode) {
                 case Mode.Steps:
                     this.runningMode.set(Mode.Steps)
-                    this.mainButtonsContext.switchToStepModeState()
+                    this.machineContext.switchToStepModeState()
                     break
                 case Mode.Tap:
                     this.runningMode.set(Mode.Tap)
-                    this.mainButtonsContext.switchToTapModeState()
+                    this.machineContext.switchToTapModeState()
                     break
                 case Mode.LastStep:
-                    this.mainButtonsContext.switchToLastStepSelectState()
+                    this.machineContext.switchToLastStepSelectState()
                     break
                 case Mode.ShuffleFlam:
-                    this.mainButtonsContext.switchToShuffleFlamState()
+                    this.machineContext.switchToShuffleFlamState()
                     break
                 case Mode.Clear:
-                    this.mainButtonsContext.switchToClearStepsState()
+                    this.machineContext.switchToClearStepsState()
                     break
                 case Mode.SelectInstrument:
-                    this.mainButtonsContext.switchToInstrumentSelectModeState()
+                    this.machineContext.switchToInstrumentSelectModeState()
                     break
             }
-            for (const button of buttons.values()) {
-                button.classList.remove('active')
-            }
-            buttons.get(mode)?.classList.add('active')
+            // for (const button of buttons.values()) {
+            //     button.classList.remove('active')
+            // }
+            // buttons.get(mode)?.classList.add('active')
         }, false)
         return TerminableVoid
     }
