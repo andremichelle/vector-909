@@ -13,16 +13,16 @@ export abstract class MachineState implements Terminable {
     protected constructor(readonly context: MachineContext) {
     }
 
-    onFunctionKeyPress(event: PointerEvent, keyIndex: FunctionKeyIndex): void {
+    onFunctionKeyPress(keyIndex: FunctionKeyIndex): void {
     }
 
-    onFunctionKeyRelease(event: PointerEvent, keyIndex: FunctionKeyIndex): void {
+    onFunctionKeyRelease(keyIndex: FunctionKeyIndex): void {
     }
 
-    onMainKeyPress(event: PointerEvent, keyIndex: MainKeyIndex): void {
+    onMainKeyPress(keyIndex: MainKeyIndex): void {
     }
 
-    onMainKeyRelease(event: PointerEvent, keyIndex: MainKeyIndex): void {
+    onMainKeyRelease(keyIndex: MainKeyIndex): void {
     }
 
     readonly with = <T extends Terminable>(terminable: T): T => this.terminator.with(terminable)
@@ -36,7 +36,7 @@ export class StepModeState extends MachineState {
         this.with(this.context.showPatternSteps())
     }
 
-    onMainKeyPress(event: PointerEvent, keyIndex: MainKeyIndex): void {
+    onMainKeyPress(keyIndex: MainKeyIndex): void {
         if (keyIndex === MainKeyIndex.TotalAccent) return
         const pattern = this.context.machine.memory.current()
         const instrumentMode = this.context.instrumentMode.get()
@@ -64,7 +64,7 @@ export class TapModeState extends MachineState {
         this.with(this.context.showRunningAnimation())
     }
 
-    onMainKeyPress(event: PointerEvent, keyIndex: MainKeyIndex): void {
+    onMainKeyPress(keyIndex: MainKeyIndex): void {
         if (keyIndex === MainKeyIndex.TotalAccent) return
         const machine = this.context.machine
         const playInstrument = Utils.keyIndexToPlayInstrument(keyIndex, this.context.pressedMainKeys)
@@ -110,7 +110,7 @@ export class InstrumentSelectState extends MachineState {
         this.with(this.context.instrumentMode.addObserver(this.update, true))
     }
 
-    onMainKeyPress(event: PointerEvent, keyIndex: MainKeyIndex): void {
+    onMainKeyPress(keyIndex: MainKeyIndex): void {
         this.context.instrumentMode.set(this.mapper(this.context.pressedMainKeys))
     }
 }
@@ -133,7 +133,7 @@ export class ShuffleFlamState extends MachineState {
         }, true))
     }
 
-    onMainKeyPress(event: PointerEvent, keyIndex: MainKeyIndex): void {
+    onMainKeyPress(keyIndex: MainKeyIndex): void {
         const pattern = this.context.machine.memory.current()
         if (keyIndex === MainKeyIndex.Step1) {
             pattern.groove.set(GrooveIdentity)
@@ -184,7 +184,7 @@ export class LastStepSelectState extends MachineState {
         }, true))
     }
 
-    onMainKeyPress(event: PointerEvent, keyIndex: MainKeyIndex): void {
+    onMainKeyPress(keyIndex: MainKeyIndex): void {
         if (keyIndex === MainKeyIndex.TotalAccent) return
         this.context.machine.memory.current().lastStep.set(keyIndex + 1)
     }
