@@ -3,7 +3,7 @@ import {Pattern, Step} from "../audio/tr909/memory.js"
 import {ArrayUtils, Terminable, Terminator} from "../lib/common.js"
 import {PowInjective} from "../lib/injective.js"
 import {MachineContext} from "./context.js"
-import {FunctionKeyIndex, MainKey, MainKeyIndex, MainKeyState} from "./keys.js"
+import {FunctionKeyIndex, FunctionKeyState, MainKey, MainKeyIndex, MainKeyState} from "./keys.js"
 import {InstrumentMode, Utils} from "./utils.js"
 
 export abstract class MachineState implements Terminable {
@@ -24,8 +24,38 @@ export abstract class MachineState implements Terminable {
     onMainKeyRelease(keyIndex: MainKeyIndex): void {
     }
 
+    readonly playInstrument = (keyIndex: MainKeyIndex): void => {
+        if (keyIndex === MainKeyIndex.TotalAccent) return
+        const machine = this.context.machine
+        const playInstrument = Utils.keyIndexToPlayInstrument(keyIndex, this.context.pressedMainKeys)
+        const channelIndex = playInstrument.channelIndex
+        const step = playInstrument.step
+        machine.play(channelIndex, step)
+    }
+
     readonly with = <T extends Terminable>(terminable: T): T => this.terminator.with(terminable)
     readonly terminate = (): void => this.terminator.terminate()
+}
+
+export class TrackPlayState extends MachineState {
+    constructor(context: MachineContext) {
+        super(context)
+
+        this.context.functionKeys.byIndex(FunctionKeyIndex.Track1).setState(FunctionKeyState.On)
+        this.context.functionKeys.byIndex(FunctionKeyIndex.Pattern1).setState(FunctionKeyState.On)
+    }
+
+    onFunctionKeyPress(keyIndex: FunctionKeyIndex) {
+        if (this.context.shiftMode.get()) {
+            if (keyIndex === FunctionKeyIndex.Pattern1) {
+                // TODO Goto Pattern Write Mode
+            }
+        }
+    }
+
+    onMainKeyPress(keyIndex: MainKeyIndex) {
+        this.playInstrument(keyIndex)
+    }
 }
 
 export class StepModeState extends MachineState {

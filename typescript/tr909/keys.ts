@@ -71,11 +71,15 @@ export class FunctionKey extends Key {
     }
 
     setState(state: FunctionKeyState): void {
-        if(this.state === state) {
+        if (this.state === state) {
             return
         }
+        this.state = state
+        this.applyState()
+    }
+
+    private applyState() {
         this.element.classList.toggle('active', this.state === FunctionKeyState.On)
         this.element.classList.toggle('blink', this.state === FunctionKeyState.Blink)
-        this.state = state
     }
 }

@@ -1,17 +1,8 @@
 import {TR909Machine} from "../audio/tr909/worklet.js"
-import {ObservableValueImpl, Terminable, TerminableVoid, Terminator} from "../lib/common.js"
+import {Events, ObservableValueImpl, Terminable, TerminableVoid, Terminator} from "../lib/common.js"
 import {HTML} from "../lib/dom.js"
-import {FunctionKey, FunctionKeyIndex, MainKey, MainKeyIndex, MainKeyState} from "./keys.js"
-import {
-    ClearStepsState,
-    ClearTapState,
-    InstrumentSelectState,
-    LastStepSelectState,
-    MachineState,
-    ShuffleFlamState,
-    StepModeState,
-    TapModeState
-} from "./states.js"
+import {FunctionKey, FunctionKeyIndex, FunctionKeyState, MainKey, MainKeyIndex, MainKeyState} from "./keys.js"
+import {MachineState, TrackPlayState} from "./states.js"
 import {InstrumentMode, Utils} from "./utils.js"
 
 /**
@@ -46,82 +37,64 @@ export class KeyGroup<KEY, INDEX extends number> {
 export class MachineContext implements Terminable {
     static create(machine: TR909Machine, parentNode: ParentNode): MachineContext {
         return new MachineContext(machine, new KeyGroup<MainKey, MainKeyIndex>(
-            [...Array.from<HTMLButtonElement>(
-                HTML.queryAll('[data-control=main-keys] [data-control=main-key]', parentNode)),
-                HTML.query('[data-control=main-key][data-parameter=total-accent]')]
-                .map((element: HTMLButtonElement) => new MainKey(element))
-        ), new KeyGroup<FunctionKey, FunctionKeyIndex>(HTML.queryAll('[data-button=function-key]')
-            .map((element: HTMLButtonElement) => new FunctionKey(element))))
+                [...Array.from<HTMLButtonElement>(
+                    HTML.queryAll('[data-control=main-keys] [data-control=main-key]', parentNode)),
+                    HTML.query('[data-control=main-key][data-parameter=total-accent]')]
+                    .map((element: HTMLButtonElement) => new MainKey(element))
+            ), new KeyGroup<FunctionKey, FunctionKeyIndex>(HTML.queryAll('[data-button=function-key]')
+                .map((element: HTMLButtonElement) => new FunctionKey(element))),
+            new FunctionKey(HTML.query('[data-button=shift-key]')))
     }
 
     private readonly terminator = new Terminator()
 
     readonly instrumentMode: ObservableValueImpl<InstrumentMode> = new ObservableValueImpl<InstrumentMode>(InstrumentMode.Bassdrum)
     readonly pressedMainKeys: Set<MainKeyIndex> = new Set<MainKeyIndex>()
+    readonly shiftMode: ObservableValueImpl<boolean> = new ObservableValueImpl<boolean>(false)
 
-    private state: NonNullable<MachineState> = new TapModeState(this)
+    private state: NonNullable<MachineState> = new TrackPlayState(this)
 
     constructor(readonly machine: TR909Machine,
                 readonly mainKeys: KeyGroup<MainKey, MainKeyIndex>,
-                readonly functionKeys: KeyGroup<FunctionKey, FunctionKeyIndex>) {
-
+                readonly functionKeys: KeyGroup<FunctionKey, FunctionKeyIndex>,
+                readonly shiftKey: FunctionKey) {
         this.mainKeys.forEach((key: MainKey, keyIndex: MainKeyIndex) => {
             this.terminator.with(key.bind('pointerdown', (event: PointerEvent) => {
                 this.pressedMainKeys.add(keyIndex)
                 key.setPointerCapture(event.pointerId)
                 this.state.onMainKeyPress(keyIndex)
             }))
-            this.terminator.with(key.bind('pointerup', (event: PointerEvent) => {
+            this.terminator.with(key.bind('pointerup', () => {
                 this.pressedMainKeys.delete(keyIndex)
                 this.state.onMainKeyRelease(keyIndex)
             }))
         })
-
         this.functionKeys.forEach((key: FunctionKey, keyId: FunctionKeyIndex) => {
             this.terminator.with(key.bind('pointerdown', (event: PointerEvent) => {
                 key.setPointerCapture(event.pointerId)
                 this.state.onFunctionKeyPress(keyId)
             }))
-            this.terminator.with(key.bind('pointerup', (event: PointerEvent) => {
-                this.state.onFunctionKeyRelease(keyId)
-            }))
+            this.terminator.with(key.bind('pointerup', () => this.state.onFunctionKeyRelease(keyId)))
         })
-    }
-
-    switchToStepModeState(): void {
-        this.state.terminate()
-        this.state = new StepModeState(this)
-    }
-
-    switchToTapModeState(): void {
-        this.state.terminate()
-        this.state = new TapModeState(this)
-    }
-
-    switchToShuffleFlamState() {
-        this.state.terminate()
-        this.state = new ShuffleFlamState(this)
-    }
-
-    switchToClearStepsState() {
-        if (this.state instanceof StepModeState) {
-            this.state.terminate()
-            this.state = new ClearStepsState(this)
-        }
-        if (this.state instanceof TapModeState) {
-            this.state.terminate()
-            this.state = new ClearTapState(this)
-        }
-    }
-
-    switchToInstrumentSelectModeState(): void {
-        this.state.terminate()
-        this.state = new InstrumentSelectState(this)
-    }
-
-    switchToLastStepSelectState(): void {
-        this.state.terminate()
-        this.state = new LastStepSelectState(this)
+        this.terminator.with(this.shiftKey.bind('pointerdown', (event: PointerEvent) => {
+            this.shiftKey.setPointerCapture(event.pointerId)
+            this.shiftMode.set(true)
+        }))
+        this.terminator.with(this.shiftMode.addObserver(enabled =>
+            this.shiftKey.setState(enabled ? FunctionKeyState.On : FunctionKeyState.Off)))
+        this.terminator.with(this.shiftKey.bind('pointerup', () => this.shiftMode.set(false)))
+        this.terminator.with(Events.bindEventListener(window, 'keydown', (event: KeyboardEvent) => {
+            const code = event.code
+            if (code === 'ShiftLeft' || code === 'ShiftRight') {
+                this.shiftMode.set(true)
+            }
+        }))
+        this.terminator.with(Events.bindEventListener(window, 'keyup', (event: KeyboardEvent) => {
+            const code = event.code
+            if (code === 'ShiftLeft' || code === 'ShiftRight') {
+                this.shiftMode.set(false)
+            }
+        }))
     }
 
     clearMainKeys(): void {

@@ -1,5 +1,5 @@
 import {secondsToBars} from "../audio/common.js"
-import {ChannelIndex, Scale} from "../audio/tr909/memory.js"
+import {Scale} from "../audio/tr909/memory.js"
 import {TR909Machine} from "../audio/tr909/worklet.js"
 import {Events, ObservableValueImpl, Terminable, TerminableVoid, Terminator} from "../lib/common.js"
 import {HTML} from "../lib/dom.js"
@@ -52,61 +52,8 @@ export class GUI {
 
         this.installKnobs()
         // this.installScale()
-        this.installFunctionButtons()
         this.installTransport()
         this.installBlinkingSynchronizer()
-    }
-
-    private installFunctionButtons() {
-
-
-        // const buttons: Readonly<Map<Mode, HTMLButtonElement>> = new Map<Mode, HTMLButtonElement>([
-        //     [Mode.ShuffleFlam, HTML.query('[data-button=shuffle-flam]')],
-        //     [Mode.Clear, HTML.query('[data-button=clear]')],
-        //     [Mode.LastStep, HTML.query('[data-button=last-step]')],
-        //     [Mode.SelectInstrument, HTML.query('[data-button=instrument-select]')],
-        //     [Mode.Tap, HTML.query('[data-button=tap-mode]')],
-        //     [Mode.Steps, HTML.query('[data-button=step-mode]')],
-        // ])
-        // const configButton = (mode: Mode, button: HTMLButtonElement): void => {
-        //     button.addEventListener('pointerdown', (event: PointerEvent) => {
-        //         button.setPointerCapture(event.pointerId)
-        //         this.currentMode.set(mode)
-        //     })
-        //     button.addEventListener('pointerup', () => this.currentMode.set(this.runningMode.get()))
-        // }
-        //
-        // Array.from(buttons.entries()).forEach(([mode, button]) => configButton(mode, button))
-
-        this.currentMode.addObserver(mode => {
-            switch (mode) {
-                case Mode.Steps:
-                    this.runningMode.set(Mode.Steps)
-                    this.machineContext.switchToStepModeState()
-                    break
-                case Mode.Tap:
-                    this.runningMode.set(Mode.Tap)
-                    this.machineContext.switchToTapModeState()
-                    break
-                case Mode.LastStep:
-                    this.machineContext.switchToLastStepSelectState()
-                    break
-                case Mode.ShuffleFlam:
-                    this.machineContext.switchToShuffleFlamState()
-                    break
-                case Mode.Clear:
-                    this.machineContext.switchToClearStepsState()
-                    break
-                case Mode.SelectInstrument:
-                    this.machineContext.switchToInstrumentSelectModeState()
-                    break
-            }
-            // for (const button of buttons.values()) {
-            //     button.classList.remove('active')
-            // }
-            // buttons.get(mode)?.classList.add('active')
-        }, false)
-        return TerminableVoid
     }
 
     private installKnobs(): void {
@@ -181,6 +128,7 @@ export class GUI {
     }
 
     private installTransport() {
+        // Use Events and terminate
         const transport = this.machine.transport
         HTML.query('button[data-control=transport-start]', this.parentNode)
             .addEventListener('pointerdown', () => {
