@@ -42,9 +42,18 @@ export class MainButton {
         if (this.state === state) {
             return
         }
-        this.element.classList.toggle('flash-active', state === MainButtonState.Flash)
-        this.element.classList.toggle('active', state === MainButtonState.On)
         this.state = state
+        this.applyState()
+    }
+
+    applyState(): void {
+        this.element.classList.toggle('active', this.state === MainButtonState.On)
+        this.element.classList.toggle('flash-active', this.state === MainButtonState.Flash)
+    }
+
+    flash(): void {
+        this.element.classList.toggle('active', false)
+        this.element.classList.toggle('flash-active', true)
     }
 }
 

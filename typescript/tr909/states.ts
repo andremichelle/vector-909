@@ -135,21 +135,26 @@ export class MainButtonsContext {
         const terminator = new Terminator()
         const memory = this.machine.memory
         let patternSubscription = TerminableVoid
+        let flashing: MainButton = null
         terminator.with({terminate: () => patternSubscription.terminate()})
         terminator.with(memory.patternIndex.addObserver(() => {
             patternSubscription.terminate()
-            patternSubscription = memory.current().addObserver(() => this.updateStepButtons(), true)
+            patternSubscription = memory.current().addObserver(() => {
+                const pattern = this.machine.memory.current()
+                const mapping = Utils.createStepToStateMapping(this.instrumentMode.get())
+                this.forEach((button: MainButton, buttonIndex: number) =>
+                    button.setState(buttonIndex === ButtonIndex.TotalAccent
+                        ? MainButtonState.Off : mapping(pattern, buttonIndex)))
+            }, true)
         }, true))
+        terminator.with(this.machine.stepIndex.addObserver(stepIndex => {
+            if (flashing !== null) {
+                flashing.applyState()
+            }
+            flashing = this.getByIndex(stepIndex)
+            this.getByIndex(stepIndex).flash()
+        }))
         return terminator
-    }
-
-    private updateStepButtons(): void {
-        const pattern = this.machine.memory.current()
-        const instrumentMode = this.instrumentMode.get()
-        const mapping = Utils.createStepToStateMapping(instrumentMode)
-        this.forEach((button: MainButton, buttonIndex: number) =>
-            button.setState(buttonIndex === ButtonIndex.TotalAccent
-                ? MainButtonState.Off : mapping(pattern, buttonIndex)))
     }
 }
 
