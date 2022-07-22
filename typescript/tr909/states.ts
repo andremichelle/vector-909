@@ -4,7 +4,8 @@ import {TR909Machine} from "../audio/tr909/worklet.js"
 import {ArrayUtils, ObservableValueImpl, Terminable, TerminableVoid, Terminator} from "../lib/common.js"
 import {HTML} from "../lib/dom.js"
 import {PowInjective} from "../lib/injective.js"
-import {ButtonIndex, InstrumentMode, MainButton, MainButtonState} from "./gui.js"
+import {InstrumentMode} from "./gui.js"
+import {MainKey, MainKeyIndex, MainKeyState} from "./keys.js"
 import {Utils} from "./utils.js"
 
 /**
@@ -50,22 +51,22 @@ export class TrackPlayState implements MachineState {
 
     constructor(readonly context: MachineContext) {
         this.terminator.with(this.context.trackIndex.addObserver(trackIndex => {
-            this.context.trackIndexButtons.forEach((button: HTMLButtonElement, buttonIndex: number) =>
-                button.classList.toggle('blink', buttonIndex === trackIndex))
+            this.context.trackIndexButtons.forEach((button: HTMLButtonElement, keyIndex: number) =>
+                button.classList.toggle('blink', keyIndex === trackIndex))
         }, true))
         this.terminator.with(this.context.patternGroupIndex.addObserver(patternGroupIndex => {
-            this.context.patternGroupButtons.forEach((button: HTMLButtonElement, buttonIndex: number) =>
-                button.classList.toggle('blink', buttonIndex === patternGroupIndex))
+            this.context.patternGroupButtons.forEach((button: HTMLButtonElement, keyIndex: number) =>
+                button.classList.toggle('blink', keyIndex === patternGroupIndex))
         }, true))
     }
 }
 
 export class MainButtonsContext {
     static create(machine: TR909Machine, parentNode: ParentNode) {
-        const buttons = [...Array.from<HTMLButtonElement>(HTML.queryAll('[data-control=main-buttons] [data-control=main-button]', parentNode)),
+        return new MainButtonsContext(machine, [...Array.from<HTMLButtonElement>(
+            HTML.queryAll('[data-control=main-buttons] [data-control=main-button]', parentNode)),
             HTML.query('[data-control=main-button][data-parameter=total-accent]')]
-            .map((element: HTMLButtonElement) => new MainButton(element))
-        return new MainButtonsContext(machine, buttons)
+            .map((element: HTMLButtonElement, keyIndex: MainKeyIndex) => new MainKey(element, keyIndex)))
     }
 
     readonly instrumentMode: ObservableValueImpl<InstrumentMode> = new ObservableValueImpl<InstrumentMode>(InstrumentMode.Bassdrum)
@@ -73,14 +74,14 @@ export class MainButtonsContext {
     private state: NonNullable<MainButtonsState> = new StepModeState(this)
 
     constructor(readonly machine: TR909Machine,
-                readonly buttons: MainButton[]) {
+                readonly buttons: MainKey[]) {
         const terminator = new Terminator()
-        this.buttons.forEach((button: MainButton, index: ButtonIndex) => {
-            terminator.with(button.bind('pointerdown', (event: PointerEvent) => {
-                button.setPointerCapture(event.pointerId)
-                this.state.onButtonPress(event, index)
+        this.buttons.forEach((key: MainKey, index: MainKeyIndex) => {
+            terminator.with(key.bind('pointerdown', (event: PointerEvent) => {
+                key.setPointerCapture(event.pointerId)
+                this.state.onMainKeyPress(event, index)
             }))
-            terminator.with(button.bind('pointerup', (event: PointerEvent) => this.state.onButtonUp(event, index)))
+            terminator.with(key.bind('pointerup', (event: PointerEvent) => this.state.onMainKeyUp(event, index)))
         })
         // TODO terminator.terminate
     }
@@ -115,36 +116,36 @@ export class MainButtonsContext {
         this.state = new LastStepSelectState(this)
     }
 
-    map(indices: number[]): MainButton[] {
+    map(indices: number[]): MainKey[] {
         return indices.map(index => this.buttons[index])
     }
 
-    forEach(fn: (button: MainButton, buttonIndex: ButtonIndex, array: MainButton[]) => void): void {
+    forEach(fn: (button: MainKey, keyIndex: MainKeyIndex, array: MainKey[]) => void): void {
         this.buttons.forEach(fn)
     }
 
-    getByIndex(index: ButtonIndex): MainButton {
+    getByIndex(index: MainKeyIndex): MainKey {
         return this.buttons[index]
     }
 
     clear(): void {
-        this.buttons.forEach(button => button.setState(MainButtonState.Off))
+        this.buttons.forEach(button => button.setState(MainKeyState.Off))
     }
 
     showPatternSteps(): Terminable {
         const terminator = new Terminator()
         const memory = this.machine.memory
         let patternSubscription = TerminableVoid
-        let flashing: MainButton = null
+        let flashing: MainKey = null
         terminator.with({terminate: () => patternSubscription.terminate()})
         terminator.with(memory.patternIndex.addObserver(() => {
             patternSubscription.terminate()
             patternSubscription = memory.current().addObserver(() => {
                 const pattern = this.machine.memory.current()
                 const mapping = Utils.createStepToStateMapping(this.instrumentMode.get())
-                this.forEach((button: MainButton, buttonIndex: number) =>
-                    button.setState(buttonIndex === ButtonIndex.TotalAccent
-                        ? MainButtonState.Off : mapping(pattern, buttonIndex)))
+                this.forEach((key: MainKey, keyIndex: number) =>
+                    key.setState(keyIndex === MainKeyIndex.TotalAccent
+                        ? MainKeyState.Off : mapping(pattern, keyIndex)))
             }, true)
         }, true))
         terminator.with(this.machine.stepIndex.addObserver(stepIndex => {
@@ -161,9 +162,9 @@ export class MainButtonsContext {
 interface MainButtonsState extends Terminable {
     readonly context: MainButtonsContext
 
-    onButtonPress(event: PointerEvent, buttonIndex: ButtonIndex): void
+    onMainKeyPress(event: PointerEvent, keyIndex: MainKeyIndex): void
 
-    onButtonUp(event: PointerEvent, buttonIndex: ButtonIndex): void
+    onMainKeyUp(event: PointerEvent, keyIndex: MainKeyIndex): void
 }
 
 class TapModeState implements MainButtonsState {
@@ -173,15 +174,15 @@ class TapModeState implements MainButtonsState {
     constructor(readonly context: MainButtonsContext) {
         this.stepIndexSubscription = this.context.machine.stepIndex.addObserver(index => {
             this.context.clear()
-            this.context.getByIndex(index).setState(MainButtonState.Flash)
+            this.context.getByIndex(index).setState(MainKeyState.Flash)
         }, true)
     }
 
-    onButtonPress(event: PointerEvent, buttonIndex: ButtonIndex): void {
-        if (buttonIndex === ButtonIndex.TotalAccent) return
-        this.buttons.add(buttonIndex)
+    onMainKeyPress(event: PointerEvent, keyIndex: MainKeyIndex): void {
+        if (keyIndex === MainKeyIndex.TotalAccent) return
+        this.buttons.add(keyIndex)
         const machine = this.context.machine
-        const playInstrument = Utils.buttonIndexToPlayInstrument(buttonIndex, this.buttons)
+        const playInstrument = Utils.keyIndexToPlayInstrument(keyIndex, this.buttons)
         if (machine.transport.isPlaying()) {
             machine.memory.current()
                 .setStep(playInstrument.channelIndex, machine.stepIndex.get(), playInstrument.step ? Step.Full : Step.Weak)
@@ -189,8 +190,8 @@ class TapModeState implements MainButtonsState {
         machine.play(playInstrument.channelIndex, playInstrument.step)
     }
 
-    onButtonUp(event: PointerEvent, buttonIndex: ButtonIndex): void {
-        this.buttons.delete(buttonIndex)
+    onMainKeyUp(event: PointerEvent, keyIndex: MainKeyIndex): void {
+        this.buttons.delete(keyIndex)
     }
 
     terminate(): void {
@@ -205,14 +206,14 @@ class StepModeState implements MainButtonsState {
     constructor(readonly context: MainButtonsContext) {
     }
 
-    onButtonPress(event: PointerEvent, buttonIndex: ButtonIndex): void {
-        if (buttonIndex === ButtonIndex.TotalAccent) return
+    onMainKeyPress(event: PointerEvent, keyIndex: MainKeyIndex): void {
+        if (keyIndex === MainKeyIndex.TotalAccent) return
         const pattern = this.context.machine.memory.current()
         const instrumentMode = this.context.instrumentMode.get()
-        Utils.setNextPatternStep(pattern, instrumentMode, buttonIndex)
+        Utils.setNextPatternStep(pattern, instrumentMode, keyIndex)
     }
 
-    onButtonUp(event: PointerEvent, buttonIndex: ButtonIndex): void {
+    onMainKeyUp(event: PointerEvent, keyIndex: MainKeyIndex): void {
     }
 
     terminate(): void {
@@ -232,10 +233,10 @@ class ClearStepsState implements MainButtonsState {
         }, true))
     }
 
-    onButtonPress(event: PointerEvent, buttonIndex: ButtonIndex): void {
+    onMainKeyPress(event: PointerEvent, keyIndex: MainKeyIndex): void {
     }
 
-    onButtonUp(event: PointerEvent, buttonIndex: ButtonIndex): void {
+    onMainKeyUp(event: PointerEvent, keyIndex: MainKeyIndex): void {
     }
 
     terminate(): void {
@@ -244,12 +245,12 @@ class ClearStepsState implements MainButtonsState {
 }
 
 class InstrumentSelectState implements MainButtonsState {
-    private readonly buttons: Set<ButtonIndex> = new Set<ButtonIndex>()
+    private readonly buttons: Set<MainKeyIndex> = new Set<MainKeyIndex>()
     private readonly evaluator = Utils.buttonIndicesToInstrumentMode(this.buttons)
 
     private readonly update = (instrumentMode: InstrumentMode) => {
         const mapping = Utils.instrumentModeToButtonStates(instrumentMode)
-        this.context.forEach((button, buttonIndex) => button.setState(mapping(buttonIndex)))
+        this.context.forEach((button, keyIndex) => button.setState(mapping(keyIndex)))
     }
 
     private readonly subscription = this.context.instrumentMode.addObserver(this.update, true)
@@ -257,14 +258,14 @@ class InstrumentSelectState implements MainButtonsState {
     constructor(readonly context: MainButtonsContext) {
     }
 
-    onButtonPress(event: PointerEvent, buttonIndex: ButtonIndex): void {
-        this.buttons.add(buttonIndex)
+    onMainKeyPress(event: PointerEvent, keyIndex: MainKeyIndex): void {
+        this.buttons.add(keyIndex)
         this.context.instrumentMode.set(this.evaluator())
     }
 
-    onButtonUp(event: PointerEvent, buttonIndex: ButtonIndex): void {
+    onMainKeyUp(event: PointerEvent, keyIndex: MainKeyIndex): void {
         if (!event.shiftKey) { // TODO Find better solution to emulate multi-touch
-            this.buttons.delete(buttonIndex)
+            this.buttons.delete(keyIndex)
         }
     }
 
@@ -290,23 +291,23 @@ class ShuffleFlamState implements MainButtonsState {
         }, true)
     }
 
-    onButtonPress(event: PointerEvent, buttonIndex: ButtonIndex): void {
+    onMainKeyPress(event: PointerEvent, keyIndex: MainKeyIndex): void {
         const pattern = this.context.machine.memory.current()
-        if (buttonIndex === 0) {
+        if (keyIndex === 0) {
             pattern.groove.set(GrooveIdentity)
-        } else if (buttonIndex <= ButtonIndex.Step7) {
+        } else if (keyIndex <= MainKeyIndex.Step7) {
             const grooveFunction = new GrooveFunction()
             const powInjective = new PowInjective()
-            powInjective.exponent.set(ShuffleFlamState.GrooveExp[buttonIndex])
+            powInjective.exponent.set(ShuffleFlamState.GrooveExp[keyIndex])
             grooveFunction.injective.set(powInjective)
             pattern.groove.set(grooveFunction)
-        } else if (buttonIndex >= ButtonIndex.Step9 && buttonIndex <= ButtonIndex.Step16) {
-            const flamIndex = buttonIndex - ButtonIndex.Step9
+        } else if (keyIndex >= MainKeyIndex.Step9 && keyIndex <= MainKeyIndex.Step16) {
+            const flamIndex = keyIndex - MainKeyIndex.Step9
             pattern.flamDelay.set(Pattern.FlamDelays[flamIndex])
         }
     }
 
-    onButtonUp(event: PointerEvent, buttonIndex: ButtonIndex): void {
+    onMainKeyUp(event: PointerEvent, keyIndex: MainKeyIndex): void {
     }
 
     terminate(): void {
@@ -319,19 +320,19 @@ class ShuffleFlamState implements MainButtonsState {
         const pattern = this.context.machine.memory.current()
         const groove = pattern.groove.get()
         if (groove === GrooveIdentity) {
-            this.context.getByIndex(0).setState(MainButtonState.On)
+            this.context.getByIndex(0).setState(MainKeyState.On)
         } else if (groove instanceof GrooveFunction) {
             const injective = groove.injective.get()
             if (injective instanceof PowInjective) {
                 const index = ShuffleFlamState.GrooveExp.indexOf(injective.exponent.get())
                 if (index >= 0 && index < 7) {
-                    this.context.getByIndex(index).setState(MainButtonState.On)
+                    this.context.getByIndex(index).setState(MainKeyState.On)
                 }
             }
         }
         const flamIndex = Pattern.FlamDelays.indexOf(pattern.flamDelay.get())
         if (flamIndex >= 0 && flamIndex <= 7) {
-            this.context.getByIndex(ButtonIndex.Step9 + flamIndex).setState(MainButtonState.On)
+            this.context.getByIndex(MainKeyIndex.Step9 + flamIndex).setState(MainKeyState.On)
         }
     }
 }
@@ -348,12 +349,12 @@ class LastStepSelectState implements MainButtonsState {
         }, true)
     }
 
-    onButtonPress(event: PointerEvent, buttonIndex: ButtonIndex): void {
-        if (buttonIndex === ButtonIndex.TotalAccent) return
-        this.context.machine.memory.current().lastStep.set(buttonIndex + 1)
+    onMainKeyPress(event: PointerEvent, keyIndex: MainKeyIndex): void {
+        if (keyIndex === MainKeyIndex.TotalAccent) return
+        this.context.machine.memory.current().lastStep.set(keyIndex + 1)
     }
 
-    onButtonUp(event: PointerEvent, buttonIndex: ButtonIndex): void {
+    onMainKeyUp(event: PointerEvent, keyIndex: MainKeyIndex): void {
     }
 
     terminate(): void {
@@ -364,6 +365,6 @@ class LastStepSelectState implements MainButtonsState {
     update(): void {
         const pattern = this.context.machine.memory.current()
         this.context.clear()
-        this.context.getByIndex(pattern.lastStep.get() - 1).setState(MainButtonState.On)
+        this.context.getByIndex(pattern.lastStep.get() - 1).setState(MainKeyState.On)
     }
 }

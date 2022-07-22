@@ -7,54 +7,8 @@ import {Digits} from "./digits.js"
 import {Knob} from "./knobs.js"
 import {MachineContext, MainButtonsContext} from "./states.js"
 
-// noinspection JSUnusedGlobalSymbols
-export enum ButtonIndex {
-    Step1, Step2, Step3, Step4,
-    Step5, Step6, Step7, Step8,
-    Step9, Step10, Step11, Step12,
-    Step13, Step14, Step15, Step16,
-    TotalAccent
-}
-
 export enum Mode {
     Steps, Tap, LastStep, ShuffleFlam, Clear, SelectInstrument
-}
-
-export enum MainButtonState {
-    Off, Flash, On
-}
-
-export class MainButton {
-    private state: MainButtonState = MainButtonState.Off
-
-    constructor(private readonly element: HTMLButtonElement) {
-    }
-
-    bind(type: string, listener: EventListenerOrEventListenerObject, options?: AddEventListenerOptions): Terminable {
-        return Events.bindEventListener(this.element, type, listener, options)
-    }
-
-    setPointerCapture(pointerId: number): void {
-        this.element.setPointerCapture(pointerId)
-    }
-
-    setState(state: MainButtonState): void {
-        if (this.state === state) {
-            return
-        }
-        this.state = state
-        this.applyState()
-    }
-
-    applyState(): void {
-        this.element.classList.toggle('active', this.state === MainButtonState.On)
-        this.element.classList.toggle('flash-active', this.state === MainButtonState.Flash)
-    }
-
-    flash(): void {
-        this.element.classList.toggle('active', false)
-        this.element.classList.toggle('flash-active', true)
-    }
 }
 
 export class GUI {
@@ -121,9 +75,9 @@ export class GUI {
             })
             button.addEventListener('pointerup', () => this.currentMode.set(this.runningMode.get()))
         }
-        for (const entry of buttons) {
-            configButton(entry[0], entry[1])
-        }
+
+        Array.from(buttons.entries()).forEach(([mode, button]) => configButton(mode, button))
+
         this.currentMode.addObserver(mode => {
             switch (mode) {
                 case Mode.Steps:
