@@ -40,7 +40,7 @@ export class GUI {
     private readonly digits: Digits
 
     readonly machineContext: MachineContext
-    readonly runningMode = new ObservableValueImpl<Mode>(Mode.Steps)
+    readonly runningMode = new ObservableValueImpl<Mode>(Mode.Tap)
     readonly currentMode = new ObservableValueImpl<Mode>(this.runningMode.get())
     readonly mainButtonsContext: MainButtonsContext
 

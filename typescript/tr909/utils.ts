@@ -1,4 +1,5 @@
 import {ChannelIndex, Pattern, Step} from "../audio/tr909/memory.js"
+import {elseIfUndefined} from "../lib/common.js"
 import {InstrumentMode} from "./gui.js"
 import {MainKeyIndex, MainKeyState} from "./keys.js"
 
@@ -34,7 +35,7 @@ export class Utils {
             simple(MainKeyIndex.Step16, InstrumentMode.Ride),
             simple(MainKeyIndex.TotalAccent, InstrumentMode.TotalAccent)
         ]
-        return () => checks.map(check => check()).find(mode => mode != InstrumentMode.None)
+        return () => elseIfUndefined(checks.map(check => check()).find(mode => mode != InstrumentMode.None), InstrumentMode.None)
     }
 
     static keyIndexToPlayInstrument(keyIndex: MainKeyIndex, other: Set<MainKeyIndex>): { channelIndex: ChannelIndex, step: Step } {

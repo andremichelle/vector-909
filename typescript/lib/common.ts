@@ -5,6 +5,10 @@ import {Random} from "./math.js"
 
 export type NoArgType<T> = { new(): T }
 
+export const elseIfNull = <T>(value: T, fallback: T): T => value === null ? fallback : value
+export const elseIfUndefined = <T>(value: T, fallback: T): T => value === undefined ? fallback : value
+export const elseIfNullOrUndefined = <T>(value: T, fallback: T): T => value === undefined || value === null ? fallback : value
+
 export interface Terminable {
     terminate(): void
 }
