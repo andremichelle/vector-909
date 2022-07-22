@@ -226,32 +226,3 @@ export class GUI {
         this.terminator.with({terminate: () => running = false})
     }
 }
-
-export class InstrumentMode {
-    static None = new InstrumentMode(undefined, false, 'None')
-    static Bassdrum = new InstrumentMode(ChannelIndex.Bassdrum, false, 'Bassdrum')
-    static BassdrumFlam = new InstrumentMode(ChannelIndex.Bassdrum, true, 'Bassdrum (Flam)')
-    static Snaredrum = new InstrumentMode(ChannelIndex.Snaredrum, false, 'Snaredrum')
-    static SnaredrumFlam = new InstrumentMode(ChannelIndex.Snaredrum, true, 'Snaredrum (Flam)')
-    static TomLow = new InstrumentMode(ChannelIndex.TomLow, false, 'TomLow')
-    static TomLowFlam = new InstrumentMode(ChannelIndex.TomLow, true, 'TomLow Flam')
-    static TomMid = new InstrumentMode(ChannelIndex.TomMid, false, 'TomMid')
-    static TomMidFlam = new InstrumentMode(ChannelIndex.TomMid, true, 'TomMid (Flam)')
-    static TomHi = new InstrumentMode(ChannelIndex.TomHi, false, 'TomHi')
-    static TomHiFlam = new InstrumentMode(ChannelIndex.TomHi, true, 'TomHi (Flam)')
-    static Rim = new InstrumentMode(ChannelIndex.Rim, false, 'Rim')
-    static Clap = new InstrumentMode(ChannelIndex.Clap, false, 'Clap')
-    static HihatClosed = new InstrumentMode(ChannelIndex.Hihat, false, 'Hihat (Closed)')
-    static HihatOpened = new InstrumentMode(ChannelIndex.Hihat, true, 'Hihat (Opened)')
-    static Crash = new InstrumentMode(ChannelIndex.Crash, false, 'Crash')
-    static Ride = new InstrumentMode(ChannelIndex.Ride, false, 'Ride')
-    static TotalAccent = new InstrumentMode(undefined, false, 'Total Accent')
-
-    /**
-     * @param channelIndex ChannelIndex
-     * @param extra flam or open hihat
-     * @param name name of the mode
-     */
-    constructor(readonly channelIndex: ChannelIndex | undefined, readonly extra: boolean, readonly name: string) {
-    }
-}

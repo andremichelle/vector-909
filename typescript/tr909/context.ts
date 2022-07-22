@@ -1,7 +1,6 @@
 import {TR909Machine} from "../audio/tr909/worklet.js"
 import {ObservableValueImpl, Terminable, TerminableVoid, Terminator} from "../lib/common.js"
 import {HTML} from "../lib/dom.js"
-import {InstrumentMode} from "./gui.js"
 import {FunctionKey, FunctionKeyIndex, MainKey, MainKeyIndex, MainKeyState} from "./keys.js"
 import {
     ClearStepsState,
@@ -13,7 +12,7 @@ import {
     StepModeState,
     TapModeState
 } from "./states.js"
-import {Utils} from "./utils.js"
+import {InstrumentMode, Utils} from "./utils.js"
 
 /**
  * 909 States

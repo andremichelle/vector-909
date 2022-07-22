@@ -3,9 +3,8 @@ import {Pattern, Step} from "../audio/tr909/memory.js"
 import {ArrayUtils, Terminable, Terminator} from "../lib/common.js"
 import {PowInjective} from "../lib/injective.js"
 import {MachineContext} from "./context.js"
-import {InstrumentMode} from "./gui.js"
-import {FunctionKeyIndex, MainKeyIndex, MainKeyState} from "./keys.js"
-import {Utils} from "./utils.js"
+import {FunctionKeyIndex, MainKey, MainKeyIndex, MainKeyState} from "./keys.js"
+import {InstrumentMode, Utils} from "./utils.js"
 
 export abstract class MachineState implements Terminable {
     private readonly terminator: Terminator = new Terminator()
@@ -79,14 +78,12 @@ export class TapModeState extends MachineState {
 }
 
 export class ClearTapState extends MachineState {
-    private readonly mapper = Utils.buttonIndicesToInstrumentMode()
-
     constructor(context: MachineContext) {
         super(context)
 
         this.with(this.context.showRunningAnimation())
         this.with(this.context.machine.stepIndex.addObserver(stepIndex => {
-            const instrumentMode = this.mapper(this.context.pressedMainKeys)
+            const instrumentMode = Utils.buttonIndicesToInstrumentMode(this.context.pressedMainKeys)
             if (instrumentMode === InstrumentMode.None || instrumentMode === InstrumentMode.TotalAccent) {
                 return
             }
@@ -97,11 +94,9 @@ export class ClearTapState extends MachineState {
 }
 
 export class InstrumentSelectState extends MachineState {
-    private readonly mapper = Utils.buttonIndicesToInstrumentMode()
-
     private readonly update = (instrumentMode: InstrumentMode) => {
-        const mapping = Utils.instrumentModeToButtonStates(instrumentMode)
-        this.context.mainKeys.forEach((button, keyIndex) => button.setState(mapping(keyIndex)))
+        const toButtonStates = Utils.instrumentModeToButtonStates(instrumentMode)
+        this.context.mainKeys.forEach((key: MainKey, keyIndex: MainKeyIndex) => key.setState(toButtonStates(keyIndex)))
     }
 
     constructor(context: MachineContext) {
@@ -111,7 +106,7 @@ export class InstrumentSelectState extends MachineState {
     }
 
     onMainKeyPress(keyIndex: MainKeyIndex): void {
-        this.context.instrumentMode.set(this.mapper(this.context.pressedMainKeys))
+        this.context.instrumentMode.set(Utils.buttonIndicesToInstrumentMode(this.context.pressedMainKeys))
     }
 }
 
