@@ -17,7 +17,7 @@ export enum ButtonIndex {
 }
 
 export enum Mode {
-    Steps, Tap, LastStep, ShuffleFlam, SelectInstrument
+    Steps, Tap, LastStep, ShuffleFlam, Clear, SelectInstrument
 }
 
 export enum MainButtonState {
@@ -52,6 +52,7 @@ export class GUI {
     static installGlobalShortcuts(singleInstance: GUI): void {
         const codes: Readonly<Map<string, Mode>> = new Map<string, Mode>([
             ['KeyS', Mode.ShuffleFlam],
+            ['KeyC', Mode.Clear],
             ['KeyL', Mode.LastStep],
             ['KeyI', Mode.SelectInstrument]
         ])
@@ -98,6 +99,7 @@ export class GUI {
     private installFunctionButtons() {
         const buttons: Readonly<Map<Mode, HTMLButtonElement>> = new Map<Mode, HTMLButtonElement>([
             [Mode.ShuffleFlam, HTML.query('[data-button=shuffle-flam]')],
+            [Mode.Clear, HTML.query('[data-button=clear]')],
             [Mode.LastStep, HTML.query('[data-button=last-step]')],
             [Mode.SelectInstrument, HTML.query('[data-button=instrument-select]')],
             [Mode.Tap, HTML.query('[data-button=tap-mode]')],
@@ -128,6 +130,9 @@ export class GUI {
                     break
                 case Mode.ShuffleFlam:
                     this.mainButtonsContext.switchToShuffleFlamState()
+                    break
+                case Mode.Clear:
+                    this.mainButtonsContext.switchToClearStepsState()
                     break
                 case Mode.SelectInstrument:
                     this.mainButtonsContext.switchToInstrumentSelectModeState()

@@ -1,6 +1,15 @@
 import {ChannelIndex, Pattern, Step} from "../audio/tr909/memory.js"
 import {ButtonIndex, InstrumentMode, MainButtonState} from "./gui.js"
 
+interface StepModifier {
+    weakFull(step: Step): Step
+
+    full(step: Step): Step
+
+    extra(step: Step): Step
+
+    totalAccent(stepIndex: number): void
+}
 
 export class Utils {
     static buttonIndicesToInstrumentMode(buttons: Set<ButtonIndex>): () => InstrumentMode {
@@ -67,43 +76,58 @@ export class Utils {
     }
 
     static setNextPatternStep(pattern: Pattern, instrumentMode: InstrumentMode, stepIndex: number): void {
-        const cycleWeakFull = (step: Step): Step => step === Step.None || step === Step.Extra ? Step.Weak : step === Step.Weak ? Step.Full : Step.None
-        const toggleFull = (step: Step): Step => step !== Step.Full ? Step.Full : Step.None
-        const toggleExtra = (step: Step): Step => step !== Step.Extra ? Step.Extra : Step.None
+        Utils.modifyPatternStep(pattern, instrumentMode, {
+            weakFull: (step: Step): Step => step === Step.None || step === Step.Extra ? Step.Weak : step === Step.Weak ? Step.Full : Step.None,
+            full: (step: Step): Step => step !== Step.Full ? Step.Full : Step.None,
+            extra: (step: Step): Step => step !== Step.Extra ? Step.Extra : Step.None,
+            totalAccent: (stepIndex: number) => pattern.setTotalAccent(stepIndex, !pattern.isTotalAccent(stepIndex))
+        }, stepIndex)
+    }
+
+    static clearPatternStep(pattern: Pattern, instrumentMode: InstrumentMode, stepIndex: number): void {
+        Utils.modifyPatternStep(pattern, instrumentMode, {
+            weakFull: (step: Step): Step => step === Step.Full || step === Step.Weak ? Step.None : step,
+            full: (step: Step): Step => step === Step.Full ? Step.None : step,
+            extra: (step: Step): Step => step === Step.Extra ? Step.None : step,
+            totalAccent: (stepIndex: number) => pattern.setTotalAccent(stepIndex, false)
+        }, stepIndex)
+    }
+
+    private static modifyPatternStep(pattern: Pattern, instrumentMode: InstrumentMode, modifier: StepModifier, stepIndex: number): void {
         const apply = (channelIndex: ChannelIndex, next: (step: Step) => Step) =>
             pattern.setStep(channelIndex, stepIndex, next(pattern.getStep(channelIndex, stepIndex)))
         if (instrumentMode === InstrumentMode.Bassdrum) {
-            apply(ChannelIndex.Bassdrum, cycleWeakFull)
+            apply(ChannelIndex.Bassdrum, modifier.weakFull)
         } else if (instrumentMode === InstrumentMode.BassdrumFlam) {
-            apply(ChannelIndex.Bassdrum, toggleExtra)
+            apply(ChannelIndex.Bassdrum, modifier.extra)
         } else if (instrumentMode === InstrumentMode.Snaredrum) {
-            apply(ChannelIndex.Snaredrum, cycleWeakFull)
+            apply(ChannelIndex.Snaredrum, modifier.weakFull)
         } else if (instrumentMode === InstrumentMode.SnaredrumFlam) {
-            apply(ChannelIndex.Snaredrum, toggleExtra)
+            apply(ChannelIndex.Snaredrum, modifier.extra)
         } else if (instrumentMode === InstrumentMode.TomLow) {
-            apply(ChannelIndex.TomLow, cycleWeakFull)
+            apply(ChannelIndex.TomLow, modifier.weakFull)
         } else if (instrumentMode === InstrumentMode.TomLowFlam) {
-            apply(ChannelIndex.TomLow, toggleExtra)
+            apply(ChannelIndex.TomLow, modifier.extra)
         } else if (instrumentMode === InstrumentMode.TomMid) {
-            apply(ChannelIndex.TomMid, cycleWeakFull)
+            apply(ChannelIndex.TomMid, modifier.weakFull)
         } else if (instrumentMode === InstrumentMode.TomMidFlam) {
-            apply(ChannelIndex.TomMid, toggleExtra)
+            apply(ChannelIndex.TomMid, modifier.extra)
         } else if (instrumentMode === InstrumentMode.TomHi) {
-            apply(ChannelIndex.TomHi, cycleWeakFull)
+            apply(ChannelIndex.TomHi, modifier.weakFull)
         } else if (instrumentMode === InstrumentMode.TomHiFlam) {
-            apply(ChannelIndex.TomHi, toggleExtra)
+            apply(ChannelIndex.TomHi, modifier.extra)
         } else if (instrumentMode === InstrumentMode.Rim) {
-            apply(ChannelIndex.Rim, toggleFull)
+            apply(ChannelIndex.Rim, modifier.full)
         } else if (instrumentMode === InstrumentMode.Clap) {
-            apply(ChannelIndex.Clap, toggleFull)
+            apply(ChannelIndex.Clap, modifier.full)
         } else if (instrumentMode === InstrumentMode.HihatClosed) {
-            apply(ChannelIndex.Hihat, cycleWeakFull)
+            apply(ChannelIndex.Hihat, modifier.weakFull)
         } else if (instrumentMode === InstrumentMode.HihatOpened) {
-            apply(ChannelIndex.Hihat, toggleExtra)
+            apply(ChannelIndex.Hihat, modifier.extra)
         } else if (instrumentMode === InstrumentMode.Crash) {
-            apply(ChannelIndex.Crash, toggleFull)
+            apply(ChannelIndex.Crash, modifier.full)
         } else if (instrumentMode === InstrumentMode.Ride) {
-            apply(ChannelIndex.Ride, toggleFull)
+            apply(ChannelIndex.Ride, modifier.full)
         } else if (instrumentMode === InstrumentMode.TotalAccent) {
             pattern.setTotalAccent(stepIndex, !pattern.isTotalAccent(stepIndex))
         } else {

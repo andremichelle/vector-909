@@ -100,6 +100,11 @@ export class MainButtonsContext {
         this.state = new ShuffleFlamState(this)
     }
 
+    switchToClearStepsState() {
+        this.state.terminate()
+        this.state = new ClearStepsState(this)
+    }
+
     switchToInstrumentSelectModeState(): void {
         this.state.terminate()
         this.state = new InstrumentSelectState(this)
@@ -124,6 +129,27 @@ export class MainButtonsContext {
 
     clear(): void {
         this.buttons.forEach(button => button.setState(MainButtonState.Off))
+    }
+
+    showPatternSteps(): Terminable {
+        const terminator = new Terminator()
+        const memory = this.machine.memory
+        let patternSubscription = TerminableVoid
+        terminator.with({terminate: () => patternSubscription.terminate()})
+        terminator.with(memory.patternIndex.addObserver(() => {
+            patternSubscription.terminate()
+            patternSubscription = memory.current().addObserver(() => this.updateStepButtons(), true)
+        }, true))
+        return terminator
+    }
+
+    private updateStepButtons(): void {
+        const pattern = this.machine.memory.current()
+        const instrumentMode = this.instrumentMode.get()
+        const mapping = Utils.createStepToStateMapping(instrumentMode)
+        this.forEach((button: MainButton, buttonIndex: number) =>
+            button.setState(buttonIndex === ButtonIndex.TotalAccent
+                ? MainButtonState.Off : mapping(pattern, buttonIndex)))
     }
 }
 
@@ -169,15 +195,9 @@ class TapModeState implements MainButtonsState {
 }
 
 class StepModeState implements MainButtonsState {
-    private patternStepsSubscription: Terminable = TerminableVoid
-    private patternIndexSubscription: Terminable = TerminableVoid
+    private readonly terminable = this.context.showPatternSteps()
 
     constructor(readonly context: MainButtonsContext) {
-        const memory = this.context.machine.memory
-        this.patternIndexSubscription = memory.patternIndex.addObserver(() => {
-            this.patternStepsSubscription.terminate()
-            this.patternStepsSubscription = memory.current().addObserver(() => this.update(), true)
-        }, true)
     }
 
     onButtonPress(event: PointerEvent, buttonIndex: ButtonIndex): void {
@@ -191,16 +211,30 @@ class StepModeState implements MainButtonsState {
     }
 
     terminate(): void {
-        this.patternStepsSubscription.terminate()
-        this.patternIndexSubscription.terminate()
+        this.terminable.terminate()
+    }
+}
+
+class ClearStepsState implements MainButtonsState {
+    private readonly terminator = new Terminator()
+
+    constructor(readonly context: MainButtonsContext) {
+        this.terminator.with(this.context.showPatternSteps())
+        this.terminator.with(this.context.machine.stepIndex.addObserver(stepIndex => {
+            const instrumentMode = this.context.instrumentMode.get()
+            const pattern = this.context.machine.memory.current()
+            Utils.clearPatternStep(pattern, instrumentMode, stepIndex)
+        }, true))
     }
 
-    update(): void {
-        const pattern = this.context.machine.memory.current()
-        const instrumentMode = this.context.instrumentMode.get()
-        const mapping = Utils.createStepToStateMapping(instrumentMode)
-        this.context.forEach((button: MainButton, buttonIndex: number) =>
-            button.setState(buttonIndex === ButtonIndex.TotalAccent ? MainButtonState.Off : mapping(pattern, buttonIndex)))
+    onButtonPress(event: PointerEvent, buttonIndex: ButtonIndex): void {
+    }
+
+    onButtonUp(event: PointerEvent, buttonIndex: ButtonIndex): void {
+    }
+
+    terminate(): void {
+        this.terminator.terminate()
     }
 }
 
