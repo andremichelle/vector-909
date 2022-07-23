@@ -22,7 +22,7 @@ export enum MainKeyIndex {
 }
 
 export enum MainKeyState {
-    Off, Flash, On
+    Off, Flash, Blink, On
 }
 
 export class MainKey extends Key {
@@ -42,6 +42,7 @@ export class MainKey extends Key {
 
     applyState(): void {
         this.element.classList.toggle('active', this.state === MainKeyState.On)
+        this.element.classList.toggle('blink', this.state === MainKeyState.Blink) // TODO
         this.element.classList.toggle('flash-active', this.state === MainKeyState.Flash)
     }
 

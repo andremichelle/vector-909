@@ -6,12 +6,82 @@ import {BassdrumVoice} from "./dsp/bassdrum.js"
 import {Channel, VoiceFactory} from "./dsp/channel.js"
 import {SnaredrumVoice} from "./dsp/snaredrum.js"
 import {Voice} from "./dsp/voice.js"
-import {ChannelIndex, Memory, Pattern, Step} from "./memory.js"
+import {Memory} from "./memory.js"
 import {ProcessorOptions, ToMainMessage, ToWorkletMessage} from "./messages.js"
+import {ChannelIndex, Pattern, Step} from "./pattern.js"
 import {Preset} from "./preset.js"
 import {Resources} from "./resources.js"
 
 const LevelMapping = new Linear(-18.0, 0.0) // min active, half accent, full, accent + total accent
+
+abstract class PatternProvider {
+    protected constructor(protected readonly memory: Memory) {
+    }
+
+    abstract pattern(): Pattern | null
+
+    abstract onPatterComplete(): void
+}
+
+class UserPatternSelect extends PatternProvider {
+    private current: Pattern
+    private waiting: Pattern = null
+
+    constructor(memory: Memory, private readonly isMoving: () => boolean) {
+        super(memory)
+
+        this.current = this.memory.pattern()
+        this.memory.patternChangeNotification.addObserver((pattern: Pattern) => {
+            if (this.isMoving()) {
+                this.waiting = pattern
+            } else {
+                this.current = pattern
+                this.waiting = null
+            }
+        })
+    }
+
+    pattern(): Pattern | null {
+        return this.current
+    }
+
+    onPatterComplete(): void {
+        if (this.waiting === null) return
+        this.current = this.waiting
+        this.waiting = null
+    }
+}
+
+class TrackPatternPlay extends PatternProvider {
+    private index: number = 0
+    private current: Pattern = null
+
+    constructor(memory: Memory) {
+        super(memory)
+
+        const sequence = this.memory.tracks[0]
+        const patterns = this.memory.patterns
+        this.current = sequence.length === 0 ? null : patterns[sequence[this.index]]
+    }
+
+    pattern(): Pattern | null {
+        return this.current
+    }
+
+    onPatterComplete(): void {
+        const patternSequence: number[] = this.memory.tracks[0]
+        if (++this.index >= patternSequence.length) {
+            const cycle = true
+            if (cycle) {
+                this.current = this.memory.patterns[patternSequence[this.index = 0]]
+            } else {
+                this.current = null
+            }
+        } else {
+            this.current = this.memory.patterns[patternSequence[this.index]]
+        }
+    }
+}
 
 registerProcessor('tr-909', class extends AudioWorkletProcessor implements VoiceFactory {
     private readonly resources: Resources
@@ -19,8 +89,7 @@ registerProcessor('tr-909', class extends AudioWorkletProcessor implements Voice
     private readonly memory: Memory
     private readonly channels: Channel[]
 
-    private currPattern: Pattern = null
-    private nextPattern: Pattern = null
+    private patternProvider: PatternProvider = null
     private moving: boolean = false
     private bpm: number = 120.0
     private bar: number = 0.0
@@ -37,8 +106,8 @@ registerProcessor('tr-909', class extends AudioWorkletProcessor implements Voice
             this.barIncrement = numFramesToBars(RENDER_QUANTUM, this.bpm, sampleRate)
         }, true)
         this.memory = new Memory()
-        this.memory.patternChangeNotification.addObserver(pattern => this.nextPattern = pattern)
-        this.currPattern = this.memory.pattern()
+        // this.patternProvider = new UserPatternSelect(this.memory, () => this.moving)
+        this.patternProvider = new TrackPatternPlay(this.memory)
         this.channels = ArrayUtils.fill(10, index => new Channel(this, index))
 
         this.port.onmessage = (event: MessageEvent) => {
@@ -76,7 +145,11 @@ registerProcessor('tr-909', class extends AudioWorkletProcessor implements Voice
     }
 
     sequence(): void {
-        const pattern: Pattern = this.currPattern
+        const pattern: Pattern = this.patternProvider.pattern()
+        if (pattern === null) {
+            this.moving = false
+            return
+        }
         const groove = pattern.groove.get()
         const scale = pattern.scale.get().value()
         const b0 = this.bar
@@ -104,9 +177,8 @@ registerProcessor('tr-909', class extends AudioWorkletProcessor implements Voice
                     }
                 }
                 this.port.postMessage({type: "update-step", index: stepIndex} as ToMainMessage)
-                if (this.nextPattern !== null && stepIndex + 1 === pattern.lastStep.get()) {
-                    this.currPattern = this.nextPattern
-                    this.nextPattern = null
+                if (stepIndex + 1 === pattern.lastStep.get()) {
+                    this.patternProvider.onPatterComplete()
                 }
             }
             search = ++index * scale

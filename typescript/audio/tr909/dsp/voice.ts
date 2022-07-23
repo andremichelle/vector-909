@@ -1,6 +1,7 @@
 import {Terminable, Terminator} from "../../../lib/common.js"
 import {dbToGain} from "../../common.js"
-import {ChannelIndex, InstrumentIndex} from "../memory.js"
+import {InstrumentIndex} from "../memory.js"
+import {ChannelIndex} from "../pattern.js"
 
 export const SilentGain = dbToGain(-72.0)
 

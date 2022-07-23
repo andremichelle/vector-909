@@ -1,9 +1,11 @@
-import {Pattern} from "../audio/tr909/memory.js"
+import {BankGroupIndex, PatternGroupIndex} from "../audio/tr909/memory.js"
+import {Pattern} from "../audio/tr909/pattern.js"
 import {TR909Machine} from "../audio/tr909/worklet.js"
 import {Events, ObservableValueImpl, Terminable, TerminableVoid, Terminator} from "../lib/common.js"
 import {HTML} from "../lib/dom.js"
+import {Digits} from "./digits.js"
 import {FunctionKey, FunctionKeyIndex, FunctionKeyState, MainKey, MainKeyIndex, MainKeyState} from "./keys.js"
-import {MachineState, PatternPlayState, TrackPlayState} from "./states.js"
+import {MachineState, TrackPlayState} from "./states.js"
 import {InstrumentMode, Utils} from "./utils.js"
 
 /**
@@ -37,14 +39,16 @@ export class KeyGroup<KEY, INDEX extends number> {
 
 export class MachineContext implements Terminable {
     static create(machine: TR909Machine, parentNode: ParentNode): MachineContext {
-        return new MachineContext(machine, new KeyGroup<MainKey, MainKeyIndex>(
-                [...Array.from<HTMLButtonElement>(
-                    HTML.queryAll('[data-control=main-keys] [data-control=main-key]', parentNode)),
-                    HTML.query('[data-control=main-key][data-parameter=total-accent]')]
-                    .map((element: HTMLButtonElement) => new MainKey(element))
-            ), new KeyGroup<FunctionKey, FunctionKeyIndex>(HTML.queryAll('[data-button=function-key]')
+        return new MachineContext(machine,
+            new KeyGroup<MainKey, MainKeyIndex>([...Array.from<HTMLButtonElement>(
+                HTML.queryAll('[data-control=main-keys] [data-control=main-key]', parentNode)),
+                HTML.query('[data-control=main-key][data-parameter=total-accent]')]
+                .map((element: HTMLButtonElement) => new MainKey(element))
+            ),
+            new KeyGroup<FunctionKey, FunctionKeyIndex>(HTML.queryAll('[data-button=function-key]')
                 .map((element: HTMLButtonElement) => new FunctionKey(element))),
-            new FunctionKey(HTML.query('[data-button=shift-key]')))
+            new FunctionKey(HTML.query('[data-button=shift-key]')),
+            new Digits(HTML.query('svg[data-display=led-display]', parentNode)))
     }
 
     private readonly terminator = new Terminator()
@@ -53,12 +57,13 @@ export class MachineContext implements Terminable {
     readonly pressedMainKeys: Set<MainKeyIndex> = new Set<MainKeyIndex>()
     readonly shiftMode: ObservableValueImpl<boolean> = new ObservableValueImpl<boolean>(false)
 
-    private state: NonNullable<MachineState> = new PatternPlayState(this)
+    private state: NonNullable<MachineState> = new TrackPlayState(this)
 
     constructor(readonly machine: TR909Machine,
                 readonly mainKeys: KeyGroup<MainKey, MainKeyIndex>,
                 readonly functionKeys: KeyGroup<FunctionKey, FunctionKeyIndex>,
-                readonly shiftKey: FunctionKey) {
+                readonly shiftKey: FunctionKey,
+                readonly digits: Digits) {
         this.mainKeys.forEach((key: MainKey, keyIndex: MainKeyIndex) => {
             this.terminator.with(key.bind('pointerdown', (event: PointerEvent) => {
                 this.pressedMainKeys.add(keyIndex)
@@ -100,6 +105,22 @@ export class MachineContext implements Terminable {
 
     clearMainKeys(): void {
         this.mainKeys.forEach(button => button.setState(MainKeyState.Off))
+    }
+
+    showBankGroup(index: BankGroupIndex): void {
+        this.functionKeys.byIndex(FunctionKeyIndex.ForwardBankI)
+            .setState(index === 0 ? FunctionKeyState.On : FunctionKeyState.Off)
+        this.functionKeys.byIndex(FunctionKeyIndex.AvailableMeasuresBankII)
+            .setState(index === 1 ? FunctionKeyState.On : FunctionKeyState.Off)
+    }
+
+    showPatternGroup(index: PatternGroupIndex): void {
+        this.functionKeys.byIndex(FunctionKeyIndex.Pattern1)
+            .setState(index === 0 ? FunctionKeyState.On : FunctionKeyState.Off)
+        this.functionKeys.byIndex(FunctionKeyIndex.Pattern2)
+            .setState(index === 1 ? FunctionKeyState.On : FunctionKeyState.Off)
+        this.functionKeys.byIndex(FunctionKeyIndex.Pattern3)
+            .setState(index === 2 ? FunctionKeyState.On : FunctionKeyState.Off)
     }
 
     showPatternSteps(): Terminable {

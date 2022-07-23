@@ -1,4 +1,5 @@
-import {BankGroupIndex, ChannelIndex, PatternFormat, PatternGroupIndex, PatternIndex, Step} from "./memory.js"
+import {BankGroupIndex, PatternGroupIndex, PatternIndex} from "./memory.js"
+import {ChannelIndex, PatternFormat, Step} from "./pattern.js"
 import {Resources} from "./resources.js"
 
 export type ToWorkletMessage =

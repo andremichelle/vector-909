@@ -1,5 +1,5 @@
 import {RENDER_QUANTUM} from "../../common.js"
-import {ChannelIndex, Step} from "../memory.js"
+import {ChannelIndex, Step} from "../pattern.js"
 import {Voice} from "./voice.js"
 
 class PlayEvent {

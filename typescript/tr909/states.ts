@@ -1,5 +1,5 @@
 import {GrooveFunction, GrooveIdentity} from "../audio/grooves.js"
-import {Pattern, Step} from "../audio/tr909/memory.js"
+import {Pattern, Step} from "../audio/tr909/pattern.js"
 import {ArrayUtils, Terminable, Terminator} from "../lib/common.js"
 import {PowInjective} from "../lib/injective.js"
 import {MachineContext} from "./context.js"
@@ -41,8 +41,24 @@ export class TrackPlayState extends MachineState {
     constructor(context: MachineContext) {
         super(context)
 
+        this.with(this.context.showRunningAnimation())
+
+        const patternSequence = this.context.machine.memory.tracks[0]
+        if (patternSequence.length === 0) {
+            this.context.digits.show(0)
+            this.context.showBankGroup(0)
+            this.context.showPatternGroup(0)
+            this.context.mainKeys.byIndex(0).setState(MainKeyState.Flash)
+        } else {
+            this.context.digits.show(1)
+
+            const location = this.context.machine.memory.toLocation(patternSequence[0])
+            this.context.showBankGroup(location.bankGroupIndex)
+            this.context.showPatternGroup(location.patternGroupIndex)
+            this.context.mainKeys.byIndex(location.patternIndex as number).setState(MainKeyState.Flash)
+        }
+
         this.context.functionKeys.byIndex(FunctionKeyIndex.Track1).setState(FunctionKeyState.On)
-        this.context.functionKeys.byIndex(FunctionKeyIndex.Pattern1).setState(FunctionKeyState.On)
     }
 
     onFunctionKeyPress(keyIndex: FunctionKeyIndex) {

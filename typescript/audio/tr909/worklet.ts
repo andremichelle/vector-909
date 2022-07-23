@@ -1,8 +1,9 @@
 import {ArrayUtils, ObservableValueImpl, Parameter, Terminable, Terminator} from "../../lib/common.js"
 import {dbToGain, Transport} from "../common.js"
 import {MeterWorklet} from "../meter/worklet.js"
-import {ChannelIndex, Memory, Step} from "./memory.js"
+import {Memory} from "./memory.js"
 import {ProcessorOptions, ToMainMessage, ToWorkletMessage} from "./messages.js"
+import {ChannelIndex, Step} from "./pattern.js"
 import {Preset} from "./preset.js"
 import {Resources} from "./resources.js"
 
@@ -80,10 +81,6 @@ export class TR909Machine implements Terminable {
             }
         }
         schedule()
-
-        // TODO Test
-        this.memory.patternOf(0, 0, 0).testA()
-        this.memory.patternOf(0, 0, 1).testB()
     }
 
     play(channelIndex: ChannelIndex, step: Step) {

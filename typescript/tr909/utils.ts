@@ -1,4 +1,4 @@
-import {ChannelIndex, Pattern, Step} from "../audio/tr909/memory.js"
+import {ChannelIndex, Pattern, Step} from "../audio/tr909/pattern.js"
 import {elseIfUndefined} from "../lib/common.js"
 import {MainKeyIndex, MainKeyState} from "./keys.js"
 

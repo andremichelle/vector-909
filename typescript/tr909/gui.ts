@@ -1,10 +1,10 @@
 import {secondsToBars} from "../audio/common.js"
-import {Pattern, Scale} from "../audio/tr909/memory.js"
+import {Pattern} from "../audio/tr909/pattern.js"
+import {Scale} from "../audio/tr909/scale.js"
 import {TR909Machine} from "../audio/tr909/worklet.js"
 import {Events, ObservableValueImpl, Terminable, TerminableVoid, Terminator} from "../lib/common.js"
 import {HTML} from "../lib/dom.js"
 import {MachineContext} from "./context.js"
-import {Digits} from "./digits.js"
 import {Knob} from "./knobs.js"
 
 export enum Mode {
@@ -37,7 +37,6 @@ export class GUI {
     }
 
     private readonly terminator
-    private readonly digits: Digits
 
     readonly runningMode = new ObservableValueImpl<Mode>(Mode.Tap)
     readonly currentMode = new ObservableValueImpl<Mode>(this.runningMode.get())
@@ -46,8 +45,6 @@ export class GUI {
     constructor(private readonly parentNode: ParentNode,
                 private readonly machine: TR909Machine) {
         this.terminator = new Terminator()
-        this.digits = new Digits(HTML.query('svg[data-display=led-display]', parentNode))
-        this.digits.show(0)
         this.machineContext = MachineContext.create(machine, parentNode)
 
         this.installKnobs()
