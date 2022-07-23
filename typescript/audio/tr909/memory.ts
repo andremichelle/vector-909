@@ -42,20 +42,30 @@ export class Track {
     }
 }
 
-export type BankGroupIndex = 0 | 1
-export type PatternGroupIndex = 0 | 1 | 2
-export type PatternIndex = 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12 | 13 | 14 | 15
+export enum BankGroupIndex {I, II}
+
+export enum PatternGroupIndex {I, II, III}
+
+export enum PatternIndex {
+    Pattern1, Pattern2, Pattern3, Pattern4,
+    Pattern5, Pattern6, Pattern7, Pattern8,
+    Pattern9, Pattern10, Pattern11, Pattern12,
+    Pattern13, Pattern14, Pattern15, Pattern16,
+}
+
+export type PatternLocation = { bankGroupIndex: BankGroupIndex, patternGroupIndex: PatternGroupIndex, patternIndex: PatternIndex }
 
 export class Memory implements Terminable {
     private static NUM_BANKS = 2
     private static NUM_PATTERN_GROUPS = 3
     private static NUM_PATTERNS = 16
+    private static PATTERNS_TOTAL_COUNT = Memory.NUM_BANKS * Memory.NUM_PATTERNS * Memory.NUM_PATTERN_GROUPS
 
     private readonly terminator = new Terminator()
 
     readonly tracks: Track[] = ArrayUtils.fill(4, () => new Track())
 
-    readonly patterns: Pattern[] = ArrayUtils.fill(16 * Memory.NUM_PATTERN_GROUPS * Memory.NUM_BANKS, (index: number) => new Pattern(index))
+    readonly patterns: Pattern[] = ArrayUtils.fill(Memory.PATTERNS_TOTAL_COUNT, (index: number) => new Pattern(index))
     readonly patternChangeNotification: ObservableImpl<Pattern> = new ObservableImpl<Pattern>()
 
     readonly bankGroupIndex: ObservableValue<BankGroupIndex> = new ObservableValueImpl<BankGroupIndex>(0)
@@ -63,7 +73,6 @@ export class Memory implements Terminable {
     readonly patternIndex: ObservableValue<PatternIndex> = new ObservableValueImpl<PatternIndex>(0)
 
     constructor() {
-        // TODO observe and update on worklet
         this.terminator.with(this.bankGroupIndex.addObserver(() => this.patternChangeNotification.notify(this.pattern()), false))
         this.terminator.with(this.patternGroupIndex.addObserver(() => this.patternChangeNotification.notify(this.pattern()), false))
         this.terminator.with(this.patternIndex.addObserver(() => this.patternChangeNotification.notify(this.pattern()), false))
@@ -75,6 +84,14 @@ export class Memory implements Terminable {
 
     patternOf(bankGroupIndex: BankGroupIndex, patternGroupIndex: PatternGroupIndex, patternIndex: PatternIndex): Pattern {
         return this.patterns[(bankGroupIndex * Memory.NUM_PATTERN_GROUPS + patternGroupIndex) * Memory.NUM_PATTERNS + patternIndex]
+    }
+
+    indicesOf(index: number): PatternLocation {
+        return {
+            bankGroupIndex: Math.floor(Math.floor(index / Memory.NUM_PATTERNS) / Memory.NUM_PATTERN_GROUPS),
+            patternGroupIndex: Math.floor(index / Memory.NUM_PATTERNS) % Memory.NUM_PATTERN_GROUPS,
+            patternIndex: index % Memory.NUM_PATTERNS
+        }
     }
 
     terminate(): void {

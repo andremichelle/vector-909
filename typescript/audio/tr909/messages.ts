@@ -2,7 +2,6 @@ import {BankGroupIndex, ChannelIndex, PatternFormat, PatternGroupIndex, PatternI
 import {Resources} from "./resources.js"
 
 export type ToWorkletMessage =
-    | { type: "update-outputLatency", outputLatency: number }
     | { type: "update-parameter", path: string[], unipolar: number }
     | { type: "update-pattern-index", bankGroupIndex: BankGroupIndex, patternGroupIndex: PatternGroupIndex, patternIndex: PatternIndex }
     | { type: "update-pattern-data", index: number, format: PatternFormat }

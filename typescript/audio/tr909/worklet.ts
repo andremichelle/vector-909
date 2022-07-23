@@ -1,7 +1,7 @@
-import {ArrayUtils, ObservableValueImpl, Parameter, Terminable, TerminableVoid, Terminator} from "../../lib/common.js"
+import {ArrayUtils, ObservableValueImpl, Parameter, Terminable, Terminator} from "../../lib/common.js"
 import {dbToGain, Transport} from "../common.js"
 import {MeterWorklet} from "../meter/worklet.js"
-import {ChannelIndex, Memory, Pattern, Step} from "./memory.js"
+import {ChannelIndex, Memory, Step} from "./memory.js"
 import {ProcessorOptions, ToMainMessage, ToWorkletMessage} from "./messages.js"
 import {Preset} from "./preset.js"
 import {Resources} from "./resources.js"
@@ -12,6 +12,8 @@ export class TR909Machine implements Terminable {
     }
 
     private readonly terminator: Terminator = new Terminator()
+    private readonly scheduleStepIndexUpdates: { index: number, time: number }[] = []
+    private running: boolean = true
 
     readonly worklet: AudioWorkletNode
     readonly preset: Preset
@@ -20,9 +22,6 @@ export class TR909Machine implements Terminable {
     readonly meterWorklet: MeterWorklet
     readonly master: GainNode
     readonly stepIndex = new ObservableValueImpl<number>(0)
-
-    private patternSubscription: Terminable = TerminableVoid
-    private processing: boolean = false
 
     constructor(context, resources: Resources) {
         this.worklet = new AudioWorkletNode(context, "tr-909", {
@@ -66,18 +65,25 @@ export class TR909Machine implements Terminable {
                 format: pattern.serialize()
             } as ToWorkletMessage), false)))
         this.worklet.port.onmessage = event => {
-            if (!this.processing) {
-                this.worklet.port.postMessage({
-                    type: "update-outputLatency",
-                    outputLatency: context.outputLatency
-                } as ToWorkletMessage)
-                this.processing = true
-            }
-            this.stepIndex.set((event.data as ToMainMessage).index)
+            const index = (event.data as ToMainMessage).index
+            const time = Date.now() + context.outputLatency
+            this.scheduleStepIndexUpdates.push({index, time})
         }
+        const schedule = () => {
+            if (this.scheduleStepIndexUpdates.length > 0) {
+                if (Date.now() >= this.scheduleStepIndexUpdates[0].time) {
+                    this.stepIndex.set(this.scheduleStepIndexUpdates.shift().index)
+                }
+            }
+            if (this.running) {
+                requestAnimationFrame(schedule)
+            }
+        }
+        schedule()
+
+        // TODO Test
         this.memory.patternOf(0, 0, 0).testA()
         this.memory.patternOf(0, 0, 1).testB()
-        this.memory.patternIndex.set(1)
     }
 
     play(channelIndex: ChannelIndex, step: Step) {
@@ -85,6 +91,7 @@ export class TR909Machine implements Terminable {
     }
 
     terminate(): void {
+        this.running = false
         this.terminator.terminate()
     }
 }

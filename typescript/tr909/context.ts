@@ -3,7 +3,7 @@ import {TR909Machine} from "../audio/tr909/worklet.js"
 import {Events, ObservableValueImpl, Terminable, TerminableVoid, Terminator} from "../lib/common.js"
 import {HTML} from "../lib/dom.js"
 import {FunctionKey, FunctionKeyIndex, FunctionKeyState, MainKey, MainKeyIndex, MainKeyState} from "./keys.js"
-import {MachineState, TrackPlayState} from "./states.js"
+import {MachineState, PatternPlayState, TrackPlayState} from "./states.js"
 import {InstrumentMode, Utils} from "./utils.js"
 
 /**
@@ -53,7 +53,7 @@ export class MachineContext implements Terminable {
     readonly pressedMainKeys: Set<MainKeyIndex> = new Set<MainKeyIndex>()
     readonly shiftMode: ObservableValueImpl<boolean> = new ObservableValueImpl<boolean>(false)
 
-    private state: NonNullable<MachineState> = new TrackPlayState(this)
+    private state: NonNullable<MachineState> = new PatternPlayState(this)
 
     constructor(readonly machine: TR909Machine,
                 readonly mainKeys: KeyGroup<MainKey, MainKeyIndex>,

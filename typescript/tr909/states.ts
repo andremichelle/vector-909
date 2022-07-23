@@ -58,6 +58,32 @@ export class TrackPlayState extends MachineState {
     }
 }
 
+export class PatternPlayState extends MachineState {
+    constructor(context: MachineContext) {
+        super(context)
+
+        this.context.functionKeys.byIndex(FunctionKeyIndex.Track1).setState(FunctionKeyState.Off)
+        this.context.functionKeys.byIndex(FunctionKeyIndex.Track2).setState(FunctionKeyState.Off)
+        this.context.functionKeys.byIndex(FunctionKeyIndex.Track3).setState(FunctionKeyState.Off)
+        this.context.functionKeys.byIndex(FunctionKeyIndex.Track4).setState(FunctionKeyState.Off)
+
+        this.context.functionKeys.byIndex(FunctionKeyIndex.Pattern1).setState(FunctionKeyState.On)
+    }
+
+    onFunctionKeyPress(keyIndex: FunctionKeyIndex) {
+        if (this.context.shiftMode.get()) {
+            if (keyIndex === FunctionKeyIndex.Pattern1) {
+                // TODO Goto Pattern Write Mode
+            }
+        }
+    }
+
+    onMainKeyPress(keyIndex: MainKeyIndex) {
+        if (keyIndex === MainKeyIndex.TotalAccent) return
+        this.context.machine.memory.patternIndex.set(keyIndex as number)
+    }
+}
+
 export class StepModeState extends MachineState {
     constructor(context: MachineContext) {
         super(context)

@@ -1,6 +1,6 @@
 import {ArrayUtils} from "../../lib/common.js"
 import {Linear} from "../../lib/mapping.js"
-import {barsToNumFrames, numFramesToBars, RENDER_QUANTUM, secondsToBars, TransportMessage} from "../common.js"
+import {barsToNumFrames, numFramesToBars, RENDER_QUANTUM, TransportMessage} from "../common.js"
 import {BasicTuneDecayVoice} from "./dsp/basic-voice.js"
 import {BassdrumVoice} from "./dsp/bassdrum.js"
 import {Channel, VoiceFactory} from "./dsp/channel.js"
@@ -19,7 +19,8 @@ registerProcessor('tr-909', class extends AudioWorkletProcessor implements Voice
     private readonly memory: Memory
     private readonly channels: Channel[]
 
-    private outputLatency: number = 0.0
+    private currPattern: Pattern = null
+    private nextPattern: Pattern = null
     private moving: boolean = false
     private bpm: number = 120.0
     private bar: number = 0.0
@@ -36,14 +37,13 @@ registerProcessor('tr-909', class extends AudioWorkletProcessor implements Voice
             this.barIncrement = numFramesToBars(RENDER_QUANTUM, this.bpm, sampleRate)
         }, true)
         this.memory = new Memory()
+        this.memory.patternChangeNotification.addObserver(pattern => this.nextPattern = pattern)
+        this.currPattern = this.memory.pattern()
         this.channels = ArrayUtils.fill(10, index => new Channel(this, index))
 
         this.port.onmessage = (event: MessageEvent) => {
             const message: ToWorkletMessage | TransportMessage = event.data
-            if (message.type === 'update-outputLatency') {
-                console.debug(`set outputLatency: ${message.outputLatency}`)
-                this.outputLatency = message.outputLatency
-            } else if (message.type === 'update-parameter') {
+            if (message.type === 'update-parameter') {
                 this.preset.find(message.path).get().setUnipolar(message.unipolar)
             } else if (message.type === 'update-pattern-index') {
                 this.memory.bankGroupIndex.set(message.bankGroupIndex)
@@ -66,7 +66,6 @@ registerProcessor('tr-909', class extends AudioWorkletProcessor implements Voice
     // noinspection JSUnusedGlobalSymbols
     process(inputs: Float32Array[][], outputs: Float32Array[][]): boolean {
         if (this.moving) {
-            this.updateStepIndex()
             this.sequence()
             this.advance()
         }
@@ -76,23 +75,8 @@ registerProcessor('tr-909', class extends AudioWorkletProcessor implements Voice
         return true
     }
 
-    updateStepIndex(): void {
-        const pattern: Pattern = this.memory.pattern()
-        const scale = pattern.scale.get().value()
-        const b0 = this.bar + secondsToBars(this.outputLatency, this.bpm)
-        const b1 = b0 + this.barIncrement
-        let index = Math.floor(b0 / scale)
-        let search = index * scale
-        while (search < b1) {
-            if (search >= b0) {
-                this.port.postMessage({type: "update-step", index: index % pattern.lastStep.get()} as ToMainMessage)
-            }
-            search = ++index * scale
-        }
-    }
-
     sequence(): void {
-        const pattern: Pattern = this.memory.pattern()
+        const pattern: Pattern = this.currPattern
         const groove = pattern.groove.get()
         const scale = pattern.scale.get().value()
         const b0 = this.bar
@@ -114,11 +98,16 @@ registerProcessor('tr-909', class extends AudioWorkletProcessor implements Voice
                         continue
                     }
                     this.schedulePlay(channelIndex, frameIndex, step, totalAccent)
+                    // FLAM
                     if (channelIndex !== ChannelIndex.Hihat && step === Step.Extra) {
                         this.schedulePlay(channelIndex, frameIndexDelayed, step, totalAccent)
                     }
                 }
                 this.port.postMessage({type: "update-step", index: stepIndex} as ToMainMessage)
+                if (this.nextPattern !== null && stepIndex + 1 === pattern.lastStep.get()) {
+                    this.currPattern = this.nextPattern
+                    this.nextPattern = null
+                }
             }
             search = ++index * scale
         }
@@ -158,10 +147,9 @@ registerProcessor('tr-909', class extends AudioWorkletProcessor implements Voice
             case ChannelIndex.Clap:
                 return new BasicTuneDecayVoice(this.resources.clap, this.preset.clap, sampleRate, this.resolveLevel(step, totalAccent))
             case ChannelIndex.Hihat:
-                if (step === Step.Extra) {
-                    return new BasicTuneDecayVoice(this.resources.openedHihat, this.preset.openedHihat, sampleRate, this.resolveLevel(step, totalAccent))
-                }
-                return new BasicTuneDecayVoice(this.resources.closedHihat, this.preset.closedHihat, sampleRate, this.resolveLevel(step, totalAccent))
+                return step === Step.Extra
+                    ? new BasicTuneDecayVoice(this.resources.openedHihat, this.preset.openedHihat, sampleRate, this.resolveLevel(step, totalAccent))
+                    : new BasicTuneDecayVoice(this.resources.closedHihat, this.preset.closedHihat, sampleRate, this.resolveLevel(step, totalAccent))
             case ChannelIndex.Crash:
                 return new BasicTuneDecayVoice(this.resources.crash, this.preset.crash, sampleRate, this.resolveLevel(step, totalAccent))
             case ChannelIndex.Ride:
