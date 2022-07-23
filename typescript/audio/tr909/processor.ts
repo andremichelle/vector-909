@@ -44,7 +44,7 @@ registerProcessor('tr-909', class extends AudioWorkletProcessor implements Voice
                 console.debug(`set outputLatency: ${message.outputLatency}`)
                 this.outputLatency = message.outputLatency
             } else if (message.type === 'update-parameter') {
-                this.preset.find(message.path).setUnipolar(message.unipolar)
+                this.preset.find(message.path).get().setUnipolar(message.unipolar)
             } else if (message.type === 'update-pattern') {
                 this.memory.patterns[message.index].deserialize(message.format)
             } else if (message.type === "transport-play") {
@@ -73,7 +73,7 @@ registerProcessor('tr-909', class extends AudioWorkletProcessor implements Voice
     }
 
     updateStepIndex(): void {
-        const pattern: Pattern = this.memory.current()
+        const pattern: Pattern = this.memory.pattern()
         const scale = pattern.scale.get().value()
         const b0 = this.bar + secondsToBars(this.outputLatency, this.bpm)
         const b1 = b0 + this.barIncrement
@@ -88,7 +88,7 @@ registerProcessor('tr-909', class extends AudioWorkletProcessor implements Voice
     }
 
     sequence(): void {
-        const pattern: Pattern = this.memory.current()
+        const pattern: Pattern = this.memory.pattern()
         const groove = pattern.groove.get()
         const scale = pattern.scale.get().value()
         const b0 = this.bar

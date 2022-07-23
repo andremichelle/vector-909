@@ -1,4 +1,4 @@
-import {Parameter, PrintMapping, Terminable, Terminator} from "../../lib/common.js"
+import {Option, Options, Parameter, PrintMapping, Terminable, Terminator} from "../../lib/common.js"
 import {Exp, Linear, LinearInteger, Volume} from "../../lib/mapping.js"
 
 export type BassdrumPreset = {
@@ -121,7 +121,7 @@ export class Preset {
         return terminator
     }
 
-    find(path: string): Parameter<any> {
-        return path.split('.').reduce((object: any, key: string) => object[key], this)
+    find(path: string[]): Option<Parameter<any>> {
+        return Options.valueOf(path.reduce((object: any, key: string) => object[key], this))
     }
 }

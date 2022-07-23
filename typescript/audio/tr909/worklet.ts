@@ -1,7 +1,7 @@
 import {ArrayUtils, ObservableValueImpl, Parameter, Terminable, TerminableVoid, Terminator} from "../../lib/common.js"
 import {dbToGain, Transport} from "../common.js"
 import {MeterWorklet} from "../meter/worklet.js"
-import {ChannelIndex, Memory, Step} from "./memory.js"
+import {ChannelIndex, Memory, Pattern, Step} from "./memory.js"
 import {ProcessorOptions, ToMainMessage, ToWorkletMessage} from "./messages.js"
 import {Preset} from "./preset.js"
 import {Resources} from "./resources.js"
@@ -47,19 +47,12 @@ export class TR909Machine implements Terminable {
         this.terminator.with(this.preset.observeAll((parameter: Parameter<any>, path: string[]) => {
             this.worklet.port.postMessage({
                 type: 'update-parameter',
-                path: path.join('.'),
+                path,
                 unipolar: parameter.getUnipolar()
             } as ToWorkletMessage)
         }))
-        this.terminator.with(this.memory.patternIndex.addObserver((index: number) => {
-            const pattern = this.memory.current()
-            this.patternSubscription.terminate()
-            this.patternSubscription = pattern.addObserver(() => this.worklet.port.postMessage({
-                type: 'update-pattern',
-                index,
-                format: pattern.serialize()
-            } as ToWorkletMessage), false)
-        }, true))
+        this.terminator.merge(this.memory.patterns.map(pattern =>
+            pattern.addObserver(() => this.postUpdatePatternMessage(pattern), false)))
         this.worklet.port.onmessage = event => {
             if (!this.processing) {
                 this.worklet.port.postMessage({
@@ -70,17 +63,24 @@ export class TR909Machine implements Terminable {
             }
             this.stepIndex.set((event.data as ToMainMessage).index)
         }
+        this.memory.patternOf(0, 0, 0).testA()
+        this.memory.patternOf(0, 0, 1).testB()
+        this.memory.patternIndex.set(1)
     }
 
     play(channelIndex: ChannelIndex, step: Step) {
         this.worklet.port.postMessage({type: 'play-channel', channelIndex, step} as ToWorkletMessage)
     }
 
-    connect(destinationNode: AudioNode): AudioNode {
-        return this.master.connect(destinationNode)
-    }
-
     terminate(): void {
         this.terminator.terminate()
+    }
+
+    private postUpdatePatternMessage(pattern: Pattern) {
+        this.worklet.port.postMessage({
+            type: 'update-pattern',
+            index: pattern.index,
+            format: pattern.serialize()
+        } as ToWorkletMessage)
     }
 }

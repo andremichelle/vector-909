@@ -1,3 +1,4 @@
+import {Pattern} from "../audio/tr909/memory.js"
 import {TR909Machine} from "../audio/tr909/worklet.js"
 import {Events, ObservableValueImpl, Terminable, TerminableVoid, Terminator} from "../lib/common.js"
 import {HTML} from "../lib/dom.js"
@@ -106,17 +107,12 @@ export class MachineContext implements Terminable {
         const memory = this.machine.memory
         let patternSubscription = TerminableVoid
         terminator.with({terminate: () => patternSubscription.terminate()})
-        terminator.with(memory.patternIndex.addObserver(() => {
+        terminator.with(memory.patternChangeNotification.addObserver((pattern: Pattern) => {
             patternSubscription.terminate()
-            patternSubscription = memory.current().addObserver(() => {
-                const pattern = this.machine.memory.current()
-                const mapping = Utils.createStepToStateMapping(this.instrumentMode.get())
-                this.mainKeys.forEach((key: MainKey, keyIndex: MainKeyIndex) =>
-                    key.setState(keyIndex === MainKeyIndex.TotalAccent
-                        ? MainKeyState.Off : mapping(pattern, keyIndex)))
-            }, true)
-        }, true))
+            patternSubscription = pattern.addObserver(() => this.updatePatternSteps(), true)
+        }))
         terminator.with(this.showRunningAnimation())
+        this.updatePatternSteps()
         return terminator
     }
 
@@ -143,5 +139,13 @@ export class MachineContext implements Terminable {
 
     terminate(): void {
         this.terminator.terminate()
+    }
+
+    private updatePatternSteps() {
+        const pattern: Pattern = this.machine.memory.pattern()
+        const mapping = Utils.createStepToStateMapping(this.instrumentMode.get())
+        this.mainKeys.forEach((key: MainKey, keyIndex: MainKeyIndex) =>
+            key.setState(keyIndex === MainKeyIndex.TotalAccent
+                ? MainKeyState.Off : mapping(pattern, keyIndex)))
     }
 }

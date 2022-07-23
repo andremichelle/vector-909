@@ -67,7 +67,7 @@ export class StepModeState extends MachineState {
 
     onMainKeyPress(keyIndex: MainKeyIndex): void {
         if (keyIndex === MainKeyIndex.TotalAccent) return
-        const pattern = this.context.machine.memory.current()
+        const pattern = this.context.machine.memory.pattern()
         const instrumentMode = this.context.instrumentMode.get()
         Utils.setNextStepValue(pattern, instrumentMode, keyIndex)
     }
@@ -80,7 +80,7 @@ export class ClearStepsState extends MachineState {
         this.with(this.context.showPatternSteps())
         this.with(this.context.machine.stepIndex.addObserver(stepIndex => {
             const instrumentMode = this.context.instrumentMode.get()
-            const pattern = this.context.machine.memory.current()
+            const pattern = this.context.machine.memory.pattern()
             Utils.clearPatternStep(pattern, instrumentMode, stepIndex)
         }, true))
     }
@@ -101,7 +101,7 @@ export class TapModeState extends MachineState {
         const step = playInstrument.step
         machine.play(channelIndex, step)
         if (machine.transport.isPlaying()) {
-            machine.memory.current()
+            machine.memory.pattern()
                 .setStep(channelIndex, machine.stepIndex.get(), step ? Step.Full : Step.Weak)
         }
     }
@@ -117,7 +117,7 @@ export class ClearTapState extends MachineState {
             if (instrumentMode === InstrumentMode.None || instrumentMode === InstrumentMode.TotalAccent) {
                 return
             }
-            const pattern = this.context.machine.memory.current()
+            const pattern = this.context.machine.memory.pattern()
             Utils.clearPatternStep(pattern, instrumentMode, stepIndex)
         }, true))
     }
@@ -149,17 +149,17 @@ export class ShuffleFlamState extends MachineState {
         super(context)
 
         const memory = this.context.machine.memory
-        this.with(memory.patternIndex.addObserver(() => {
-            const pattern = memory.current()
+        this.with(memory.patternChangeNotification.addObserver((pattern: Pattern) => {
             this.subscriptions.terminate()
             this.subscriptions.with(pattern.groove.addObserver(() => this.update(), false))
             this.subscriptions.with(pattern.flamDelay.addObserver(() => this.update(), false))
             this.update()
-        }, true))
+        }))
+        this.update()
     }
 
     onMainKeyPress(keyIndex: MainKeyIndex): void {
-        const pattern = this.context.machine.memory.current()
+        const pattern = this.context.machine.memory.pattern()
         if (keyIndex === MainKeyIndex.Step1) {
             pattern.groove.set(GrooveIdentity)
         } else if (keyIndex <= MainKeyIndex.Step7) {
@@ -176,7 +176,7 @@ export class ShuffleFlamState extends MachineState {
 
     private update(): void {
         this.context.clearMainKeys()
-        const pattern = this.context.machine.memory.current()
+        const pattern = this.context.machine.memory.pattern()
         const groove = pattern.groove.get()
         if (groove === GrooveIdentity) {
             this.context.mainKeys[0].setState(MainKeyState.On)
@@ -203,19 +203,20 @@ export class LastStepSelectState extends MachineState {
         super(context)
 
         const memory = this.context.machine.memory
-        this.with(memory.patternIndex.addObserver(() => {
+        this.with(memory.patternChangeNotification.addObserver((pattern: Pattern) => {
             this.subscriptions.terminate()
-            this.subscriptions.with(memory.current().addObserver(() => this.update(), true))
-        }, true))
+            this.subscriptions.with(pattern.addObserver(() => this.update(), true))
+        }))
+        this.update()
     }
 
     onMainKeyPress(keyIndex: MainKeyIndex): void {
         if (keyIndex === MainKeyIndex.TotalAccent) return
-        this.context.machine.memory.current().lastStep.set(keyIndex + 1)
+        this.context.machine.memory.pattern().lastStep.set(keyIndex + 1)
     }
 
     update(): void {
-        const pattern = this.context.machine.memory.current()
+        const pattern = this.context.machine.memory.pattern()
         this.context.clearMainKeys()
         this.context.mainKeys[pattern.lastStep.get() - 1].setState(MainKeyState.On)
     }

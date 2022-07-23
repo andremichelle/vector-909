@@ -1,5 +1,5 @@
 import {secondsToBars} from "../audio/common.js"
-import {Scale} from "../audio/tr909/memory.js"
+import {Pattern, Scale} from "../audio/tr909/memory.js"
 import {TR909Machine} from "../audio/tr909/worklet.js"
 import {Events, ObservableValueImpl, Terminable, TerminableVoid, Terminator} from "../lib/common.js"
 import {HTML} from "../lib/dom.js"
@@ -102,7 +102,7 @@ export class GUI {
     private installScale(): void {
         const memory = this.machine.memory
         this.terminator.with(Events.bindEventListener(HTML.query('[data-button=scale]'), 'pointerdown', () => {
-            const scale = memory.current().scale
+            const scale = memory.pattern().scale
             scale.set(scale.get().cycleNext())
         }))
         const indicator: SVGUseElement = HTML.query('[data-control=scale] [data-control=indicator]')
@@ -118,12 +118,13 @@ export class GUI {
                     return 48
             }
         }
+        const updater = () => indicator.y.baseVal.value = scaleToY(this.machine.memory.pattern().scale.get())
         let subscription: Terminable = TerminableVoid
-        memory.patternIndex.addObserver(() => {
+        memory.patternChangeNotification.addObserver((pattern: Pattern) => {
             subscription.terminate()
-            subscription = memory.current().scale
-                .addObserver(scale => indicator.y.baseVal.value = scaleToY(scale), true)
-        }, true)
+            subscription = pattern.scale.addObserver(updater, true)
+        })
+        updater()
         this.terminator.with({terminate: () => subscription.terminate()})
     }
 

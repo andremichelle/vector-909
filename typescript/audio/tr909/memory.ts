@@ -6,7 +6,8 @@ import {
     ObservableValueImpl,
     Observer,
     Terminable,
-    TerminableVoid
+    TerminableVoid,
+    Terminator
 } from "../../lib/common.js"
 import {Groove, GrooveFormat, GrooveIdentity, Grooves} from "../grooves.js"
 
@@ -41,17 +42,43 @@ export class Track {
     }
 }
 
-export class Memory {
+export type BankGroupIndex = 0 | 1
+export type PatternGroupIndex = 0 | 1 | 2
+export type PatternIndex = 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12 | 13 | 14 | 15
+
+export class Memory implements Terminable {
+    private static NUM_BANKS = 2
+    private static NUM_PATTERN_GROUPS = 3
+    private static NUM_PATTERNS = 16
+
+    private readonly terminator = new Terminator()
+
     readonly tracks: Track[] = ArrayUtils.fill(4, () => new Track())
-    readonly patterns: Pattern[] = ArrayUtils.fill(96, () => new Pattern())
-    readonly patternIndex: ObservableValue<number> = new ObservableValueImpl<number>(0)
+
+    readonly patterns: Pattern[] = ArrayUtils.fill(16 * Memory.NUM_PATTERN_GROUPS * Memory.NUM_BANKS, (index: number) => new Pattern(index))
+    readonly patternChangeNotification: ObservableImpl<Pattern> = new ObservableImpl<Pattern>()
+
+    readonly bankGroupIndex: ObservableValue<BankGroupIndex> = new ObservableValueImpl<BankGroupIndex>(0)
+    readonly patternGroupIndex: ObservableValue<PatternGroupIndex> = new ObservableValueImpl<PatternGroupIndex>(0)
+    readonly patternIndex: ObservableValue<PatternIndex> = new ObservableValueImpl<PatternIndex>(0)
 
     constructor() {
-        this.patterns[0].test()
+        // TODO observe and update on worklet
+        this.terminator.with(this.bankGroupIndex.addObserver(() => this.patternChangeNotification.notify(this.pattern()), false))
+        this.terminator.with(this.patternGroupIndex.addObserver(() => this.patternChangeNotification.notify(this.pattern()), false))
+        this.terminator.with(this.patternIndex.addObserver(() => this.patternChangeNotification.notify(this.pattern()), false))
     }
 
-    current(): Pattern {
-        return this.patterns[this.patternIndex.get()]
+    pattern(): Pattern {
+        return this.patternOf(this.bankGroupIndex.get(), this.patternGroupIndex.get(), this.patternIndex.get())
+    }
+
+    patternOf(bankGroupIndex: BankGroupIndex, patternGroupIndex: PatternGroupIndex, patternIndex: PatternIndex): Pattern {
+        return this.patterns[(bankGroupIndex * Memory.NUM_PATTERN_GROUPS + patternGroupIndex) * Memory.NUM_PATTERNS + patternIndex]
+    }
+
+    terminate(): void {
+        this.terminator.terminate()
     }
 }
 
@@ -86,10 +113,11 @@ export class Pattern implements Observable<void> {
         this.grooveSubscription = groove.addObserver(this.listener, true)
     }, false)
 
-    constructor() {
+    constructor(readonly index: number) {
     }
 
-    test() {
+    testA() {
+        this.observable.mute()
         for (let i = 0; i < 16; i++) {
             if ((i + 2) % 4 !== 0) {
                 this.setStep(ChannelIndex.Hihat, i, Step.Full)
@@ -103,6 +131,23 @@ export class Pattern implements Observable<void> {
         this.setStep(ChannelIndex.Bassdrum, 15, Step.Extra)
         this.setStep(ChannelIndex.Clap, 4, Step.Full)
         this.setStep(ChannelIndex.Clap, 12, Step.Full)
+        this.observable.unmute()
+        this.observable.notify()
+    }
+
+    testB(): void {
+        this.observable.mute()
+        for (let i = 0; i < 16; i++) {
+            if ((i + 2) % 4 !== 0) {
+                this.setStep(ChannelIndex.Hihat, i, Step.Full)
+            } else {
+                this.setStep(ChannelIndex.Hihat, i, Step.Extra)
+            }
+        }
+        this.setStep(ChannelIndex.Rim, 4, Step.Full)
+        this.setStep(ChannelIndex.Rim, 12, Step.Full)
+        this.observable.unmute()
+        this.observable.notify()
     }
 
     setStep(channelIndex: ChannelIndex, stepIndex: number, step: Step): void {

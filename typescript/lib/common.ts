@@ -26,6 +26,12 @@ export class Terminator implements Terminable {
         return terminable
     }
 
+    merge<T extends Terminable>(terminables: T[]): Terminable {
+        const terminator = new Terminator()
+        terminables.forEach(terminable => terminator.with(terminable))
+        return terminator
+    }
+
     terminate(): void {
         while (this.terminables.length) {
             this.terminables.pop().terminate()
