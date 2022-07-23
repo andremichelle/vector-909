@@ -45,7 +45,11 @@ registerProcessor('tr-909', class extends AudioWorkletProcessor implements Voice
                 this.outputLatency = message.outputLatency
             } else if (message.type === 'update-parameter') {
                 this.preset.find(message.path).get().setUnipolar(message.unipolar)
-            } else if (message.type === 'update-pattern') {
+            } else if (message.type === 'update-pattern-index') {
+                this.memory.bankGroupIndex.set(message.bankGroupIndex)
+                this.memory.patternGroupIndex.set(message.patternGroupIndex)
+                this.memory.patternIndex.set(message.patternIndex)
+            } else if (message.type === 'update-pattern-data') {
                 this.memory.patterns[message.index].deserialize(message.format)
             } else if (message.type === "transport-play") {
                 this.moving = true

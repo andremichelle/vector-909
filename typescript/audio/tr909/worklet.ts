@@ -51,8 +51,20 @@ export class TR909Machine implements Terminable {
                 unipolar: parameter.getUnipolar()
             } as ToWorkletMessage)
         }))
+        this.terminator.with(this.memory.patternChangeNotification.addObserver(() => {
+            this.worklet.port.postMessage({
+                type: 'update-pattern-index',
+                bankGroupIndex: this.memory.bankGroupIndex.get(),
+                patternGroupIndex: this.memory.patternGroupIndex.get(),
+                patternIndex: this.memory.patternIndex.get()
+            } as ToWorkletMessage)
+        }))
         this.terminator.merge(this.memory.patterns.map(pattern =>
-            pattern.addObserver(() => this.postUpdatePatternMessage(pattern), false)))
+            pattern.addObserver(() => this.worklet.port.postMessage({
+                type: 'update-pattern-data',
+                index: pattern.index,
+                format: pattern.serialize()
+            } as ToWorkletMessage), false)))
         this.worklet.port.onmessage = event => {
             if (!this.processing) {
                 this.worklet.port.postMessage({
@@ -74,13 +86,5 @@ export class TR909Machine implements Terminable {
 
     terminate(): void {
         this.terminator.terminate()
-    }
-
-    private postUpdatePatternMessage(pattern: Pattern) {
-        this.worklet.port.postMessage({
-            type: 'update-pattern',
-            index: pattern.index,
-            format: pattern.serialize()
-        } as ToWorkletMessage)
     }
 }
