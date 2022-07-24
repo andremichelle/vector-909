@@ -109,7 +109,7 @@ registerProcessor('tr-909', class extends AudioWorkletProcessor implements Voice
                         this.schedulePlay(channelIndex, frameIndexDelayed, step, totalAccent)
                     }
                 }
-                this.port.postMessage({type: "update-step", index: stepIndex} as ToMainMessage)
+                this.port.postMessage({type: "update-step", stepIndex: stepIndex} as ToMainMessage)
                 if (stepIndex + 1 === pattern.lastStep.get()) {
                     this.patternProvider.onPatterComplete()
                 }

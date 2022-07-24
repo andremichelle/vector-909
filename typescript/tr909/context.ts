@@ -4,25 +4,21 @@ import {TR909Machine} from "../audio/tr909/worklet.js"
 import {Events, ObservableValueImpl, Terminable, TerminableVoid, Terminator} from "../lib/common.js"
 import {HTML} from "../lib/dom.js"
 import {Digits} from "./digits.js"
-import {FunctionKey, FunctionKeyIndex, FunctionKeyState, MainKey, MainKeyIndex, MainKeyState} from "./keys.js"
-import {MachineState, PatternPlayState} from "./states.js"
+import {
+    BankGroupKeyIndices,
+    FunctionKey,
+    FunctionKeyIndex,
+    Key,
+    KeyState,
+    MainKey,
+    MainKeyIndex,
+    PatternGroupKeyIndices,
+    TrackKeyIndices
+} from "./keys.js"
+import {MachineState} from "./states.js"
+import PatternPlayState from "./states/pattern-play.js"
+import TrackPlayState from "./states/track-play.js"
 import {InstrumentMode, Utils} from "./utils.js"
-
-/**
- * 909 States
- [TRACK PLAY]
- + not playing
- + | Track buttons 1-4 permanently lit
- + | Shows '1' in display if track sequence is available or zero if not
- + | First pattern index is blinking on main-button or first if empty
- + | All instruments can be tapped
- + | FWD will increase track sequence position (until end)
- + | BACK will decrease track sequence position (until start)
- + | TEMPO will show tempo
- + playing
- + | If CYCLE/GUIDE is turned on, if track sequence will be repeated
- + | TEMPO will show tempo
- */
 
 export class KeyGroup<KEY, INDEX extends number> {
     constructor(readonly keys: KEY[]) {
@@ -43,11 +39,11 @@ export class MachineContext implements Terminable {
             new KeyGroup<MainKey, MainKeyIndex>([...Array.from<HTMLButtonElement>(
                 HTML.queryAll('[data-control=main-keys] [data-control=main-key]', parentNode)),
                 HTML.query('[data-control=main-key][data-parameter=total-accent]')]
-                .map((element: HTMLButtonElement) => new MainKey(element))
+                .map((element: HTMLButtonElement) => new Key(element))
             ),
             new KeyGroup<FunctionKey, FunctionKeyIndex>(HTML.queryAll('[data-button=function-key]')
-                .map((element: HTMLButtonElement) => new FunctionKey(element))),
-            new FunctionKey(HTML.query('[data-button=shift-key]')),
+                .map((element: HTMLButtonElement) => new Key(element))),
+            new Key(HTML.query('[data-button=shift-key]')),
             new Digits(HTML.query('svg[data-display=led-display]', parentNode)))
     }
 
@@ -87,7 +83,7 @@ export class MachineContext implements Terminable {
             this.shiftMode.set(true)
         }))
         this.terminator.with(this.shiftMode.addObserver(enabled =>
-            this.shiftKey.setState(enabled ? FunctionKeyState.On : FunctionKeyState.Off)))
+            this.shiftKey.setState(enabled ? KeyState.On : KeyState.Off)))
         this.terminator.with(this.shiftKey.bind('pointerup', () => this.shiftMode.set(false)))
         this.terminator.with(Events.bindEventListener(window, 'keydown', (event: KeyboardEvent) => {
             const code = event.code
@@ -101,64 +97,77 @@ export class MachineContext implements Terminable {
                 this.shiftMode.set(false)
             }
         }))
+        console.log(`state: ${this.stateName()}`)
     }
 
     stateName(): string {
         return this.state.constructor.name
     }
 
-    switchToPatternPlayState(patternGroupIndex: PatternGroupIndex) {
+    switchToTrackPlayState(trackIndex: TrackIndex = TrackIndex.I): void {
+        this.resetKeys()
+        this.state.terminate()
+        this.machine.state.trackIndex.set(trackIndex)
+        this.state = new TrackPlayState(this)
+        console.log(`state: ${this.stateName()}`)
+    }
+
+    switchToPatternPlayState(patternGroupIndex: PatternGroupIndex = PatternGroupIndex.I): void {
+        this.resetKeys()
         this.state.terminate()
         this.machine.state.patternGroupIndex.set(patternGroupIndex)
         this.state = new PatternPlayState(this)
+        console.log(`state: ${this.stateName()}`)
     }
 
-    clearMainKeys(): void {
-        this.mainKeys.forEach(button => button.setState(MainKeyState.Off))
+    resetKeys(): void {
+        this.deactivateMainKeys()
+        this.deactivateTrackButtons()
+        this.deactivateBankGroupKeys()
+        this.deactivatePatternGroupButtons()
     }
 
-    showPatternLocation(index: number): void {
+    deactivateMainKeys(): void {
+        this.mainKeys.forEach(button => button.setState(KeyState.Off))
+    }
+
+    activatePatternLocationButtons(index: number): void {
         const location = this.machine.state.activeBank().toLocation(index)
         this.activatePatternGroupButton(location.patternGroupIndex)
-        this.mainKeys.byIndex(location.patternIndex as number).setState(MainKeyState.Flash) // TODO MainKeyState.Blink
+        this.mainKeys.byIndex(location.patternIndex as number).setState(KeyState.Blink)
     }
 
-    activateTrackButton(index: TrackIndex, writeMode: boolean): void {
-        console.debug(`showTrackIndex(index: ${index}, writeMode: ${writeMode})`)
-        const apply = (keyIndex: FunctionKeyIndex, trackIndex: TrackIndex) =>
-            this.functionKeys.byIndex(keyIndex)
-                .setState(index === trackIndex
-                    ? writeMode ? FunctionKeyState.Blink :
-                        FunctionKeyState.On : FunctionKeyState.Off)
-        apply(FunctionKeyIndex.Track1, TrackIndex.I)
-        apply(FunctionKeyIndex.Track2, TrackIndex.II)
-        apply(FunctionKeyIndex.Track3, TrackIndex.III)
-        apply(FunctionKeyIndex.Track4, TrackIndex.IV)
+    activateTrackButton(trackIndex: TrackIndex, writeMode: boolean): void {
+        console.debug(`showTrackIndex(index: ${trackIndex}, writeMode: ${writeMode})`)
+
+        this.activateFunctionKeys(index => index === trackIndex
+            ? writeMode ? KeyState.Blink :
+                KeyState.On : KeyState.Off, TrackKeyIndices)
     }
 
     deactivateTrackButtons(): void {
-        console.debug('deactivateTrackButtons()')
-        ;[FunctionKeyIndex.Track1, FunctionKeyIndex.Track2, FunctionKeyIndex.Track3, FunctionKeyIndex.Track4]
-            .forEach(keyIndex => this.functionKeys.byIndex(keyIndex).setState(FunctionKeyState.Off))
+        this.deactivateFunctionKeys(TrackKeyIndices)
     }
 
-    showBankGroup(index: BankGroupIndex): void {
-        this.functionKeys.byIndex(FunctionKeyIndex.ForwardBankI)
-            .setState(index === 0 ? FunctionKeyState.On : FunctionKeyState.Off)
-        this.functionKeys.byIndex(FunctionKeyIndex.AvailableMeasuresBankII)
-            .setState(index === 1 ? FunctionKeyState.On : FunctionKeyState.Off)
+    activatePatternGroupButton(patternGroupIndex: PatternGroupIndex): void {
+        console.debug(`activatePatternGroupButton(index: ${patternGroupIndex})`)
+        this.activateFunctionKeys(index => patternGroupIndex === index ? KeyState.On : KeyState.Off, PatternGroupKeyIndices)
     }
 
-    activatePatternGroupButton(index: PatternGroupIndex): void {
-        this.functionKeys.byIndex(FunctionKeyIndex.Pattern1)
-            .setState(index === 0 ? FunctionKeyState.On : FunctionKeyState.Off)
-        this.functionKeys.byIndex(FunctionKeyIndex.Pattern2)
-            .setState(index === 1 ? FunctionKeyState.On : FunctionKeyState.Off)
-        this.functionKeys.byIndex(FunctionKeyIndex.Pattern3)
-            .setState(index === 2 ? FunctionKeyState.On : FunctionKeyState.Off)
+    deactivatePatternGroupButtons(): void {
+        this.deactivateFunctionKeys(PatternGroupKeyIndices)
     }
 
-    showPatternSteps(): Terminable {
+    activateBankGroupButton(bankGroupIndex: BankGroupIndex): void {
+        console.debug(`activateBankGroupButton(index: ${bankGroupIndex})`)
+        this.activateFunctionKeys(index => bankGroupIndex === index ? KeyState.On : KeyState.Off, BankGroupKeyIndices)
+    }
+
+    deactivateBankGroupKeys(): void {
+        this.deactivateFunctionKeys(BankGroupKeyIndices)
+    }
+
+    activatePatternStepsButtons(): Terminable {
         const terminator = new Terminator()
         let patternSubscription = TerminableVoid
         terminator.with({terminate: () => patternSubscription.terminate()})
@@ -166,12 +175,12 @@ export class MachineContext implements Terminable {
             patternSubscription.terminate()
             patternSubscription = pattern.addObserver(() => this.updatePatternSteps(), true)
         }))
-        terminator.with(this.showRunningAnimation())
+        terminator.with(this.activateRunningAnimation())
         this.updatePatternSteps()
         return terminator
     }
 
-    showRunningAnimation(): Terminable {
+    activateRunningAnimation(): Terminable {
         const terminator = new Terminator()
         let flashing: MainKey = null
         terminator.with({
@@ -192,6 +201,14 @@ export class MachineContext implements Terminable {
         return terminator
     }
 
+    playInstrument(keyIndex: MainKeyIndex): void {
+        if (keyIndex === MainKeyIndex.TotalAccent) return
+        const instrument = Utils.keyIndexToPlayInstrument(keyIndex, this.pressedMainKeys)
+        const channelIndex = instrument.channelIndex
+        const step = instrument.step
+        this.machine.play(channelIndex, step)
+    }
+
     terminate(): void {
         this.terminator.terminate()
     }
@@ -201,6 +218,15 @@ export class MachineContext implements Terminable {
         const mapping = Utils.createStepToStateMapping(this.instrumentMode.get())
         this.mainKeys.forEach((key: MainKey, keyIndex: MainKeyIndex) =>
             key.setState(keyIndex === MainKeyIndex.TotalAccent
-                ? MainKeyState.Off : mapping(pattern, keyIndex)))
+                ? KeyState.Off : mapping(pattern, keyIndex)))
+    }
+
+    private activateFunctionKeys(map: (zeroBasedIndex: number) => KeyState, indices: FunctionKeyIndex[]): void {
+        indices.forEach((keyIndex: FunctionKeyIndex, zeroBasedIndex: number) =>
+            this.functionKeys.byIndex(keyIndex).setState(map(zeroBasedIndex)))
+    }
+
+    private deactivateFunctionKeys(indices: FunctionKeyIndex[]): void {
+        indices.forEach(keyIndex => this.functionKeys.byIndex(keyIndex).setState(KeyState.Off))
     }
 }

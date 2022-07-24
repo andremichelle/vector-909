@@ -14,7 +14,7 @@ export class TR909Machine implements Terminable {
     }
 
     private readonly terminator: Terminator = new Terminator()
-    private readonly scheduleStepIndexUpdates: { index: number, time: number }[] = []
+    private readonly scheduleUpdates: { time: number, exec: () => void }[] = []
     private running: boolean = true
 
     readonly worklet: AudioWorkletNode
@@ -66,9 +66,12 @@ export class TR909Machine implements Terminable {
                         type: 'update-pattern', bankGroupIndex, arrayIndex, format: pattern.serialize()
                     } as ToWorkletMessage), false))).flat())
         this.worklet.port.onmessage = event => {
-            const index = (event.data as ToMainMessage).index
-            const time = Date.now() + context.outputLatency
-            this.scheduleStepIndexUpdates.push({index, time})
+            const message = event.data as ToMainMessage
+            if (message.type === 'update-step') {
+                const index = message.stepIndex
+                const time = Date.now() + context.outputLatency
+                this.scheduleUpdates.push({time, exec: () => this.processorStepIndex.set(index)})
+            }
         }
         this.startScheduler()
 
@@ -89,9 +92,9 @@ export class TR909Machine implements Terminable {
 
     private startScheduler() {
         const schedule = () => {
-            if (this.scheduleStepIndexUpdates.length > 0) {
-                if (Date.now() >= this.scheduleStepIndexUpdates[0].time) {
-                    this.processorStepIndex.set(this.scheduleStepIndexUpdates.shift().index)
+            if (this.scheduleUpdates.length > 0) {
+                if (Date.now() >= this.scheduleUpdates[0].time) {
+                    this.scheduleUpdates.shift().exec()
                 }
             }
             if (this.running) {

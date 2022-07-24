@@ -1,6 +1,6 @@
 import {ChannelIndex, Pattern, Step} from "../audio/tr909/pattern.js"
 import {elseIfUndefined} from "../lib/common.js"
-import {MainKeyIndex, MainKeyState} from "./keys.js"
+import {MainKeyIndex, KeyState} from "./keys.js"
 
 interface StepModifier {
     weakFull(step: Step): Step
@@ -166,13 +166,13 @@ export class Utils {
         }
     }
 
-    static createStepToStateMapping(instrumentMode: InstrumentMode): (pattern: Pattern, keyIndex: MainKeyIndex) => MainKeyState {
-        const normal = (step: Step): MainKeyState =>
-            step === Step.Weak ? MainKeyState.Flash : step === Step.Full ? MainKeyState.On : MainKeyState.Off
-        const extra = (step: Step): MainKeyState =>
-            step === Step.Extra ? MainKeyState.On : MainKeyState.Off
-        const create = (channelIndex: ChannelIndex, mapping: (step: Step) => MainKeyState) =>
-            (pattern: Pattern, keyIndex: MainKeyIndex) => keyIndex < 16 ? mapping(pattern.getStep(channelIndex, keyIndex)) : MainKeyState.Off
+    static createStepToStateMapping(instrumentMode: InstrumentMode): (pattern: Pattern, keyIndex: MainKeyIndex) => KeyState {
+        const normal = (step: Step): KeyState =>
+            step === Step.Weak ? KeyState.Flash : step === Step.Full ? KeyState.On : KeyState.Off
+        const extra = (step: Step): KeyState =>
+            step === Step.Extra ? KeyState.On : KeyState.Off
+        const create = (channelIndex: ChannelIndex, mapping: (step: Step) => KeyState) =>
+            (pattern: Pattern, keyIndex: MainKeyIndex) => keyIndex < 16 ? mapping(pattern.getStep(channelIndex, keyIndex)) : KeyState.Off
         if (instrumentMode === InstrumentMode.Bassdrum) {
             return create(ChannelIndex.Bassdrum, normal)
         } else if (instrumentMode === InstrumentMode.BassdrumFlam) {
@@ -207,46 +207,46 @@ export class Utils {
             return create(ChannelIndex.Ride, normal)
         } else if (instrumentMode === InstrumentMode.TotalAccent) {
             return (pattern: Pattern, keyIndex: number) =>
-                pattern.isTotalAccent(keyIndex) ? MainKeyState.On : MainKeyState.Off
+                pattern.isTotalAccent(keyIndex) ? KeyState.On : KeyState.Off
         } else {
             throw new Error(`Unknown instrumentMode(${instrumentMode})`)
         }
     }
 
-    static instrumentModeToButtonStates(instrumentMode: InstrumentMode): (keyIndex: MainKeyIndex) => MainKeyState {
+    static instrumentModeToButtonStates(instrumentMode: InstrumentMode): (keyIndex: MainKeyIndex) => KeyState {
         const simple = (keyIndex: MainKeyIndex, index: number) =>
-            keyIndex === index ? MainKeyState.On : MainKeyState.Off
-        const complex = (keyIndex: MainKeyIndex, i0: number, i1: number, second: MainKeyState) =>
-            keyIndex === i0 ? MainKeyState.On : keyIndex === i1 ? second : MainKeyState.Off
-        return (keyIndex: MainKeyIndex): MainKeyState => {
+            keyIndex === index ? KeyState.On : KeyState.Off
+        const complex = (keyIndex: MainKeyIndex, i0: number, i1: number, second: KeyState) =>
+            keyIndex === i0 ? KeyState.On : keyIndex === i1 ? second : KeyState.Off
+        return (keyIndex: MainKeyIndex): KeyState => {
             if (instrumentMode === InstrumentMode.Bassdrum) {
-                return complex(keyIndex, MainKeyIndex.Step1, MainKeyIndex.Step2, MainKeyState.Flash)
+                return complex(keyIndex, MainKeyIndex.Step1, MainKeyIndex.Step2, KeyState.Flash)
             } else if (instrumentMode === InstrumentMode.BassdrumFlam) {
-                return complex(keyIndex, MainKeyIndex.Step1, MainKeyIndex.Step2, MainKeyState.On)
+                return complex(keyIndex, MainKeyIndex.Step1, MainKeyIndex.Step2, KeyState.On)
             } else if (instrumentMode === InstrumentMode.Snaredrum) {
-                return complex(keyIndex, MainKeyIndex.Step3, MainKeyIndex.Step4, MainKeyState.Flash)
+                return complex(keyIndex, MainKeyIndex.Step3, MainKeyIndex.Step4, KeyState.Flash)
             } else if (instrumentMode === InstrumentMode.SnaredrumFlam) {
-                return complex(keyIndex, MainKeyIndex.Step3, MainKeyIndex.Step4, MainKeyState.On)
+                return complex(keyIndex, MainKeyIndex.Step3, MainKeyIndex.Step4, KeyState.On)
             } else if (instrumentMode === InstrumentMode.TomLow) {
-                return complex(keyIndex, MainKeyIndex.Step5, MainKeyIndex.Step6, MainKeyState.Flash)
+                return complex(keyIndex, MainKeyIndex.Step5, MainKeyIndex.Step6, KeyState.Flash)
             } else if (instrumentMode === InstrumentMode.TomLowFlam) {
-                return complex(keyIndex, MainKeyIndex.Step5, MainKeyIndex.Step6, MainKeyState.On)
+                return complex(keyIndex, MainKeyIndex.Step5, MainKeyIndex.Step6, KeyState.On)
             } else if (instrumentMode === InstrumentMode.TomMid) {
-                return complex(keyIndex, MainKeyIndex.Step7, MainKeyIndex.Step8, MainKeyState.Flash)
+                return complex(keyIndex, MainKeyIndex.Step7, MainKeyIndex.Step8, KeyState.Flash)
             } else if (instrumentMode === InstrumentMode.TomMidFlam) {
-                return complex(keyIndex, MainKeyIndex.Step7, MainKeyIndex.Step8, MainKeyState.On)
+                return complex(keyIndex, MainKeyIndex.Step7, MainKeyIndex.Step8, KeyState.On)
             } else if (instrumentMode === InstrumentMode.TomHi) {
-                return complex(keyIndex, MainKeyIndex.Step9, MainKeyIndex.Step10, MainKeyState.Flash)
+                return complex(keyIndex, MainKeyIndex.Step9, MainKeyIndex.Step10, KeyState.Flash)
             } else if (instrumentMode === InstrumentMode.TomHiFlam) {
-                return complex(keyIndex, MainKeyIndex.Step9, MainKeyIndex.Step10, MainKeyState.On)
+                return complex(keyIndex, MainKeyIndex.Step9, MainKeyIndex.Step10, KeyState.On)
             } else if (instrumentMode === InstrumentMode.Rim) {
                 return simple(keyIndex, MainKeyIndex.Step11)
             } else if (instrumentMode === InstrumentMode.Clap) {
                 return simple(keyIndex, MainKeyIndex.Step12)
             } else if (instrumentMode === InstrumentMode.HihatClosed) {
-                return complex(keyIndex, MainKeyIndex.Step13, MainKeyIndex.Step14, MainKeyState.Flash)
+                return complex(keyIndex, MainKeyIndex.Step13, MainKeyIndex.Step14, KeyState.Flash)
             } else if (instrumentMode === InstrumentMode.HihatOpened) {
-                return complex(keyIndex, MainKeyIndex.Step13, MainKeyIndex.Step14, MainKeyState.On)
+                return complex(keyIndex, MainKeyIndex.Step13, MainKeyIndex.Step14, KeyState.On)
             } else if (instrumentMode === InstrumentMode.Crash) {
                 return simple(keyIndex, MainKeyIndex.Step15)
             } else if (instrumentMode === InstrumentMode.Ride) {
