@@ -1,4 +1,4 @@
-import {BankGroupIndex, PatternGroupIndex} from "../audio/tr909/memory.js"
+import {BankGroupIndex, PatternGroupIndex, TrackIndex} from "../audio/tr909/memory.js"
 import {Pattern} from "../audio/tr909/pattern.js"
 import {TR909Machine} from "../audio/tr909/worklet.js"
 import {Events, ObservableValueImpl, Terminable, TerminableVoid, Terminator} from "../lib/common.js"
@@ -107,6 +107,25 @@ export class MachineContext implements Terminable {
         this.mainKeys.forEach(button => button.setState(MainKeyState.Off))
     }
 
+    showPatternLocation(index: number): void {
+        const location = this.machine.memory.toLocation(index)
+        this.showBankGroup(location.bankGroupIndex)
+        this.showPatternGroup(location.patternGroupIndex)
+        this.mainKeys.byIndex(location.patternIndex as number).setState(MainKeyState.Flash) // TODO MainKeyState.Blink
+    }
+
+    showTrackIndex(index: TrackIndex, writeMode: boolean): void {
+        const apply = (keyIndex: FunctionKeyIndex, trackIndex: TrackIndex) =>
+            this.functionKeys.byIndex(keyIndex)
+                .setState(index === trackIndex
+                    ? writeMode ? FunctionKeyState.Blink :
+                        FunctionKeyState.On : FunctionKeyState.Off)
+        apply(FunctionKeyIndex.Track1, TrackIndex.I)
+        apply(FunctionKeyIndex.Track2, TrackIndex.II)
+        apply(FunctionKeyIndex.Track3, TrackIndex.III)
+        apply(FunctionKeyIndex.Track4, TrackIndex.IV)
+    }
+
     showBankGroup(index: BankGroupIndex): void {
         this.functionKeys.byIndex(FunctionKeyIndex.ForwardBankI)
             .setState(index === 0 ? FunctionKeyState.On : FunctionKeyState.Off)
@@ -128,7 +147,7 @@ export class MachineContext implements Terminable {
         const memory = this.machine.memory
         let patternSubscription = TerminableVoid
         terminator.with({terminate: () => patternSubscription.terminate()})
-        terminator.with(memory.patternChangeNotification.addObserver((pattern: Pattern) => {
+        terminator.with(memory.userPatternChangeNotification.addObserver((pattern: Pattern) => {
             patternSubscription.terminate()
             patternSubscription = pattern.addObserver(() => this.updatePatternSteps(), true)
         }))

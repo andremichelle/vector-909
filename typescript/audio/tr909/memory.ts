@@ -18,7 +18,9 @@ export enum InstrumentIndex {
 
 export enum BankGroupIndex {I, II}
 
-export enum PatternGroupIndex {I, II, III}
+export enum TrackIndex {I, II, III, IV} // times 2 for each bank
+
+export enum PatternGroupIndex {I, II, III} // times 2 for each bank
 
 export enum PatternIndex {
     Pattern1, Pattern2, Pattern3, Pattern4,
@@ -27,7 +29,12 @@ export enum PatternIndex {
     Pattern13, Pattern14, Pattern15, Pattern16,
 }
 
+
 export type PatternLocation = { bankGroupIndex: BankGroupIndex, patternGroupIndex: PatternGroupIndex, patternIndex: PatternIndex }
+
+export class Bank {
+
+}
 
 export class Memory implements Terminable {
     private static NUM_BANKS = 2
@@ -38,23 +45,25 @@ export class Memory implements Terminable {
     private readonly terminator = new Terminator()
 
     readonly tracks: number[][] = ArrayUtils.fill(4, () => [])
+    readonly cycleMode: ObservableValue<boolean> = new ObservableValueImpl<boolean>(false)
 
     readonly patterns: Pattern[] = ArrayUtils.fill(Memory.PATTERNS_TOTAL_COUNT, (index: number) => new Pattern(index))
-    readonly patternChangeNotification: ObservableImpl<Pattern> = new ObservableImpl<Pattern>()
+    readonly userPatternChangeNotification: ObservableImpl<Pattern> = new ObservableImpl<Pattern>()
 
-    readonly bankGroupIndex: ObservableValue<BankGroupIndex> = new ObservableValueImpl<BankGroupIndex>(0)
-    readonly patternGroupIndex: ObservableValue<PatternGroupIndex> = new ObservableValueImpl<PatternGroupIndex>(0)
-    readonly patternIndex: ObservableValue<PatternIndex> = new ObservableValueImpl<PatternIndex>(0)
+    readonly bankGroupIndex: ObservableValue<BankGroupIndex> = new ObservableValueImpl<BankGroupIndex>(BankGroupIndex.I)
+    readonly patternGroupIndex: ObservableValue<PatternGroupIndex> = new ObservableValueImpl<PatternGroupIndex>(PatternGroupIndex.I)
+    readonly patternIndex: ObservableValue<PatternIndex> = new ObservableValueImpl<PatternIndex>(PatternIndex.Pattern1)
+    readonly trackIndex: ObservableValue<TrackIndex> = new ObservableValueImpl<TrackIndex>(TrackIndex.I)
 
     constructor() {
-        this.terminator.with(this.bankGroupIndex.addObserver(() => this.patternChangeNotification.notify(this.pattern()), false))
-        this.terminator.with(this.patternGroupIndex.addObserver(() => this.patternChangeNotification.notify(this.pattern()), false))
-        this.terminator.with(this.patternIndex.addObserver(() => this.patternChangeNotification.notify(this.pattern()), false))
+        this.terminator.with(this.bankGroupIndex.addObserver(() => this.userPatternChangeNotification.notify(this.pattern()), false))
+        this.terminator.with(this.patternGroupIndex.addObserver(() => this.userPatternChangeNotification.notify(this.pattern()), false))
+        this.terminator.with(this.patternIndex.addObserver(() => this.userPatternChangeNotification.notify(this.pattern()), false))
 
         // TODO > Test Data < REMOVE WHEN DONE TESTING
-        this.patternOf(BankGroupIndex.II, PatternGroupIndex.III, 6).testA()
+        this.patternOf(BankGroupIndex.I, PatternGroupIndex.III, 6).testA()
         this.patternOf(0, 0, 1).testB()
-        this.tracks[0].push(this.indexOf(BankGroupIndex.II, PatternGroupIndex.III, 6), 1, 0, 1)
+        this.tracks[0].push(this.indexOf(BankGroupIndex.I, PatternGroupIndex.III, 6), 1, 0, 1)
     }
 
     pattern(): Pattern {

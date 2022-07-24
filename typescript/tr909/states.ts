@@ -1,4 +1,5 @@
 import {GrooveFunction, GrooveIdentity} from "../audio/grooves.js"
+import {BankGroupIndex, TrackIndex} from "../audio/tr909/memory.js"
 import {Pattern, Step} from "../audio/tr909/pattern.js"
 import {ArrayUtils, Terminable, Terminator} from "../lib/common.js"
 import {PowInjective} from "../lib/injective.js"
@@ -42,29 +43,45 @@ export class TrackPlayState extends MachineState {
         super(context)
 
         this.with(this.context.showRunningAnimation())
-
-        const patternSequence = this.context.machine.memory.tracks[0]
-        if (patternSequence.length === 0) {
-            this.context.digits.show(0)
-            this.context.showBankGroup(0)
-            this.context.showPatternGroup(0)
-            this.context.mainKeys.byIndex(0).setState(MainKeyState.Flash)
-        } else {
-            this.context.digits.show(1)
-
-            const location = this.context.machine.memory.toLocation(patternSequence[0])
-            this.context.showBankGroup(location.bankGroupIndex)
-            this.context.showPatternGroup(location.patternGroupIndex)
-            this.context.mainKeys.byIndex(location.patternIndex as number).setState(MainKeyState.Flash)
-        }
-
-        this.context.functionKeys.byIndex(FunctionKeyIndex.Track1).setState(FunctionKeyState.On)
+        this.with(this.context.machine.memory.cycleMode.addObserver(mode =>
+            this.context.functionKeys.byIndex(FunctionKeyIndex.CycleGuideLastMeasure)
+                .setState(mode ? FunctionKeyState.On : FunctionKeyState.Off), true))
+        this.with(this.context.machine.memory.trackIndex.addObserver(trackIndex => {
+            const patternSequence = this.context.machine.memory.tracks[trackIndex]
+            if (patternSequence.length === 0) {
+                this.context.showBankGroup(0)
+                this.context.showPatternGroup(0)
+                this.context.mainKeys.byIndex(0).setState(MainKeyState.Flash)
+                this.context.digits.show(0)
+            } else {
+                this.context.showPatternLocation(patternSequence[0])
+                this.context.digits.show(1) // first measure index
+            }
+            this.context.showTrackIndex(trackIndex, false)
+        }, true))
     }
 
     onFunctionKeyPress(keyIndex: FunctionKeyIndex) {
         if (this.context.shiftMode.get()) {
             if (keyIndex === FunctionKeyIndex.Pattern1) {
                 // TODO Goto Pattern Write Mode
+            } else if (keyIndex === FunctionKeyIndex.ForwardBankI) {
+                this.context.machine.memory.bankGroupIndex.set(BankGroupIndex.I)
+            } else if (keyIndex === FunctionKeyIndex.AvailableMeasuresBankII) {
+                this.context.machine.memory.bankGroupIndex.set(BankGroupIndex.II)
+            }
+        } else {
+            if (keyIndex === FunctionKeyIndex.CycleGuideLastMeasure) {
+                const mode = this.context.machine.memory.cycleMode
+                mode.set(!mode.get())
+            } else if (keyIndex === FunctionKeyIndex.Track1) {
+                this.context.machine.memory.trackIndex.set(TrackIndex.I)
+            } else if (keyIndex === FunctionKeyIndex.Track2) {
+                this.context.machine.memory.trackIndex.set(TrackIndex.II)
+            } else if (keyIndex === FunctionKeyIndex.Track3) {
+                this.context.machine.memory.trackIndex.set(TrackIndex.III)
+            } else if (keyIndex === FunctionKeyIndex.Track4) {
+                this.context.machine.memory.trackIndex.set(TrackIndex.IV)
             }
         }
     }
@@ -191,7 +208,7 @@ export class ShuffleFlamState extends MachineState {
         super(context)
 
         const memory = this.context.machine.memory
-        this.with(memory.patternChangeNotification.addObserver((pattern: Pattern) => {
+        this.with(memory.userPatternChangeNotification.addObserver((pattern: Pattern) => {
             this.subscriptions.terminate()
             this.subscriptions.with(pattern.groove.addObserver(() => this.update(), false))
             this.subscriptions.with(pattern.flamDelay.addObserver(() => this.update(), false))
@@ -245,7 +262,7 @@ export class LastStepSelectState extends MachineState {
         super(context)
 
         const memory = this.context.machine.memory
-        this.with(memory.patternChangeNotification.addObserver((pattern: Pattern) => {
+        this.with(memory.userPatternChangeNotification.addObserver((pattern: Pattern) => {
             this.subscriptions.terminate()
             this.subscriptions.with(pattern.addObserver(() => this.update(), true))
         }))

@@ -117,7 +117,7 @@ export class GUI {
         }
         const updater = () => indicator.y.baseVal.value = scaleToY(this.machine.memory.pattern().scale.get())
         let subscription: Terminable = TerminableVoid
-        memory.patternChangeNotification.addObserver((pattern: Pattern) => {
+        memory.userPatternChangeNotification.addObserver((pattern: Pattern) => {
             subscription.terminate()
             subscription = pattern.scale.addObserver(updater, true)
         })

@@ -51,7 +51,7 @@ export class TR909Machine implements Terminable {
                 unipolar: parameter.getUnipolar()
             } as ToWorkletMessage)
         }))
-        this.terminator.with(this.memory.patternChangeNotification.addObserver(() => {
+        this.terminator.with(this.memory.userPatternChangeNotification.addObserver(() => {
             this.worklet.port.postMessage({
                 type: 'update-pattern-index',
                 bankGroupIndex: this.memory.bankGroupIndex.get(),
