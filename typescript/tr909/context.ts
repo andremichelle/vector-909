@@ -6,11 +6,9 @@ import {HTML} from "../lib/dom.js"
 import {Digits} from "./digits.js"
 import {
     BankGroupKeyIndices,
-    FunctionKey,
     FunctionKeyIndex,
     Key,
     KeyState,
-    MainKey,
     MainKeyIndex,
     PatternGroupKeyIndices,
     TrackKeyIndices
@@ -20,15 +18,15 @@ import PatternPlayState from "./states/pattern-play.js"
 import TrackPlayState from "./states/track-play.js"
 import {InstrumentMode, Utils} from "./utils.js"
 
-export class KeyGroup<KEY, INDEX extends number> {
-    constructor(readonly keys: KEY[]) {
+export class KeyGroup<INDEX extends number> {
+    constructor(readonly keys: Key[]) {
     }
 
-    forEach(fn: (key: KEY, index: INDEX) => void): void {
+    forEach(fn: (key: Key, index: INDEX) => void): void {
         this.keys.forEach(fn)
     }
 
-    byIndex(index: INDEX): KEY {
+    byIndex(index: INDEX): Key {
         return this.keys[index]
     }
 }
@@ -36,12 +34,12 @@ export class KeyGroup<KEY, INDEX extends number> {
 export class MachineContext implements Terminable {
     static create(machine: TR909Machine, parentNode: ParentNode): MachineContext {
         return new MachineContext(machine,
-            new KeyGroup<MainKey, MainKeyIndex>([...Array.from<HTMLButtonElement>(
+            new KeyGroup<MainKeyIndex>([...Array.from<HTMLButtonElement>(
                 HTML.queryAll('[data-control=main-keys] [data-control=main-key]', parentNode)),
                 HTML.query('[data-control=main-key][data-parameter=total-accent]')]
                 .map((element: HTMLButtonElement) => new Key(element))
             ),
-            new KeyGroup<FunctionKey, FunctionKeyIndex>(HTML.queryAll('[data-button=function-key]')
+            new KeyGroup<FunctionKeyIndex>(HTML.queryAll('[data-button=function-key]')
                 .map((element: HTMLButtonElement) => new Key(element))),
             new Key(HTML.query('[data-button=shift-key]')),
             new Digits(HTML.query('svg[data-display=led-display]', parentNode)))
@@ -56,11 +54,11 @@ export class MachineContext implements Terminable {
     private state: NonNullable<MachineState> = new PatternPlayState(this)
 
     constructor(readonly machine: TR909Machine,
-                readonly mainKeys: KeyGroup<MainKey, MainKeyIndex>,
-                readonly functionKeys: KeyGroup<FunctionKey, FunctionKeyIndex>,
-                readonly shiftKey: FunctionKey,
+                readonly mainKeys: KeyGroup<MainKeyIndex>,
+                readonly functionKeys: KeyGroup<FunctionKeyIndex>,
+                readonly shiftKey: Key,
                 readonly digits: Digits) {
-        this.mainKeys.forEach((key: MainKey, keyIndex: MainKeyIndex) => {
+        this.mainKeys.forEach((key: Key, keyIndex: MainKeyIndex) => {
             this.terminator.with(key.bind('pointerdown', (event: PointerEvent) => {
                 this.pressedMainKeys.add(keyIndex)
                 key.setPointerCapture(event.pointerId)
@@ -71,7 +69,7 @@ export class MachineContext implements Terminable {
                 this.state.onMainKeyRelease(keyIndex)
             }))
         })
-        this.functionKeys.forEach((key: FunctionKey, keyId: FunctionKeyIndex) => {
+        this.functionKeys.forEach((key: Key, keyId: FunctionKeyIndex) => {
             this.terminator.with(key.bind('pointerdown', (event: PointerEvent) => {
                 key.setPointerCapture(event.pointerId)
                 this.state.onFunctionKeyPress(keyId)
@@ -182,7 +180,7 @@ export class MachineContext implements Terminable {
 
     activateRunningAnimation(): Terminable {
         const terminator = new Terminator()
-        let flashing: MainKey = null
+        let flashing: Key = null
         terminator.with({
             terminate: () => {
                 if (flashing !== null) {
@@ -216,7 +214,7 @@ export class MachineContext implements Terminable {
     private updatePatternSteps() {
         const pattern: Pattern = this.machine.state.activePattern()
         const mapping = Utils.createStepToStateMapping(this.instrumentMode.get())
-        this.mainKeys.forEach((key: MainKey, keyIndex: MainKeyIndex) =>
+        this.mainKeys.forEach((key: Key, keyIndex: MainKeyIndex) =>
             key.setState(keyIndex === MainKeyIndex.TotalAccent
                 ? KeyState.Off : mapping(pattern, keyIndex)))
     }

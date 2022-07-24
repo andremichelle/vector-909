@@ -3,7 +3,7 @@ import {Pattern, Step} from "../audio/tr909/pattern.js"
 import {ArrayUtils, Terminable, Terminator} from "../lib/common.js"
 import {PowInjective} from "../lib/injective.js"
 import {MachineContext} from "./context.js"
-import {FunctionKeyIndex, KeyState, MainKey, MainKeyIndex} from "./keys.js"
+import {FunctionKeyIndex, Key, KeyState, MainKeyIndex} from "./keys.js"
 import {InstrumentMode, Utils} from "./utils.js"
 
 export abstract class MachineState implements Terminable {
@@ -96,7 +96,7 @@ export class ClearTapState extends MachineState {
 export class InstrumentSelectState extends MachineState {
     private readonly update = (instrumentMode: InstrumentMode) => {
         const toButtonStates = Utils.instrumentModeToButtonStates(instrumentMode)
-        this.context.mainKeys.forEach((key: MainKey, keyIndex: MainKeyIndex) => key.setState(toButtonStates(keyIndex)))
+        this.context.mainKeys.forEach((key: Key, keyIndex: MainKeyIndex) => key.setState(toButtonStates(keyIndex)))
     }
 
     constructor(context: MachineContext) {

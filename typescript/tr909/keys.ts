@@ -39,10 +39,6 @@ export class Key {
     }
 }
 
-// For better readability
-export type MainKey = Key
-export type FunctionKey = Key
-
 export enum MainKeyIndex {
     Step1, Step2, Step3, Step4,
     Step5, Step6, Step7, Step8,
