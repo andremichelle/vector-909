@@ -35,7 +35,15 @@ export default class extends MachineState {
                 this.context.machine.state.patternGroupIndex.set(PatternGroupIndex.II)
             } else if (keyIndex === FunctionKeyIndex.PatternGroup3) {
                 this.context.machine.state.patternGroupIndex.set(PatternGroupIndex.III)
+            } else if (keyIndex === FunctionKeyIndex.TempoStep) {
+                this.context.digits.show(this.context.machine.preset.tempo.get()) // TODO push digits renderer on stack
             }
+        }
+    }
+
+    onFunctionKeyRelease(keyIndex: FunctionKeyIndex) {
+        if (keyIndex === FunctionKeyIndex.TempoStep) {
+            this.context.digits.clear() // TODO shift digits renderer and render last (if any)
         }
     }
 

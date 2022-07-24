@@ -53,4 +53,8 @@ export class Digits {
                 }
             })
     }
+
+    clear(): void {
+        this.digits.forEach(digit => digit.clear())
+    }
 }
