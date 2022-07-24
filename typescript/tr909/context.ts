@@ -1,6 +1,6 @@
 import {BankGroupIndex, PatternGroupIndex, TrackIndex} from "../audio/tr909/memory.js"
 import {Pattern} from "../audio/tr909/pattern.js"
-import {TR909Machine} from "../audio/tr909/worklet.js"
+import {Machine} from "../audio/tr909/machine.js"
 import {Events, ObservableValueImpl, Terminable, TerminableVoid, Terminator} from "../lib/common.js"
 import {HTML} from "../lib/dom.js"
 import {Digits} from "./digits.js"
@@ -20,7 +20,7 @@ import TrackPlayState from "./states/track-play.js"
 import {InstrumentMode, Utils} from "./utils.js"
 
 export class MachineContext implements Terminable {
-    static create(machine: TR909Machine, parentNode: ParentNode): MachineContext {
+    static create(machine: Machine, parentNode: ParentNode): MachineContext {
         return new MachineContext(machine,
             new KeyGroup<MainKeyIndex>([...Array.from<HTMLButtonElement>(
                 HTML.queryAll('[data-control=main-keys] [data-control=main-key]', parentNode)),
@@ -41,7 +41,7 @@ export class MachineContext implements Terminable {
 
     private state: NonNullable<MachineState> = new TrackPlayState(this)
 
-    constructor(readonly machine: TR909Machine,
+    constructor(readonly machine: Machine,
                 readonly mainKeys: KeyGroup<MainKeyIndex>,
                 readonly functionKeys: KeyGroup<FunctionKeyIndex>,
                 readonly shiftKey: Key,

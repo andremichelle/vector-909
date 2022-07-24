@@ -1,8 +1,8 @@
 import {LimiterWorklet} from "./audio/limiter/worklet.js"
 import {MeterWorklet, StereoMeterWorklet} from "./audio/meter/worklet.js"
 import {MetronomeWorklet} from "./audio/metronome/worklet.js"
+import {Machine} from "./audio/tr909/machine.js"
 import {loadResources} from "./audio/tr909/resources.js"
-import {TR909Machine} from "./audio/tr909/worklet.js"
 import {Boot, newAudioContext, preloadImagesOfCssFile} from "./lib/boot.js"
 import {Waiting} from "./lib/common.js"
 import {HTML} from "./lib/dom.js"
@@ -20,7 +20,6 @@ const showProgress = (() => {
 
     // --- BOOT STARTS ---
     const context = newAudioContext()
-    await Waiting.forFrame()
     console.debug(`sampleRate: ${context.sampleRate}Hz`)
     const boot = new Boot()
     boot.addObserver(boot => showProgress(boot.normalizedPercentage()))
@@ -28,35 +27,17 @@ const showProgress = (() => {
     boot.registerProcess(LimiterWorklet.loadModule(context))
     boot.registerProcess(MeterWorklet.loadModule(context))
     boot.registerProcess(MetronomeWorklet.loadModule(context))
-    boot.registerProcess(TR909Machine.loadModule(context))
+    boot.registerProcess(Machine.loadModule(context))
     const getResources = loadResources(boot)
     await boot.waitForCompletion()
     // --- BOOT ENDS ---
 
     const main: HTMLElement = HTML.query('main')
-    const machine = new TR909Machine(context, getResources())
-
-    const meter = new StereoMeterWorklet(context)
-    machine.master.connect(meter).connect(context.destination)
-
-    meter.domElement.classList.add('meter')
-    HTML.query('body').appendChild(meter.domElement)
-
     const parentNode = HTML.query('div.tr-909')
-    const gui = new GUI(parentNode, machine)
-
-    // debugging
     const debugZoom = HTML.query('[data-output=zoom]')
     const debugMode = HTML.query('[data-output=mode]')
     const debugTransporting = HTML.query('[data-output=transporting]')
     const debugInstrument = HTML.query('[data-output=instrument]')
-    const run = () => {
-        debugMode.textContent = gui.machineContext.stateName()
-        debugTransporting.textContent = machine.transport.isPlaying() ? 'Playing' : 'Paused'
-        debugInstrument.textContent = gui.machineContext.instrumentMode.get().name
-        requestAnimationFrame(run)
-    }
-    requestAnimationFrame(run)
 
     // prevent dragging entire document on mobile
     document.addEventListener('touchmove', (event: TouchEvent) => event.preventDefault(), {passive: false})
@@ -79,6 +60,26 @@ const showProgress = (() => {
     resize()
     const body = HTML.query("body")
     HTML.queryAll("svg.preloader", body).forEach(element => element.remove())
-    HTML.queryAll("main", body).forEach(element => element.classList.remove("hidden"))
+    await Waiting.forFrames(10)
+    HTML.queryAll("main", body).forEach(element => element.classList.remove("invisible"))
     console.debug("boot complete.")
+
+    const machine = new Machine(context, getResources())
+
+    const meter = new StereoMeterWorklet(context)
+    machine.master.connect(meter).connect(context.destination)
+
+    meter.domElement.classList.add('meter')
+    HTML.query('body').appendChild(meter.domElement)
+
+    const gui = new GUI(parentNode, machine)
+
+    // debugging
+    const run = () => {
+        debugMode.textContent = gui.machineContext.stateName()
+        debugTransporting.textContent = machine.transport.isPlaying() ? 'Playing' : 'Paused'
+        debugInstrument.textContent = gui.machineContext.instrumentMode.get().name
+        requestAnimationFrame(run)
+    }
+    requestAnimationFrame(run)
 })()

@@ -1,7 +1,7 @@
 import {secondsToBars} from "../audio/common.js"
 import {Pattern} from "../audio/tr909/pattern.js"
 import {Scale} from "../audio/tr909/scale.js"
-import {TR909Machine} from "../audio/tr909/worklet.js"
+import {Machine} from "../audio/tr909/machine.js"
 import {Events, Terminable, TerminableVoid, Terminator} from "../lib/common.js"
 import {HTML} from "../lib/dom.js"
 import {MachineContext} from "./context.js"
@@ -13,7 +13,7 @@ export class GUI {
     readonly machineContext: MachineContext
 
     constructor(private readonly parentNode: ParentNode,
-                private readonly machine: TR909Machine) {
+                private readonly machine: Machine) {
         this.terminator = new Terminator()
         this.machineContext = MachineContext.create(machine, parentNode)
 

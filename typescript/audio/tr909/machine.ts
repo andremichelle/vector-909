@@ -8,7 +8,7 @@ import {Preset} from "./preset.js"
 import {Resources} from "./resources.js"
 import {State} from "./state.js"
 
-export class TR909Machine implements Terminable {
+export class Machine implements Terminable {
     static loadModule(context: AudioContext): Promise<void> {
         return context.audioWorklet.addModule("bin/audio/tr909/processor.js")
     }
