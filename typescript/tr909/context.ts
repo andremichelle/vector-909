@@ -5,7 +5,7 @@ import {Events, ObservableValueImpl, Terminable, TerminableVoid, Terminator} fro
 import {HTML} from "../lib/dom.js"
 import {Digits} from "./digits.js"
 import {FunctionKey, FunctionKeyIndex, FunctionKeyState, MainKey, MainKeyIndex, MainKeyState} from "./keys.js"
-import {MachineState, TrackPlayState} from "./states.js"
+import {MachineState, PatternPlayState, TrackPlayState} from "./states.js"
 import {InstrumentMode, Utils} from "./utils.js"
 
 /**
@@ -103,17 +103,28 @@ export class MachineContext implements Terminable {
         }))
     }
 
+    stateName(): string {
+        return this.state.constructor.name
+    }
+
+    switchToPatternPlayState(patternGroupIndex: PatternGroupIndex) {
+        this.state.terminate()
+        this.machine.state.patternGroupIndex.set(patternGroupIndex)
+        this.state = new PatternPlayState(this)
+    }
+
     clearMainKeys(): void {
         this.mainKeys.forEach(button => button.setState(MainKeyState.Off))
     }
 
     showPatternLocation(index: number): void {
-        const location = this.machine.memory.activeBank().toLocation(index)
+        const location = this.machine.state.activeBank().toLocation(index)
         this.showPatternGroup(location.patternGroupIndex)
         this.mainKeys.byIndex(location.patternIndex as number).setState(MainKeyState.Flash) // TODO MainKeyState.Blink
     }
 
     showTrackIndex(index: TrackIndex, writeMode: boolean): void {
+        console.debug(`showTrackIndex(index: ${index}, writeMode: ${writeMode})`)
         const apply = (keyIndex: FunctionKeyIndex, trackIndex: TrackIndex) =>
             this.functionKeys.byIndex(keyIndex)
                 .setState(index === trackIndex
@@ -143,10 +154,9 @@ export class MachineContext implements Terminable {
 
     showPatternSteps(): Terminable {
         const terminator = new Terminator()
-        const memory = this.machine.memory
         let patternSubscription = TerminableVoid
         terminator.with({terminate: () => patternSubscription.terminate()})
-        terminator.with(memory.userPatternChangeNotification.addObserver((pattern: Pattern) => {
+        terminator.with(this.machine.state.patternIndicesChangeNotification.addObserver((pattern: Pattern) => {
             patternSubscription.terminate()
             patternSubscription = pattern.addObserver(() => this.updatePatternSteps(), true)
         }))
@@ -181,7 +191,7 @@ export class MachineContext implements Terminable {
     }
 
     private updatePatternSteps() {
-        const pattern: Pattern = this.machine.memory.pattern()
+        const pattern: Pattern = this.machine.state.activePattern()
         const mapping = Utils.createStepToStateMapping(this.instrumentMode.get())
         this.mainKeys.forEach((key: MainKey, keyIndex: MainKeyIndex) =>
             key.setState(keyIndex === MainKeyIndex.TotalAccent

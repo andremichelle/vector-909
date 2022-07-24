@@ -6,7 +6,7 @@ import {TR909Machine} from "./audio/tr909/worklet.js"
 import {Boot, newAudioContext, preloadImagesOfCssFile} from "./lib/boot.js"
 import {Waiting} from "./lib/common.js"
 import {HTML} from "./lib/dom.js"
-import {GUI, Mode} from "./tr909/gui.js"
+import {GUI} from "./tr909/gui.js"
 
 const showProgress = (() => {
         const progress: SVGSVGElement = document.querySelector("svg.preloader")
@@ -44,7 +44,6 @@ const showProgress = (() => {
 
     const parentNode = HTML.query('div.tr-909')
     const gui = new GUI(parentNode, machine)
-    GUI.installGlobalShortcuts(gui)
 
     // debugging
     const debugZoom = HTML.query('[data-output=zoom]')
@@ -52,7 +51,7 @@ const showProgress = (() => {
     const debugTransporting = HTML.query('[data-output=transporting]')
     const debugInstrument = HTML.query('[data-output=instrument]')
     const run = () => {
-        debugMode.textContent = Mode[gui.currentMode.get()]
+        debugMode.textContent = gui.machineContext.stateName()
         debugTransporting.textContent = machine.transport.isPlaying() ? 'Playing' : 'Paused'
         debugInstrument.textContent = gui.machineContext.instrumentMode.get().name
         requestAnimationFrame(run)

@@ -2,44 +2,14 @@ import {secondsToBars} from "../audio/common.js"
 import {Pattern} from "../audio/tr909/pattern.js"
 import {Scale} from "../audio/tr909/scale.js"
 import {TR909Machine} from "../audio/tr909/worklet.js"
-import {Events, ObservableValueImpl, Terminable, TerminableVoid, Terminator} from "../lib/common.js"
+import {Events, Terminable, TerminableVoid, Terminator} from "../lib/common.js"
 import {HTML} from "../lib/dom.js"
 import {MachineContext} from "./context.js"
 import {Knob} from "./knobs.js"
 
-export enum Mode {
-    Steps, Tap, LastStep, ShuffleFlam, Clear, SelectInstrument
-}
-
 export class GUI {
-    static installGlobalShortcuts(singleInstance: GUI): void {
-        const codes: Readonly<Map<string, Mode>> = new Map<string, Mode>([
-            ['KeyS', Mode.ShuffleFlam],
-            ['KeyC', Mode.Clear],
-            ['KeyL', Mode.LastStep],
-            ['KeyI', Mode.SelectInstrument]
-        ])
-        let lastCode = null
-        window.addEventListener('keydown', (event: KeyboardEvent) => {
-            const mode = codes.get(event.code)
-            if (mode === undefined) {
-                return
-            }
-            singleInstance.currentMode.set(mode)
-            lastCode = event.code
-        })
-        window.addEventListener('keyup', (event: KeyboardEvent) => {
-            if (lastCode === event.code) {
-                singleInstance.currentMode.set(singleInstance.runningMode.get())
-                lastCode = null
-            }
-        })
-    }
-
     private readonly terminator
 
-    readonly runningMode = new ObservableValueImpl<Mode>(Mode.Tap)
-    readonly currentMode = new ObservableValueImpl<Mode>(this.runningMode.get())
     readonly machineContext: MachineContext
 
     constructor(private readonly parentNode: ParentNode,
@@ -97,9 +67,9 @@ export class GUI {
     }
 
     private installScale(): void {
-        const memory = this.machine.memory
+        const state = this.machine.state
         this.terminator.with(Events.bindEventListener(HTML.query('[data-button=scale]'), 'pointerdown', () => {
-            const scale = memory.pattern().scale
+            const scale = state.activePattern().scale
             scale.set(scale.get().cycleNext())
         }))
         const indicator: SVGUseElement = HTML.query('[data-control=scale] [data-control=indicator]')
@@ -115,9 +85,9 @@ export class GUI {
                     return 48
             }
         }
-        const updater = () => indicator.y.baseVal.value = scaleToY(this.machine.memory.pattern().scale.get())
+        const updater = () => indicator.y.baseVal.value = scaleToY(this.machine.state.activePattern().scale.get())
         let subscription: Terminable = TerminableVoid
-        memory.userPatternChangeNotification.addObserver((pattern: Pattern) => {
+        state.patternIndicesChangeNotification.addObserver((pattern: Pattern) => {
             subscription.terminate()
             subscription = pattern.scale.addObserver(updater, true)
         })

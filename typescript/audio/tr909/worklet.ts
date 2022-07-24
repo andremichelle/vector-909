@@ -1,11 +1,12 @@
 import {ArrayUtils, ObservableValueImpl, Parameter, Terminable, Terminator} from "../../lib/common.js"
 import {dbToGain, Transport} from "../common.js"
 import {MeterWorklet} from "../meter/worklet.js"
-import {Bank, BankGroupIndex, Memory, PatternIndex} from "./memory.js"
+import {BankGroupIndex, Memory, MemoryBank, PatternGroupIndex, PatternIndex} from "./memory.js"
 import {ProcessorOptions, ToMainMessage, ToWorkletMessage} from "./messages.js"
 import {ChannelIndex, Pattern, Step} from "./pattern.js"
 import {Preset} from "./preset.js"
 import {Resources} from "./resources.js"
+import {State} from "./state.js"
 
 export class TR909Machine implements Terminable {
     static loadModule(context: AudioContext): Promise<void> {
@@ -17,6 +18,7 @@ export class TR909Machine implements Terminable {
     private running: boolean = true
 
     readonly worklet: AudioWorkletNode
+    readonly state: State
     readonly preset: Preset
     readonly memory: Memory
     readonly transport: Transport
@@ -35,7 +37,8 @@ export class TR909Machine implements Terminable {
             processorOptions: {resources} as ProcessorOptions
         })
         this.preset = new Preset()
-        this.memory = new Memory()
+        this.memory = [new MemoryBank(), new MemoryBank()]
+        this.state = new State(this.memory)
         this.transport = new Transport()
         this.transport.addObserver(message => this.worklet.port.postMessage(message), false)
         this.meterWorklet = new MeterWorklet(context, 10, 1)
@@ -51,30 +54,39 @@ export class TR909Machine implements Terminable {
                 unipolar: parameter.getUnipolar()
             } as ToWorkletMessage)
         }))
-        this.terminator.with(this.memory.userPatternChangeNotification.addObserver(() => {
-            this.worklet.port.postMessage({
-                type: 'update-pattern-index',
-                bankGroupIndex: this.memory.bankGroupIndex.get(),
-                patternGroupIndex: this.memory.patternGroupIndex.get(),
-                patternIndex: this.memory.patternIndex.get()
-            } as ToWorkletMessage)
-        }))
-
-        this.terminator.merge(this.memory.bank
-            .map((bank: Bank, bankGroupIndex: BankGroupIndex) => bank.patterns
-                .map((pattern: Pattern, patternIndex: PatternIndex) => pattern
+        this.terminator.with(this.state.changeNotification.addObserver(() => this.worklet.port.postMessage({
+            type: 'update-state',
+            format: this.state.serialize()
+        } as ToWorkletMessage)))
+        this.terminator.merge(this.memory
+            .map((bank: MemoryBank, bankGroupIndex: BankGroupIndex) => bank.patterns
+                .map((pattern: Pattern, arrayIndex: PatternIndex) => pattern
                     .addObserver(() => this.worklet.port.postMessage({
-                        type: 'update-pattern-data',
-                        bankGroupIndex,
-                        patternIndex,
-                        format: pattern.serialize()
+                        type: 'update-pattern', bankGroupIndex, arrayIndex, format: pattern.serialize()
                     } as ToWorkletMessage), false))).flat())
-
         this.worklet.port.onmessage = event => {
             const index = (event.data as ToMainMessage).index
             const time = Date.now() + context.outputLatency
             this.scheduleStepIndexUpdates.push({index, time})
         }
+        this.startScheduler()
+
+        // TODO > Test Data < REMOVE WHEN DONE TESTING
+        this.state.patternBy(PatternGroupIndex.III, 6).testA()
+        this.state.patternBy(0, 1).testB()
+        this.state.activeBank().tracks[0].push(this.state.indexOf(PatternGroupIndex.III, 6), 1, 0, 1)
+    }
+
+    play(channelIndex: ChannelIndex, step: Step) {
+        this.worklet.port.postMessage({type: 'play-channel', channelIndex, step} as ToWorkletMessage)
+    }
+
+    terminate(): void {
+        this.running = false
+        this.terminator.terminate()
+    }
+
+    private startScheduler() {
         const schedule = () => {
             if (this.scheduleStepIndexUpdates.length > 0) {
                 if (Date.now() >= this.scheduleStepIndexUpdates[0].time) {
@@ -86,14 +98,5 @@ export class TR909Machine implements Terminable {
             }
         }
         schedule()
-    }
-
-    play(channelIndex: ChannelIndex, step: Step) {
-        this.worklet.port.postMessage({type: 'play-channel', channelIndex, step} as ToWorkletMessage)
-    }
-
-    terminate(): void {
-        this.running = false
-        this.terminator.terminate()
     }
 }

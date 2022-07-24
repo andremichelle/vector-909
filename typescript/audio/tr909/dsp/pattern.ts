@@ -1,8 +1,8 @@
-import {Memory} from "../memory.js"
 import {Pattern} from "../pattern.js"
+import {State} from "../state.js"
 
 export interface PatternProvider {
-    readonly memory: Memory
+    readonly state: State
 
     pattern(): Pattern | null
 
@@ -13,9 +13,9 @@ export class UserPatternSelect implements PatternProvider {
     private current: Pattern
     private waiting: Pattern = null
 
-    constructor(readonly memory: Memory, private readonly isMoving: () => boolean) {
-        this.current = this.memory.pattern()
-        this.memory.userPatternChangeNotification.addObserver((pattern: Pattern) => {
+    constructor(readonly state: State, private readonly isMoving: () => boolean) {
+        this.current = this.state.activePattern()
+        this.state.patternIndicesChangeNotification.addObserver((pattern: Pattern) => {
             if (this.isMoving()) {
                 this.waiting = pattern
             } else {
@@ -40,9 +40,9 @@ export class TrackPatternPlay implements PatternProvider {
     private index: number = 0
     private current: Pattern = null
 
-    constructor(readonly memory: Memory) {
-        const sequence = this.memory.activeTrack()
-        const patterns = this.memory.activeBank().patterns
+    constructor(readonly state: State) {
+        const sequence = this.state.activeTrack()
+        const patterns = this.state.activeBank().patterns
         this.current = sequence.length === 0 ? null : patterns[sequence[this.index]]
     }
 
@@ -51,15 +51,15 @@ export class TrackPatternPlay implements PatternProvider {
     }
 
     onPatterComplete(): void {
-        const track: number[] = this.memory.activeTrack()
+        const track: number[] = this.state.activeTrack()
         if (++this.index >= track.length) {
-            if (this.memory.cycleMode.get()) {
-                this.current = this.memory.activeBank().patterns[track[this.index = 0]]
+            if (this.state.cycleMode.get()) {
+                this.current = this.state.activeBank().patterns[track[this.index = 0]]
             } else {
                 this.current = null
             }
         } else {
-            this.current = this.memory.activeBank().patterns[track[this.index]]
+            this.current = this.state.activeBank().patterns[track[this.index]]
         }
     }
 }

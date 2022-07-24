@@ -1,5 +1,5 @@
 import {GrooveFunction, GrooveIdentity} from "../audio/grooves.js"
-import {BankGroupIndex, TrackIndex} from "../audio/tr909/memory.js"
+import {BankGroupIndex, PatternGroupIndex, TrackIndex} from "../audio/tr909/memory.js"
 import {Pattern, Step} from "../audio/tr909/pattern.js"
 import {ArrayUtils, Terminable, Terminator} from "../lib/common.js"
 import {PowInjective} from "../lib/injective.js"
@@ -43,11 +43,11 @@ export class TrackPlayState extends MachineState {
         super(context)
 
         this.with(this.context.showRunningAnimation())
-        this.with(this.context.machine.memory.cycleMode.addObserver(mode =>
+        this.with(this.context.machine.state.cycleMode.addObserver(mode =>
             this.context.functionKeys.byIndex(FunctionKeyIndex.CycleGuideLastMeasure)
                 .setState(mode ? FunctionKeyState.On : FunctionKeyState.Off), true))
-        this.with(this.context.machine.memory.trackIndex.addObserver(() => this.initButtons(), false))
-        this.with(this.context.machine.memory.bankGroupIndex
+        this.with(this.context.machine.state.trackIndex.addObserver(() => this.initButtons(), false))
+        this.with(this.context.machine.state.bankGroupIndex
             .addObserver((bankGroupIndex: BankGroupIndex) => {
                 this.context.showBankGroup(bankGroupIndex)
                 this.initButtons()
@@ -59,22 +59,28 @@ export class TrackPlayState extends MachineState {
             if (keyIndex === FunctionKeyIndex.Pattern1) {
                 // TODO Goto Pattern Write Mode
             } else if (keyIndex === FunctionKeyIndex.ForwardBankI) {
-                this.context.machine.memory.bankGroupIndex.set(BankGroupIndex.I)
+                this.context.machine.state.bankGroupIndex.set(BankGroupIndex.I)
             } else if (keyIndex === FunctionKeyIndex.AvailableMeasuresBankII) {
-                this.context.machine.memory.bankGroupIndex.set(BankGroupIndex.II)
+                this.context.machine.state.bankGroupIndex.set(BankGroupIndex.II)
             }
         } else {
-            if (keyIndex === FunctionKeyIndex.CycleGuideLastMeasure) {
-                const mode = this.context.machine.memory.cycleMode
+            if (keyIndex === FunctionKeyIndex.Pattern1) {
+                this.context.switchToPatternPlayState(PatternGroupIndex.I)
+            } else if (keyIndex === FunctionKeyIndex.Pattern2) {
+                this.context.switchToPatternPlayState(PatternGroupIndex.II)
+            } else if (keyIndex === FunctionKeyIndex.Pattern3) {
+                this.context.switchToPatternPlayState(PatternGroupIndex.III)
+            } else if (keyIndex === FunctionKeyIndex.CycleGuideLastMeasure) {
+                const mode = this.context.machine.state.cycleMode
                 mode.set(!mode.get())
             } else if (keyIndex === FunctionKeyIndex.Track1) {
-                this.context.machine.memory.trackIndex.set(TrackIndex.I)
+                this.context.machine.state.trackIndex.set(TrackIndex.I)
             } else if (keyIndex === FunctionKeyIndex.Track2) {
-                this.context.machine.memory.trackIndex.set(TrackIndex.II)
+                this.context.machine.state.trackIndex.set(TrackIndex.II)
             } else if (keyIndex === FunctionKeyIndex.Track3) {
-                this.context.machine.memory.trackIndex.set(TrackIndex.III)
+                this.context.machine.state.trackIndex.set(TrackIndex.III)
             } else if (keyIndex === FunctionKeyIndex.Track4) {
-                this.context.machine.memory.trackIndex.set(TrackIndex.IV)
+                this.context.machine.state.trackIndex.set(TrackIndex.IV)
             }
         }
     }
@@ -84,8 +90,8 @@ export class TrackPlayState extends MachineState {
     }
 
     private initButtons() {
-        const trackIndex: TrackIndex = this.context.machine.memory.trackIndex.get()
-        const patternSequence = this.context.machine.memory.activeBank().tracks[trackIndex]
+        const trackIndex: TrackIndex = this.context.machine.state.trackIndex.get()
+        const patternSequence = this.context.machine.state.activeBank().tracks[trackIndex]
         if (patternSequence.length === 0) {
             this.context.showPatternGroup(0)
             this.context.mainKeys.byIndex(0).setState(MainKeyState.Flash)
@@ -107,7 +113,7 @@ export class PatternPlayState extends MachineState {
         this.context.functionKeys.byIndex(FunctionKeyIndex.Track3).setState(FunctionKeyState.Off)
         this.context.functionKeys.byIndex(FunctionKeyIndex.Track4).setState(FunctionKeyState.Off)
 
-        this.context.functionKeys.byIndex(FunctionKeyIndex.Pattern1).setState(FunctionKeyState.On)
+        this.context.showPatternGroup(this.context.machine.state.patternGroupIndex.get())
     }
 
     onFunctionKeyPress(keyIndex: FunctionKeyIndex) {
@@ -120,7 +126,7 @@ export class PatternPlayState extends MachineState {
 
     onMainKeyPress(keyIndex: MainKeyIndex) {
         if (keyIndex === MainKeyIndex.TotalAccent) return
-        this.context.machine.memory.patternIndex.set(keyIndex as number)
+        this.context.machine.state.patternIndex.set(keyIndex as number)
     }
 }
 
@@ -133,7 +139,7 @@ export class StepModeState extends MachineState {
 
     onMainKeyPress(keyIndex: MainKeyIndex): void {
         if (keyIndex === MainKeyIndex.TotalAccent) return
-        const pattern = this.context.machine.memory.pattern()
+        const pattern = this.context.machine.state.activePattern()
         const instrumentMode = this.context.instrumentMode.get()
         Utils.setNextStepValue(pattern, instrumentMode, keyIndex)
     }
@@ -146,7 +152,7 @@ export class ClearStepsState extends MachineState {
         this.with(this.context.showPatternSteps())
         this.with(this.context.machine.stepIndex.addObserver(stepIndex => {
             const instrumentMode = this.context.instrumentMode.get()
-            const pattern = this.context.machine.memory.pattern()
+            const pattern = this.context.machine.state.activePattern()
             Utils.clearPatternStep(pattern, instrumentMode, stepIndex)
         }, true))
     }
@@ -167,7 +173,7 @@ export class TapModeState extends MachineState {
         const step = playInstrument.step
         machine.play(channelIndex, step)
         if (machine.transport.isPlaying()) {
-            machine.memory.pattern()
+            machine.state.activePattern()
                 .setStep(channelIndex, machine.stepIndex.get(), step ? Step.Full : Step.Weak)
         }
     }
@@ -183,7 +189,7 @@ export class ClearTapState extends MachineState {
             if (instrumentMode === InstrumentMode.None || instrumentMode === InstrumentMode.TotalAccent) {
                 return
             }
-            const pattern = this.context.machine.memory.pattern()
+            const pattern = this.context.machine.state.activePattern()
             Utils.clearPatternStep(pattern, instrumentMode, stepIndex)
         }, true))
     }
@@ -214,8 +220,8 @@ export class ShuffleFlamState extends MachineState {
     constructor(context: MachineContext) {
         super(context)
 
-        const memory = this.context.machine.memory
-        this.with(memory.userPatternChangeNotification.addObserver((pattern: Pattern) => {
+        const state = this.context.machine.state
+        this.with(state.patternIndicesChangeNotification.addObserver((pattern: Pattern) => {
             this.subscriptions.terminate()
             this.subscriptions.with(pattern.groove.addObserver(() => this.update(), false))
             this.subscriptions.with(pattern.flamDelay.addObserver(() => this.update(), false))
@@ -225,7 +231,7 @@ export class ShuffleFlamState extends MachineState {
     }
 
     onMainKeyPress(keyIndex: MainKeyIndex): void {
-        const pattern = this.context.machine.memory.pattern()
+        const pattern = this.context.machine.state.activePattern()
         if (keyIndex === MainKeyIndex.Step1) {
             pattern.groove.set(GrooveIdentity)
         } else if (keyIndex <= MainKeyIndex.Step7) {
@@ -242,7 +248,7 @@ export class ShuffleFlamState extends MachineState {
 
     private update(): void {
         this.context.clearMainKeys()
-        const pattern = this.context.machine.memory.pattern()
+        const pattern = this.context.machine.state.activePattern()
         const groove = pattern.groove.get()
         if (groove === GrooveIdentity) {
             this.context.mainKeys[0].setState(MainKeyState.On)
@@ -268,8 +274,8 @@ export class LastStepSelectState extends MachineState {
     constructor(context: MachineContext) {
         super(context)
 
-        const memory = this.context.machine.memory
-        this.with(memory.userPatternChangeNotification.addObserver((pattern: Pattern) => {
+        const state = this.context.machine.state
+        this.with(state.patternIndicesChangeNotification.addObserver((pattern: Pattern) => {
             this.subscriptions.terminate()
             this.subscriptions.with(pattern.addObserver(() => this.update(), true))
         }))
@@ -278,11 +284,11 @@ export class LastStepSelectState extends MachineState {
 
     onMainKeyPress(keyIndex: MainKeyIndex): void {
         if (keyIndex === MainKeyIndex.TotalAccent) return
-        this.context.machine.memory.pattern().lastStep.set(keyIndex + 1)
+        this.context.machine.state.activePattern().lastStep.set(keyIndex + 1)
     }
 
     update(): void {
-        const pattern = this.context.machine.memory.pattern()
+        const pattern = this.context.machine.state.activePattern()
         this.context.clearMainKeys()
         this.context.mainKeys[pattern.lastStep.get() - 1].setState(MainKeyState.On)
     }
