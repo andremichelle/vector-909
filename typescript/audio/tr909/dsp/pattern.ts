@@ -41,8 +41,8 @@ export class TrackPatternPlay implements PatternProvider {
     private current: Pattern = null
 
     constructor(readonly memory: Memory) {
-        const sequence = this.memory.tracks[0]
-        const patterns = this.memory.patterns
+        const sequence = this.memory.activeTrack()
+        const patterns = this.memory.activeBank().patterns
         this.current = sequence.length === 0 ? null : patterns[sequence[this.index]]
     }
 
@@ -51,15 +51,15 @@ export class TrackPatternPlay implements PatternProvider {
     }
 
     onPatterComplete(): void {
-        const patternSequence: number[] = this.memory.tracks[0]
-        if (++this.index >= patternSequence.length) {
+        const track: number[] = this.memory.activeTrack()
+        if (++this.index >= track.length) {
             if (this.memory.cycleMode.get()) {
-                this.current = this.memory.patterns[patternSequence[this.index = 0]]
+                this.current = this.memory.activeBank().patterns[track[this.index = 0]]
             } else {
                 this.current = null
             }
         } else {
-            this.current = this.memory.patterns[patternSequence[this.index]]
+            this.current = this.memory.activeBank().patterns[track[this.index]]
         }
     }
 }

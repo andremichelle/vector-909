@@ -29,31 +29,45 @@ export enum PatternIndex {
     Pattern13, Pattern14, Pattern15, Pattern16,
 }
 
+export type PatternLocation = { patternGroupIndex: PatternGroupIndex, patternIndex: PatternIndex }
 
-export type PatternLocation = { bankGroupIndex: BankGroupIndex, patternGroupIndex: PatternGroupIndex, patternIndex: PatternIndex }
+export type Track = number[]
 
 export class Bank {
+    static readonly NUM_PATTERN_GROUPS = 3
+    static readonly NUM_PATTERNS = 16
+    static readonly PATTERNS_COUNT = Bank.NUM_PATTERNS * Bank.NUM_PATTERN_GROUPS
 
+    readonly tracks: number[][] = ArrayUtils.fill(4, () => [])
+    readonly patterns: Pattern[] = ArrayUtils.fill(Bank.PATTERNS_COUNT, () => new Pattern())
+
+    indexOf(patternGroupIndex: PatternGroupIndex, patternIndex: PatternIndex): number {
+        return patternGroupIndex * Bank.NUM_PATTERNS + patternIndex
+    }
+
+    patternBy(patternGroupIndex: PatternGroupIndex, patternIndex: PatternIndex): Pattern {
+        return this.patterns[patternGroupIndex * Bank.NUM_PATTERNS + patternIndex]
+    }
+
+    toLocation(index: number): PatternLocation {
+        return {
+            patternGroupIndex: Math.floor(index / Bank.NUM_PATTERNS) % Bank.NUM_PATTERN_GROUPS,
+            patternIndex: index % Bank.NUM_PATTERNS
+        }
+    }
 }
 
 export class Memory implements Terminable {
-    private static NUM_BANKS = 2
-    private static NUM_PATTERN_GROUPS = 3
-    private static NUM_PATTERNS = 16
-    private static PATTERNS_TOTAL_COUNT = Memory.NUM_BANKS * Memory.NUM_PATTERNS * Memory.NUM_PATTERN_GROUPS
-
     private readonly terminator = new Terminator()
 
-    readonly tracks: number[][] = ArrayUtils.fill(4, () => [])
-    readonly cycleMode: ObservableValue<boolean> = new ObservableValueImpl<boolean>(false)
+    readonly userPatternChangeNotification: ObservableImpl<Pattern> = new ObservableImpl<Pattern>() // TODO Move to worklet
 
-    readonly patterns: Pattern[] = ArrayUtils.fill(Memory.PATTERNS_TOTAL_COUNT, (index: number) => new Pattern(index))
-    readonly userPatternChangeNotification: ObservableImpl<Pattern> = new ObservableImpl<Pattern>()
-
+    readonly bank: Bank[] = ArrayUtils.fill(2, () => new Bank())
     readonly bankGroupIndex: ObservableValue<BankGroupIndex> = new ObservableValueImpl<BankGroupIndex>(BankGroupIndex.I)
     readonly patternGroupIndex: ObservableValue<PatternGroupIndex> = new ObservableValueImpl<PatternGroupIndex>(PatternGroupIndex.I)
     readonly patternIndex: ObservableValue<PatternIndex> = new ObservableValueImpl<PatternIndex>(PatternIndex.Pattern1)
     readonly trackIndex: ObservableValue<TrackIndex> = new ObservableValueImpl<TrackIndex>(TrackIndex.I)
+    readonly cycleMode: ObservableValue<boolean> = new ObservableValueImpl<boolean>(false)
 
     constructor() {
         this.terminator.with(this.bankGroupIndex.addObserver(() => this.userPatternChangeNotification.notify(this.pattern()), false))
@@ -61,29 +75,33 @@ export class Memory implements Terminable {
         this.terminator.with(this.patternIndex.addObserver(() => this.userPatternChangeNotification.notify(this.pattern()), false))
 
         // TODO > Test Data < REMOVE WHEN DONE TESTING
-        this.patternOf(BankGroupIndex.I, PatternGroupIndex.III, 6).testA()
-        this.patternOf(0, 0, 1).testB()
-        this.tracks[0].push(this.indexOf(BankGroupIndex.I, PatternGroupIndex.III, 6), 1, 0, 1)
+        this.patternBy(PatternGroupIndex.III, 6).testA()
+        this.patternBy(0, 1).testB()
+        this.activeBank().tracks[0].push(this.indexOf(PatternGroupIndex.III, 6), 1, 0, 1)
     }
 
     pattern(): Pattern {
-        return this.patterns[this.indexOf(this.bankGroupIndex.get(), this.patternGroupIndex.get(), this.patternIndex.get())]
+        return this.activeBank().patternBy(this.patternGroupIndex.get(), this.patternIndex.get())
     }
 
-    indexOf(bankGroupIndex: BankGroupIndex, patternGroupIndex: PatternGroupIndex, patternIndex: PatternIndex): number {
-        return (bankGroupIndex * Memory.NUM_PATTERN_GROUPS + patternGroupIndex) * Memory.NUM_PATTERNS + patternIndex
+    activeBank(): Bank {
+        return this.bank[this.bankGroupIndex.get()]
     }
 
-    patternOf(bankGroupIndex: BankGroupIndex, patternGroupIndex: PatternGroupIndex, patternIndex: PatternIndex): Pattern {
-        return this.patterns[(bankGroupIndex * Memory.NUM_PATTERN_GROUPS + patternGroupIndex) * Memory.NUM_PATTERNS + patternIndex]
+    activeTrack(): number[] {
+        return this.activeBank().tracks[this.trackIndex.get()]
+    }
+
+    indexOf(patternGroupIndex: PatternGroupIndex, patternIndex: PatternIndex): number {
+        return this.activeBank().indexOf(patternGroupIndex, patternIndex)
+    }
+
+    patternBy(patternGroupIndex: PatternGroupIndex, patternIndex: PatternIndex): Pattern {
+        return this.activeBank().patternBy(patternGroupIndex, patternIndex)
     }
 
     toLocation(index: number): PatternLocation {
-        return {
-            bankGroupIndex: Math.floor(Math.floor(index / Memory.NUM_PATTERNS) / Memory.NUM_PATTERN_GROUPS),
-            patternGroupIndex: Math.floor(index / Memory.NUM_PATTERNS) % Memory.NUM_PATTERN_GROUPS,
-            patternIndex: index % Memory.NUM_PATTERNS
-        }
+        return this.activeBank().toLocation(index)
     }
 
     terminate(): void {

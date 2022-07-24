@@ -46,19 +46,12 @@ export class TrackPlayState extends MachineState {
         this.with(this.context.machine.memory.cycleMode.addObserver(mode =>
             this.context.functionKeys.byIndex(FunctionKeyIndex.CycleGuideLastMeasure)
                 .setState(mode ? FunctionKeyState.On : FunctionKeyState.Off), true))
-        this.with(this.context.machine.memory.trackIndex.addObserver(trackIndex => {
-            const patternSequence = this.context.machine.memory.tracks[trackIndex]
-            if (patternSequence.length === 0) {
-                this.context.showBankGroup(0)
-                this.context.showPatternGroup(0)
-                this.context.mainKeys.byIndex(0).setState(MainKeyState.Flash)
-                this.context.digits.show(0)
-            } else {
-                this.context.showPatternLocation(patternSequence[0])
-                this.context.digits.show(1) // first measure index
-            }
-            this.context.showTrackIndex(trackIndex, false)
-        }, true))
+        this.with(this.context.machine.memory.trackIndex.addObserver(() => this.initButtons(), false))
+        this.with(this.context.machine.memory.bankGroupIndex
+            .addObserver((bankGroupIndex: BankGroupIndex) => {
+                this.context.showBankGroup(bankGroupIndex)
+                this.initButtons()
+            }, true))
     }
 
     onFunctionKeyPress(keyIndex: FunctionKeyIndex) {
@@ -88,6 +81,20 @@ export class TrackPlayState extends MachineState {
 
     onMainKeyPress(keyIndex: MainKeyIndex) {
         this.playInstrument(keyIndex)
+    }
+
+    private initButtons() {
+        const trackIndex: TrackIndex = this.context.machine.memory.trackIndex.get()
+        const patternSequence = this.context.machine.memory.activeBank().tracks[trackIndex]
+        if (patternSequence.length === 0) {
+            this.context.showPatternGroup(0)
+            this.context.mainKeys.byIndex(0).setState(MainKeyState.Flash)
+            this.context.digits.show(0)
+        } else {
+            this.context.showPatternLocation(patternSequence[0])
+            this.context.digits.show(1) // first measure index
+        }
+        this.context.showTrackIndex(trackIndex, false)
     }
 }
 

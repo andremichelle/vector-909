@@ -1,9 +1,9 @@
 import {ArrayUtils, ObservableValueImpl, Parameter, Terminable, Terminator} from "../../lib/common.js"
 import {dbToGain, Transport} from "../common.js"
 import {MeterWorklet} from "../meter/worklet.js"
-import {Memory} from "./memory.js"
+import {Bank, BankGroupIndex, Memory, PatternIndex} from "./memory.js"
 import {ProcessorOptions, ToMainMessage, ToWorkletMessage} from "./messages.js"
-import {ChannelIndex, Step} from "./pattern.js"
+import {ChannelIndex, Pattern, Step} from "./pattern.js"
 import {Preset} from "./preset.js"
 import {Resources} from "./resources.js"
 
@@ -59,12 +59,17 @@ export class TR909Machine implements Terminable {
                 patternIndex: this.memory.patternIndex.get()
             } as ToWorkletMessage)
         }))
-        this.terminator.merge(this.memory.patterns.map(pattern =>
-            pattern.addObserver(() => this.worklet.port.postMessage({
-                type: 'update-pattern-data',
-                index: pattern.index,
-                format: pattern.serialize()
-            } as ToWorkletMessage), false)))
+
+        this.terminator.merge(this.memory.bank
+            .map((bank: Bank, bankGroupIndex: BankGroupIndex) => bank.patterns
+                .map((pattern: Pattern, patternIndex: PatternIndex) => pattern
+                    .addObserver(() => this.worklet.port.postMessage({
+                        type: 'update-pattern-data',
+                        bankGroupIndex,
+                        patternIndex,
+                        format: pattern.serialize()
+                    } as ToWorkletMessage), false))).flat())
+
         this.worklet.port.onmessage = event => {
             const index = (event.data as ToMainMessage).index
             const time = Date.now() + context.outputLatency

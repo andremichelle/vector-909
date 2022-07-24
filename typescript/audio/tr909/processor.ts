@@ -51,7 +51,7 @@ registerProcessor('tr-909', class extends AudioWorkletProcessor implements Voice
                 this.memory.patternGroupIndex.set(message.patternGroupIndex)
                 this.memory.patternIndex.set(message.patternIndex)
             } else if (message.type === 'update-pattern-data') {
-                this.memory.patterns[message.index].deserialize(message.format)
+                this.memory.bank[message.bankGroupIndex].patterns[message.patternIndex].deserialize(message.format)
             } else if (message.type === "transport-play") {
                 this.moving = true
             } else if (message.type === "transport-pause") {

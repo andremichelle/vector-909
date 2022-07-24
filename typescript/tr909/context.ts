@@ -108,8 +108,7 @@ export class MachineContext implements Terminable {
     }
 
     showPatternLocation(index: number): void {
-        const location = this.machine.memory.toLocation(index)
-        this.showBankGroup(location.bankGroupIndex)
+        const location = this.machine.memory.activeBank().toLocation(index)
         this.showPatternGroup(location.patternGroupIndex)
         this.mainKeys.byIndex(location.patternIndex as number).setState(MainKeyState.Flash) // TODO MainKeyState.Blink
     }

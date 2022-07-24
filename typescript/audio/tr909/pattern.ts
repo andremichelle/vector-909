@@ -57,7 +57,7 @@ export class Pattern implements Observable<void> {
         this.grooveSubscription = groove.addObserver(this.listener, true)
     }, false)
 
-    constructor(readonly index: number) {
+    constructor() {
     }
 
     testA() {
