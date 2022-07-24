@@ -24,7 +24,8 @@ export class TR909Machine implements Terminable {
     readonly transport: Transport
     readonly meterWorklet: MeterWorklet
     readonly master: GainNode
-    readonly stepIndex = new ObservableValueImpl<number>(0)
+
+    readonly processorStepIndex = new ObservableValueImpl<number>(0)
 
     constructor(context, resources: Resources) {
         this.worklet = new AudioWorkletNode(context, "tr-909", {
@@ -72,8 +73,8 @@ export class TR909Machine implements Terminable {
         this.startScheduler()
 
         // TODO > Test Data < REMOVE WHEN DONE TESTING
+        this.state.patternBy(0, 0).testB()
         this.state.patternBy(PatternGroupIndex.III, 6).testA()
-        this.state.patternBy(0, 1).testB()
         this.state.activeBank().tracks[0].push(this.state.indexOf(PatternGroupIndex.III, 6), 1, 0, 1)
     }
 
@@ -90,7 +91,7 @@ export class TR909Machine implements Terminable {
         const schedule = () => {
             if (this.scheduleStepIndexUpdates.length > 0) {
                 if (Date.now() >= this.scheduleStepIndexUpdates[0].time) {
-                    this.stepIndex.set(this.scheduleStepIndexUpdates.shift().index)
+                    this.processorStepIndex.set(this.scheduleStepIndexUpdates.shift().index)
                 }
             }
             if (this.running) {

@@ -93,14 +93,14 @@ export class TrackPlayState extends MachineState {
         const trackIndex: TrackIndex = this.context.machine.state.trackIndex.get()
         const patternSequence = this.context.machine.state.activeBank().tracks[trackIndex]
         if (patternSequence.length === 0) {
-            this.context.showPatternGroup(0)
+            this.context.activatePatternGroupButton(0)
             this.context.mainKeys.byIndex(0).setState(MainKeyState.Flash)
             this.context.digits.show(0)
         } else {
             this.context.showPatternLocation(patternSequence[0])
             this.context.digits.show(1) // first measure index
         }
-        this.context.showTrackIndex(trackIndex, false)
+        this.context.activateTrackButton(trackIndex, false)
     }
 }
 
@@ -108,12 +108,9 @@ export class PatternPlayState extends MachineState {
     constructor(context: MachineContext) {
         super(context)
 
-        this.context.functionKeys.byIndex(FunctionKeyIndex.Track1).setState(FunctionKeyState.Off)
-        this.context.functionKeys.byIndex(FunctionKeyIndex.Track2).setState(FunctionKeyState.Off)
-        this.context.functionKeys.byIndex(FunctionKeyIndex.Track3).setState(FunctionKeyState.Off)
-        this.context.functionKeys.byIndex(FunctionKeyIndex.Track4).setState(FunctionKeyState.Off)
-
-        this.context.showPatternGroup(this.context.machine.state.patternGroupIndex.get())
+        this.context.deactivateTrackButtons()
+        this.context.activatePatternGroupButton(this.context.machine.state.patternGroupIndex.get())
+        this.context.mainKeys.byIndex(this.context.machine.state.patternIndex.get() as number).setState(MainKeyState.On)
     }
 
     onFunctionKeyPress(keyIndex: FunctionKeyIndex) {
@@ -150,7 +147,7 @@ export class ClearStepsState extends MachineState {
         super(context)
 
         this.with(this.context.showPatternSteps())
-        this.with(this.context.machine.stepIndex.addObserver(stepIndex => {
+        this.with(this.context.machine.processorStepIndex.addObserver(stepIndex => {
             const instrumentMode = this.context.instrumentMode.get()
             const pattern = this.context.machine.state.activePattern()
             Utils.clearPatternStep(pattern, instrumentMode, stepIndex)
@@ -174,7 +171,7 @@ export class TapModeState extends MachineState {
         machine.play(channelIndex, step)
         if (machine.transport.isPlaying()) {
             machine.state.activePattern()
-                .setStep(channelIndex, machine.stepIndex.get(), step ? Step.Full : Step.Weak)
+                .setStep(channelIndex, machine.processorStepIndex.get(), step ? Step.Full : Step.Weak)
         }
     }
 }
@@ -184,7 +181,7 @@ export class ClearTapState extends MachineState {
         super(context)
 
         this.with(this.context.showRunningAnimation())
-        this.with(this.context.machine.stepIndex.addObserver(stepIndex => {
+        this.with(this.context.machine.processorStepIndex.addObserver(stepIndex => {
             const instrumentMode = Utils.buttonIndicesToInstrumentMode(this.context.pressedMainKeys)
             if (instrumentMode === InstrumentMode.None || instrumentMode === InstrumentMode.TotalAccent) {
                 return

@@ -42,7 +42,7 @@ registerProcessor('tr-909', class extends AudioWorkletProcessor implements Voice
         this.memory = [new MemoryBank(), new MemoryBank()]
         this.state = new State(this.memory)
         this.patternProvider = new UserPatternSelect(this.state, () => this.moving)
-        this.patternProvider = new TrackPatternPlay(this.state)
+        // this.patternProvider = new TrackPatternPlay(this.state)
         this.channels = ArrayUtils.fill(10, index => new Channel(this, index))
 
         this.port.onmessage = (event: MessageEvent) => {
