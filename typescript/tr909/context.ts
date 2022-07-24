@@ -39,7 +39,7 @@ export class MachineContext implements Terminable {
     readonly pressedMainKeys: Set<MainKeyIndex> = new Set<MainKeyIndex>()
     readonly shiftMode: ObservableValueImpl<boolean> = new ObservableValueImpl<boolean>(false)
 
-    private state: NonNullable<MachineState> = new PatternPlayState(this)
+    private state: NonNullable<MachineState> = new TrackPlayState(this)
 
     constructor(readonly machine: TR909Machine,
                 readonly mainKeys: KeyGroup<MainKeyIndex>,

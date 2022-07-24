@@ -76,7 +76,11 @@ export class KeyGroup<INDEX extends number> {
             this.byIndex(keyIndex).setState(map(zeroBasedIndex)))
     }
 
-    deactivate(indices: INDEX[]): void {
-        indices.forEach((keyIndex: INDEX) => this.byIndex(keyIndex).setState(KeyState.Off))
+    deactivate(indices?: INDEX[]): void {
+        if (indices === undefined) {
+            this.keys.forEach(key => key.setState(KeyState.Off))
+        } else {
+            indices.forEach((keyIndex: INDEX) => this.byIndex(keyIndex).setState(KeyState.Off))
+        }
     }
 }

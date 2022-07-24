@@ -78,7 +78,7 @@ export class TR909Machine implements Terminable {
         // TODO > Test Data < REMOVE WHEN DONE TESTING
         this.state.patternBy(0, 0).testB()
         this.state.patternBy(PatternGroupIndex.III, 6).testA()
-        this.state.activeBank().tracks[0].push(this.state.indexOf(PatternGroupIndex.III, 6), 1, 0, 1)
+        // this.state.activeBank().tracks[0].push(this.state.indexOf(PatternGroupIndex.III, 6), 1, 0, 1)
     }
 
     play(channelIndex: ChannelIndex, step: Step) {

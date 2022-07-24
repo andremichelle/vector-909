@@ -8,6 +8,7 @@ export default class extends MachineState {
         super(context)
 
         this.context.activateRunningAnimation()
+        this.context.activateBankGroupButton(this.context.machine.state.bankGroupIndex.get())
         this.with(this.context.machine.state.patternGroupIndex
             .addObserver((patternGroupIndex: PatternGroupIndex) =>
                 this.context.activatePatternGroupButton(patternGroupIndex), true))
@@ -41,6 +42,10 @@ export default class extends MachineState {
     onMainKeyPress(keyIndex: MainKeyIndex) {
         if (keyIndex === MainKeyIndex.TotalAccent) return
         this.context.machine.state.patternIndex.set(keyIndex as number as PatternIndex)
+        if (!this.context.machine.transport.isPlaying()) {
+            this.context.mainKeys.deactivate()
+            this.context.mainKeys.byIndex(keyIndex).setState(KeyState.Blink)
+        }
     }
 
     name(): string {
