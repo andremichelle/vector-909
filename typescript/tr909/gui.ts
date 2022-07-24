@@ -20,7 +20,7 @@ export class GUI {
         this.installKnobs()
         // this.installScale()
         this.installTransport()
-        this.installBlinkingSynchronizer()
+        this.installAnimationSynchronizer()
     }
 
     private installKnobs(): void {
@@ -114,21 +114,20 @@ export class GUI {
         })
     }
 
-    private installBlinkingSynchronizer(): void {
+    private installAnimationSynchronizer(): void {
         let running = true
-        let visible = true
+        let blink = true
         let frame: number = 0 | 0
         let position: number = 0.0
         let lastTime: number = Date.now()
-        const style: CSSStyleDeclaration = document.documentElement.style
         const next = () => {
             const now = Date.now()
             const elapsedTime = (now - lastTime) / 1000.0
             position += secondsToBars(elapsedTime, this.machine.preset.tempo.get()) * 8.0
             lastTime = now
             if (position >= 1.0) {
-                style.setProperty('--synchronous-beat-visibility', visible ? 'visible' : 'hidden')
-                visible = !visible
+                HTML.queryAll('.blink-active', this.parentNode).forEach(element => element.classList.toggle('active', blink))
+                blink = !blink
                 position -= 1.0
             }
             const flash: boolean = frame % 4 < 2

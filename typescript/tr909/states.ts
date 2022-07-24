@@ -110,7 +110,7 @@ export class PatternPlayState extends MachineState {
 
         this.context.deactivateTrackButtons()
         this.context.activatePatternGroupButton(this.context.machine.state.patternGroupIndex.get())
-        this.context.mainKeys.byIndex(this.context.machine.state.patternIndex.get() as number).setState(MainKeyState.On)
+        this.context.mainKeys.byIndex(this.context.machine.state.patternIndex.get() as number).setState(MainKeyState.Blink)
     }
 
     onFunctionKeyPress(keyIndex: FunctionKeyIndex) {
