@@ -42,4 +42,8 @@ export default class extends MachineState {
         if (keyIndex === MainKeyIndex.TotalAccent) return
         this.context.machine.state.patternIndex.set(keyIndex as number as PatternIndex)
     }
+
+    name(): string {
+        return 'Pattern Play'
+    }
 }

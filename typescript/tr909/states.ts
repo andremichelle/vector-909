@@ -24,6 +24,8 @@ export abstract class MachineState implements Terminable {
     onMainKeyRelease(keyIndex: MainKeyIndex): void {
     }
 
+    abstract name(): string
+
     readonly with = <T extends Terminable>(terminable: T): T => this.terminator.with(terminable)
     readonly terminate = (): void => this.terminator.terminate()
 }
@@ -41,6 +43,10 @@ export class StepModeState extends MachineState {
         const instrumentMode = this.context.instrumentMode.get()
         Utils.setNextStepValue(pattern, instrumentMode, keyIndex)
     }
+
+    name(): string {
+        return 'Step Mode'
+    }
 }
 
 export class ClearStepsState extends MachineState {
@@ -53,6 +59,10 @@ export class ClearStepsState extends MachineState {
             const pattern = this.context.machine.state.activePattern()
             Utils.clearPatternStep(pattern, instrumentMode, stepIndex)
         }, true))
+    }
+
+    name(): string {
+        return 'Step Clear'
     }
 }
 
@@ -75,6 +85,10 @@ export class TapModeState extends MachineState {
                 .setStep(channelIndex, machine.processorStepIndex.get(), step ? Step.Full : Step.Weak)
         }
     }
+
+    name(): string {
+        return 'Tap Mode'
+    }
 }
 
 export class ClearTapState extends MachineState {
@@ -90,6 +104,10 @@ export class ClearTapState extends MachineState {
             const pattern = this.context.machine.state.activePattern()
             Utils.clearPatternStep(pattern, instrumentMode, stepIndex)
         }, true))
+    }
+
+    name(): string {
+        return 'Tap Clear'
     }
 }
 
@@ -107,6 +125,10 @@ export class InstrumentSelectState extends MachineState {
 
     onMainKeyPress(keyIndex: MainKeyIndex): void {
         this.context.instrumentMode.set(Utils.buttonIndicesToInstrumentMode(this.context.pressedMainKeys))
+    }
+
+    name(): string {
+        return 'Instrument Select'
     }
 }
 
@@ -144,8 +166,12 @@ export class ShuffleFlamState extends MachineState {
         }
     }
 
+    name(): string {
+        return 'Flam Shuffle'
+    }
+
     private update(): void {
-        this.context.deactivateMainKeys()
+        this.context.resetMainKeys()
         const pattern = this.context.machine.state.activePattern()
         const groove = pattern.groove.get()
         if (groove === GrooveIdentity) {
@@ -187,7 +213,11 @@ export class LastStepSelectState extends MachineState {
 
     update(): void {
         const pattern = this.context.machine.state.activePattern()
-        this.context.deactivateMainKeys()
+        this.context.resetMainKeys()
         this.context.mainKeys[pattern.lastStep.get() - 1].setState(KeyState.On)
+    }
+
+    name(): string {
+        return 'Last Step'
     }
 }

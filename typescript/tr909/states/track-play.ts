@@ -7,7 +7,7 @@ export default class extends MachineState {
     constructor(context: MachineContext) {
         super(context)
 
-        this.context.deactivateMainKeys()
+        this.context.resetMainKeys()
         this.with(this.context.activateRunningAnimation())
         this.with(this.context.machine.state.cycleMode.addObserver(mode =>
             this.context.functionKeys.byIndex(FunctionKeyIndex.CycleGuideLastMeasure)
@@ -53,6 +53,10 @@ export default class extends MachineState {
 
     onMainKeyPress(keyIndex: MainKeyIndex) {
         this.context.playInstrument(keyIndex)
+    }
+
+    name(): string {
+        return 'Track Play'
     }
 
     private initButtons() {

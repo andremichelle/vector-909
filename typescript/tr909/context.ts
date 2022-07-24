@@ -8,6 +8,7 @@ import {
     BankGroupKeyIndices,
     FunctionKeyIndex,
     Key,
+    KeyGroup,
     KeyState,
     MainKeyIndex,
     PatternGroupKeyIndices,
@@ -17,19 +18,6 @@ import {MachineState} from "./states.js"
 import PatternPlayState from "./states/pattern-play.js"
 import TrackPlayState from "./states/track-play.js"
 import {InstrumentMode, Utils} from "./utils.js"
-
-export class KeyGroup<INDEX extends number> {
-    constructor(readonly keys: Key[]) {
-    }
-
-    forEach(fn: (key: Key, index: INDEX) => void): void {
-        this.keys.forEach(fn)
-    }
-
-    byIndex(index: INDEX): Key {
-        return this.keys[index]
-    }
-}
 
 export class MachineContext implements Terminable {
     static create(machine: TR909Machine, parentNode: ParentNode): MachineContext {
@@ -119,50 +107,39 @@ export class MachineContext implements Terminable {
     }
 
     resetKeys(): void {
-        this.deactivateMainKeys()
-        this.deactivateTrackButtons()
-        this.deactivateBankGroupKeys()
-        this.deactivatePatternGroupButtons()
+        this.functionKeys.deactivate(TrackKeyIndices)
+        this.functionKeys.deactivate(BankGroupKeyIndices)
+        this.functionKeys.deactivate(PatternGroupKeyIndices)
+        this.resetMainKeys()
     }
 
-    deactivateMainKeys(): void {
+    resetMainKeys(): void {
+        console.debug('resetMainKeys')
         this.mainKeys.forEach(button => button.setState(KeyState.Off))
     }
 
-    activatePatternLocationButtons(index: number): void {
-        const location = this.machine.state.activeBank().toLocation(index)
+    activatePatternLocationButtons(arrayIndex: number): void {
+        console.debug(`activatePatternLocationButtons(arrayIndex: ${arrayIndex})`)
+        const location = this.machine.state.activeBank().toLocation(arrayIndex)
         this.activatePatternGroupButton(location.patternGroupIndex)
         this.mainKeys.byIndex(location.patternIndex as number).setState(KeyState.Blink)
     }
 
     activateTrackButton(trackIndex: TrackIndex, writeMode: boolean): void {
         console.debug(`showTrackIndex(index: ${trackIndex}, writeMode: ${writeMode})`)
-
-        this.activateFunctionKeys(index => index === trackIndex
+        this.functionKeys.activate(index => index === trackIndex
             ? writeMode ? KeyState.Blink :
                 KeyState.On : KeyState.Off, TrackKeyIndices)
     }
 
-    deactivateTrackButtons(): void {
-        this.deactivateFunctionKeys(TrackKeyIndices)
-    }
-
     activatePatternGroupButton(patternGroupIndex: PatternGroupIndex): void {
         console.debug(`activatePatternGroupButton(index: ${patternGroupIndex})`)
-        this.activateFunctionKeys(index => patternGroupIndex === index ? KeyState.On : KeyState.Off, PatternGroupKeyIndices)
-    }
-
-    deactivatePatternGroupButtons(): void {
-        this.deactivateFunctionKeys(PatternGroupKeyIndices)
+        this.functionKeys.activate(index => patternGroupIndex === index ? KeyState.On : KeyState.Off, PatternGroupKeyIndices)
     }
 
     activateBankGroupButton(bankGroupIndex: BankGroupIndex): void {
         console.debug(`activateBankGroupButton(index: ${bankGroupIndex})`)
-        this.activateFunctionKeys(index => bankGroupIndex === index ? KeyState.On : KeyState.Off, BankGroupKeyIndices)
-    }
-
-    deactivateBankGroupKeys(): void {
-        this.deactivateFunctionKeys(BankGroupKeyIndices)
+        this.functionKeys.activate(index => bankGroupIndex === index ? KeyState.On : KeyState.Off, BankGroupKeyIndices)
     }
 
     activatePatternStepsButtons(): Terminable {
@@ -215,16 +192,6 @@ export class MachineContext implements Terminable {
         const pattern: Pattern = this.machine.state.activePattern()
         const mapping = Utils.createStepToStateMapping(this.instrumentMode.get())
         this.mainKeys.forEach((key: Key, keyIndex: MainKeyIndex) =>
-            key.setState(keyIndex === MainKeyIndex.TotalAccent
-                ? KeyState.Off : mapping(pattern, keyIndex)))
-    }
-
-    private activateFunctionKeys(map: (zeroBasedIndex: number) => KeyState, indices: FunctionKeyIndex[]): void {
-        indices.forEach((keyIndex: FunctionKeyIndex, zeroBasedIndex: number) =>
-            this.functionKeys.byIndex(keyIndex).setState(map(zeroBasedIndex)))
-    }
-
-    private deactivateFunctionKeys(indices: FunctionKeyIndex[]): void {
-        indices.forEach(keyIndex => this.functionKeys.byIndex(keyIndex).setState(KeyState.Off))
+            key.setState(keyIndex === MainKeyIndex.TotalAccent ? KeyState.Off : mapping(pattern, keyIndex)))
     }
 }
